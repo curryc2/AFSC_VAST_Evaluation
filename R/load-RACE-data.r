@@ -11,14 +11,27 @@
 load_RACE_data <- function(species.codes=c(30152,30420), area="GOA", writeCSV=FALSE, writeDATA=FALSE) {
   require(FishData)
 
+  
+  #FOR ORIGINAL .CSV INPUT
+  # #Opening section to determine suitability
+  # if(file.exists("data/race_base_haul.csv")==FALSE) { stop("data/race_base_haul.csv NOT FOUND") }
+  # if(file.exists("data/race_base_catch.csv")==FALSE) { stop("data/race_base_catch.csv NOT FOUND") }
+  # if(file.exists("data/race_species_codes.csv")==FALSE) { stop("data/race_species_codes.csv NOT FOUND") }
+  # 
+  # #Load catch and haul data
+  # haul <- read.csv("data/race_base_haul.csv", header=TRUE, stringsAsFactors=FALSE)
+  # catch <- read.csv("data/race_base_catch.csv", header=TRUE, stringsAsFactors=FALSE)
+  
+  #FOR NEW .RData INPUT
   #Opening section to determine suitability
-  if(file.exists("data/race_base_haul.csv")==FALSE) { stop("data/race_base_haul.csv NOT FOUND") }
-  if(file.exists("data/race_base_catch.csv")==FALSE) { stop("data/race_base_catch.csv NOT FOUND") }
+  if(file.exists("data/race_base_haul.RData")==FALSE) { stop("data/race_base_haul.RData NOT FOUND") }
+  if(file.exists("data/race_base_catch.RData")==FALSE) { stop("data/race_base_catch.RData NOT FOUND") }
   if(file.exists("data/race_species_codes.csv")==FALSE) { stop("data/race_species_codes.csv NOT FOUND") }
   
   #Load catch and haul data
-  haul <- read.csv("data/race_base_haul.csv", header=TRUE, stringsAsFactors=FALSE)
-  catch <- read.csv("data/race_base_catch.csv", header=TRUE, stringsAsFactors=FALSE)
+  load("data/race_base_catch.RData")
+  load("data/race_base_haul.RData")
+
   
   #Merge data
   catchhaul <- merge(catch,haul,all.y=T,all.x=F,by.x="HAULJOIN",by.y="HAULJOIN")

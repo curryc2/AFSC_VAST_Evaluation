@@ -11,6 +11,8 @@ create_VAST_input <- function(species.codes, lat_lon.def="mean") {
   #Get Data
   load.data <- load_RACE_data(species.codes=species.codes, area="GOA")
   
+  
+  
   #Create VAST input data object
   Data_Geostat <- NULL
   Data_Geostat$Catch_KG <- temp.data$WEIGHT  
