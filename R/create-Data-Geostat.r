@@ -6,7 +6,7 @@
 #'
 #' @return list Data_Geostat with input data for VAST
 #' @export
-create_DataGeostat <- function(species.codes, lat_lon.def="mean") {
+create_Data_Geostat <- function(species.codes, lat_lon.def="mean") {
   #TESTING
   # species.codes <- c(30152,30420)
   # lat_lon.def <- "mean"
