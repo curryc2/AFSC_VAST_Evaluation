@@ -1,0 +1,9 @@
+{
+    "path" : "~/Projects/VAST Evaluation/AFSC_VAST_Evaluation/data",
+    "sortOrder" : [
+        {
+            "ascending" : true,
+            "columnIndex" : 2
+        }
+    ]
+}
