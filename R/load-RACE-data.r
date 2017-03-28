@@ -1,10 +1,10 @@
 #' Function to load RACE bottom trawl data. 
 #' Catch and haul data are merged with species names, and zeros are added for missing no-catch observations.
 #'
-#' @param species.codes Vector of species codes to be included
-#' @param area Area of focus: GOA, BS, AI
-#' @param writeCSV Boolean indicating whether "output/RACE_data_output.csv" is created
-#' @param writeDATA Boolean indicating whether "output/RACE_data_output.RData" is created
+#' @param species.codes vector of species codes for which data will be returned
+#' @param area string indicating the area of focus: GOA, BS, AI
+#' @param writeCSV boolean indicating whether "output/RACE_data_output.csv" is created
+#' @param writeDATA boolean indicating whether "output/RACE_data_output.RData" is created
 #'
 #' @return A data frame of RACE bottom trawl data, with rows equal to species-by-haul observations
 #' @export
@@ -27,6 +27,7 @@ load_RACE_data <- function(species.codes=c(30152,30420), area="GOA", writeCSV=FA
   if(file.exists("data/race_base_haul.RData")==FALSE) { stop("data/race_base_haul.RData NOT FOUND") }
   if(file.exists("data/race_base_catch.RData")==FALSE) { stop("data/race_base_catch.RData NOT FOUND") }
   if(file.exists("data/race_species_codes.csv")==FALSE) { stop("data/race_species_codes.csv NOT FOUND") }
+  if(file.exists("data/race_cruise_info.csv")==FALSE) { stop("data/race_cruise_info.csv NOT FOUND") }
   
   #Load catch and haul data
   load("data/race_base_catch.RData")
@@ -34,7 +35,7 @@ load_RACE_data <- function(species.codes=c(30152,30420), area="GOA", writeCSV=FA
 
   
   #Merge data
-  catchhaul <- merge(catch,haul,all.y=T,all.x=F,by.x="HAULJOIN",by.y="HAULJOIN")
+  catchhaul <- merge(x=catch, y=haul, all.y=TRUE, all.x=FALSE, by.x="HAULJOIN", by.y="HAULJOIN")
   
   #Add in zero observations for catch weight, for no catches.
   #  Drawing on Jim Thorson's code from FishData
@@ -52,8 +53,13 @@ load_RACE_data <- function(species.codes=c(30152,30420), area="GOA", writeCSV=FA
   
   #Add species name
   species.code.data <- read.csv("data/race_species_codes.csv", header=TRUE, stringsAsFactors=FALSE)
-  output <- merge(x=catchhaul.2, y=species.code.data[,c("Species.Code","Common.Name")], 
-                    by.x="SPECIES_CODE", by.y="Species.Code")
+  catchhaul.3 <- merge(x=catchhaul.2, y=species.code.data[,c("Species.Code","Common.Name")], 
+                       by.x="SPECIES_CODE", by.y="Species.Code")
+  
+  #Add year of survey
+  cruise.info <- read.csv("data/race_cruise_info.csv", header=TRUE, stringsAsFactors=FALSE)
+  output <- merge(x=catchhaul.3, y=cruise.info[,c("Cruise.Join.ID","Year")], 
+                       by.x="CRUISEJOIN.x", by.y="Cruise.Join.ID")
   
   #Return Section
   if(writeCSV==TRUE) { write.csv(output, file="output/RACE_data_output.csv") }

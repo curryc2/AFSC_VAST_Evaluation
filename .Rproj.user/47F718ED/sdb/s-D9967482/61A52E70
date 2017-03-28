@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "\n#' Create the Data_Geostat input for vast, based on RACE survey data\n#'\n#' @param species.codes vector of species codes for which data will be returned\n#' @param lat_lon.def string defining how tow-specific Latitude and Longitude will be calculated\n#'\n#' @return list Data_Geostat with input data for VAST\n#' @export\ncreate_DataGeostat <- function(species.codes, lat_lon.def=\"mean\") {\n  #TESTING\n  # species.codes <- c(30152,30420)\n  # lat_lon.def <- \"mean\"\n  \n  source(\"R/load-RACE-data.r\")\n  \n  #Check Inputs\n  if(!lat_lon.def %in% c(\"mean\", \"start\", \"end\")) { stop(\"lat_lon.def must be mean, start, or end\") }\n  \n  #Get Data\n  load.data <- load_RACE_data(species.codes=species.codes, area=\"GOA\")\n  \n  #Create VAST input data object\n  Data_Geostat <- NULL\n  #List Species, if multispecies\n  if(length(species.codes) > 1) {\n    Data_Geostat$spp <- load.data$Common.Name\n  }\n  Data_Geostat$Catch_KG <- load.data$WEIGHT  \n  Data_Geostat$Year <- load.data$Year \n  Data_Geostat$Vessel <- load.data$VESSEL.x\n  Data_Geostat$AreaSwept_km2 <- load.data$effort\n  \n  #Define Lat and Lon\n  if(lat_lon.def==\"start\") {\n    Data_Geostat$Lat <- load.data$START_LATITUDE\n    Data_Geostat$Lon <- load.data$START_LONGITUDE\n  }\n  if(lat_lon.def==\"end\") {\n    Data_Geostat$Lat <- load.data$END_LATITUDE\n    Data_Geostat$Lon <- load.data$END_LONGITUDE\n  }\n  if(lat_lon.def==\"mean\") {\n    Data_Geostat$Lat <- rowMeans(cbind(load.data$START_LATITUDE, load.data$END_LATITUDE))\n    Data_Geostat$Lon <- rowMeans(cbind(load.data$START_LONGITUDE, load.data$END_LONGITUDE))\n  }\n  \n\n  return(Data_Geostat)\n}\n",
+    "created" : 1490663310804.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "8|67|48|0|\n",
+    "hash" : "1343207413",
+    "id" : "61A52E70",
+    "lastKnownWriteTime" : 1490728882,
+    "last_content_update" : 1490728882037,
+    "path" : "//nmfs.local/AKC-ABL/Users/curry.cunningham/My Documents/Projects/VAST Evaluation/AFSC_VAST_Evaluation/R/create-DataGeostat.r",
+    "project_path" : "R/create-DataGeostat.r",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

@@ -10,4 +10,7 @@ VAST Package Website
 =============
 https://github.com/James-Thorson/VAST
 
-
+Data from NOAA: Resource Assessment and Conservation Engineering Division
+=============
+Please visit the following website for more information: 
+[RACE](https://www.afsc.noaa.gov/RACE/groundfish/bottom%20trawl%20surveys.php)
