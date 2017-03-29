@@ -9,7 +9,7 @@
 #' @return A data frame of RACE bottom trawl data, with rows equal to species-by-haul observations
 #' @export
 load_RACE_data <- function(species.codes=c(30152,30420), area="GOA", writeCSV=FALSE, writeDATA=FALSE) {
-  require(FishData)
+  # require(FishData)
 
   
   #FOR ORIGINAL .CSV INPUT
@@ -39,11 +39,11 @@ load_RACE_data <- function(species.codes=c(30152,30420), area="GOA", writeCSV=FA
   
   #Add in zero observations for catch weight, for no catches.
   #  Drawing on Jim Thorson's code from FishData
-  catchhaul.2 <- add_missing_zeros(data_frame=catchhaul, unique_sample_ID_colname="HAULJOIN",
-                                   sample_colname="WEIGHT", species_colname="SPECIES_CODE",
-                                   species_subset=species.codes,
-                                   if_multiple_records="First",
-                                   Method="Fast")
+  catchhaul.2 <- FishData::add_missing_zeros(data_frame=catchhaul, unique_sample_ID_colname="HAULJOIN",
+                                               sample_colname="WEIGHT", species_colname="SPECIES_CODE",
+                                               species_subset=species.codes,
+                                               if_multiple_records="First",
+                                                Method="Fast")
   #Limit to specific area
   catchhaul.2 <- catchhaul.2[catchhaul.2$REGION.x==area,]
   

@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "#==================================================================================================\n#Project Name: VAST spatial delta-GLMM (Thorson) Evaluation: Example Script\n#Creator: Curry James Cunningham, NOAA/NMFS, ABL\n#Date: 3.28.17\n#\n#Purpose: Example of How to Use helper functions\n#\n#\n#==================================================================================================\n#NOTES:\n#\n#==================================================================================================\nsource('R/create-VAST-input.r')\n\nrequire(VAST)\nrequire(TMB)\n\n#=======================================================================\n##### SETUP INPUT DATA #####\n\n#Generate a dataset\nspecies.codes=c(30420) #Rockfish\nlat_lon.def=\"mean\"\n\n#SPATIAL SETTINGS\nMethod = c(\"Grid\", \"Mesh\", \"Spherical_mesh\")[2]\ngrid_size_km = 25\nn_x = c(100, 250, 500, 1000, 2000)[1] # Number of stations\nKmeans_Config = list( \"randomseed\"=1, \"nstart\"=100, \"iter.max\"=1e3 )\n\n\n#SET SRATIFICATOIN\n#Basic - Single Area\nstrata.limits <- data.frame(STRATA = c(\"All_areas\"),\n                            west_border = c(-Inf),\n                            east_border = c(Inf))\n\n\n#DERIVED OBJECTS\nRegion = \"Gulf_of_Alaska\"\n###########################\nDateFile=paste0(getwd(),'/examples/VAST_output/')\n\n#MODEL SETTINGS\nFieldConfig = c(Omega1 = 1, Epsilon1 = 1, Omega2 = 1, Epsilon2 = 1)\nRhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0)\nOverdispersionConfig = c(Delta1 = 0, Delta2 = 0)\n\nObsModel = c(1, 0) #Delta Model\n# ObsModel = c(1, 1) #Poisson-Process Link function approximating Tweedie distribution\n\n#SPECIFY OUTPUTS\nOptions = c(SD_site_density = 0, SD_site_logdensity = 0,\n            Calculate_Range = 1, Calculate_evenness = 0, Calculate_effective_area = 1,\n            Calculate_Cov_SE = 0, Calculate_Synchrony = 0,\n            Calculate_Coherence = 0)\n\n#=======================================================================\n##### READ IN DATA AND BUILD vAST INPUT #####\n\n\n\n\nout <- create_VAST_input(species.codes=c(30420), lat_lon.def=\"mean\", save.Record=TRUE,\n                                     Method=\"Mesh\", grid_size_km=25, n_X=250,\n                                     Kmeans_Config=list( \"randomseed\"=1, \"nstart\"=100, \"iter.max\"=1e3 ),\n                                     strata.limits=NULL, Region=\"Gulf_of_Alaska\",\n                                     DateFile=DateFile,\n                                     FieldConfig, RhoConfig, OverdispersionConfig,\n                                     ObsModel, Options)\n\n\n\n#Unpack\nTmbData <- out$TmbData\nData_Geostat <- out$Data_Geostat\nSpatial_List <- out$Spatial_List\n\n\n\n#=======================================================================\n##### RUN VAST #####\n\n\n\n#Build TMB Object\n#  Compilation may take some time\nTmbList <- VAST::Build_TMB_Fn(TmbData = TmbData, RunDir = DateFile,\n                                Version = \"VAST_v2_4_0\", RhoConfig = RhoConfig, loc_x = Spatial_List$loc_x,\n                                Method = Method)\nObj <- TmbList[[\"Obj\"]]\n\n\nOpt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[[\"Lower\"]],\n                          upper = TmbList[[\"Upper\"]], getsd = TRUE, savedir = DateFile,\n                          bias.correct = FALSE)\n#Save output\nReport = Obj$report()\nSave = list(\"Opt\"=Opt, \"Report\"=Report, \"ParHat\"=Obj$env$parList(Opt$par), \"TmbData\"=TmbData)\nsave(Save, file=paste0(DateFile,\"Save.RData\"))\n\n\n",
+    "created" : 1490742932440.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "11117715",
+    "id" : "6B2402D2",
+    "lastKnownWriteTime" : 1490746421,
+    "last_content_update" : 1490746421135,
+    "path" : "~/Projects/VAST Evaluation/AFSC_VAST_Evaluation/examples/Run VAST Single Species.r",
+    "project_path" : "examples/Run VAST Single Species.r",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

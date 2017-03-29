@@ -1,12 +1,13 @@
 
-#' Create the Data_Geostat input for vast, based on RACE survey data
+#' Create the Data_Geostat dataframe for vast, based on RACE survey data
 #'
 #' @param species.codes vector of species codes for which data will be returned
 #' @param lat_lon.def string defining how tow-specific Latitude and Longitude will be calculated
+#' @param area string indicating area of survey interest: GOA, AI
 #'
-#' @return list Data_Geostat with input data for VAST
+#' @return dataframe Data_Geostat with input data for VAST
 #' @export
-create_Data_Geostat <- function(species.codes, lat_lon.def="mean") {
+create_Data_Geostat <- function(species.codes, lat_lon.def="mean", area="GOA") {
   #TESTING
   # species.codes <- c(30152,30420)
   # lat_lon.def <- "mean"
@@ -17,7 +18,7 @@ create_Data_Geostat <- function(species.codes, lat_lon.def="mean") {
   if(!lat_lon.def %in% c("mean", "start", "end")) { stop("lat_lon.def must be mean, start, or end") }
   
   #Get Data
-  load.data <- load_RACE_data(species.codes=species.codes, area="GOA")
+  load.data <- load_RACE_data(species.codes=species.codes, area=area)
   
   #Create VAST input data object
   Data_Geostat <- NULL
@@ -40,10 +41,11 @@ create_Data_Geostat <- function(species.codes, lat_lon.def="mean") {
     Data_Geostat$Lon <- load.data$END_LONGITUDE
   }
   if(lat_lon.def=="mean") {
-    Data_Geostat$Lat <- rowMeans(cbind(load.data$START_LATITUDE, load.data$END_LATITUDE))
-    Data_Geostat$Lon <- rowMeans(cbind(load.data$START_LONGITUDE, load.data$END_LONGITUDE))
+    Data_Geostat$Lat <- rowMeans(cbind(load.data$START_LATITUDE, load.data$END_LATITUDE), na.rm=TRUE)
+    Data_Geostat$Lon <- rowMeans(cbind(load.data$START_LONGITUDE, load.data$END_LONGITUDE), na.rm=TRUE)
   }
   
-
+  #Convert to data frame
+  Data_Geostat <- data.frame(Data_Geostat)
   return(Data_Geostat)
 }
