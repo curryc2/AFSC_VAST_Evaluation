@@ -10,7 +10,7 @@
 #' @param Kmeans_Config 
 #' @param strata.limits dataframe of strata limits for post-hoc apportionment
 #' @param Region string indicating region of evaluation, one of: Gulf_of_Alaska, Eastern_Bering_Sea, or Aleutian_Islands
-#' @param DateFile path for directory containing fitting outputs
+#' @param DateFile path for directory housing VAST model and output figures and objects
 #' @param FieldConfig 
 #' @param RhoConfig 
 #' @param OverdispersionConfig 
@@ -18,7 +18,7 @@
 #' @param Options 
 #' @param save.Record boolean indicating whether or not VAST settings record is saved
 #'
-#' @return VAST_input: Containing Data_Geostat, Spatial_List, and 
+#' @return VAST_input: Containing Data_Geostat, Spatial_List, Extrapolation_List, and TmbData
 #' @export
 create_VAST_input <- function(species.codes, lat_lon.def="mean", save.Record=TRUE,
                                 Method="Mesh", grid_size_km=25, n_X=250,
@@ -116,6 +116,7 @@ create_VAST_input <- function(species.codes, lat_lon.def="mean", save.Record=TRU
   VAST_input$Data_Geostat <- Data_Geostat
   VAST_input$Spatial_List <- Spatial_List
   VAST_input$TmbData <- TmbData
+  VAST_input$Extrapolation_List <- Extrapolation_List
   
   return(VAST_input)
 }

@@ -4,11 +4,11 @@
     "created" : 1490723505874.000,
     "dirty" : false,
     "encoding" : "UTF-8",
-    "folds" : "10|103|68|0|\n",
+    "folds" : "",
     "hash" : "4124133419",
     "id" : "DCE68487",
     "lastKnownWriteTime" : 1490742143,
-    "last_content_update" : 1490742143981,
+    "last_content_update" : 1490830780622,
     "path" : "~/Projects/VAST Evaluation/AFSC_VAST_Evaluation/R/load-RACE-data.r",
     "project_path" : "R/load-RACE-data.r",
     "properties" : {

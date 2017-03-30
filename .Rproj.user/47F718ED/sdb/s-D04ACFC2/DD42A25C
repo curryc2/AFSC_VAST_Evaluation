@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "#==================================================================================================\n#Project Name: VAST EVALUATION - Checkout new possible input data file\n#Creator: Curry James Cunningham, NOAA/NMFS, ABL\n#Date: 3.29.17\n#\n#Purpose:\n#\n#  1)\n#\n#\n#==================================================================================================\n#NOTES:\n#  a) \n#==================================================================================================\n\nsetwd('//nmfs.local/AKC-ABL/Users/curry.cunningham/My Documents/Projects/VAST Evaluation/New Survey Data from Dana 3.29.17')\n\n#Read in Data\n# goa_ai_cpue <- read.csv('goa_ai_cpue.csv', header=TRUE, stringsAsFactors=FALSE)\n#Resave at RData\n# save(goa_ai_cpue, file='goa_ai_cpue.RData')\n\n#Load RData\nload('goa_ai_cpue.RData')\n\n#Compare\nhead(goa_ai_cpue)\n\nspecies.code <- 21740\n\nnrow(goa_ai_cpue[goa_ai_cpue$SURVEY=='GOA' & goa_ai_cpue$SPECIES_CODE==species.code,]) #10527\n\n\ngoa_ai_cpue[goa_ai_cpue$SURVEY=='GOA' & goa_ai_cpue$SPECIES_CODE==species.code & is.na(goa_ai_cpue$WEIGHT),]\n\nlength(unique(goa_ai_cpue$HAULJOIN[goa_ai_cpue$SURVEY=='GOA']))\n\nsort(unique(goa_ai_cpue$YEAR[goa_ai_cpue$SURVEY=='GOA']))\n",
+    "created" : 1490832438466.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3305076306",
+    "id" : "DD42A25C",
+    "lastKnownWriteTime" : 1490838184,
+    "last_content_update" : 1490838184614,
+    "path" : "//nmfs.local/AKC-ABL/Users/curry.cunningham/My Documents/Projects/VAST Evaluation/New Survey Data from Dana 3.29.17/Eval New Survey Data.r",
+    "project_path" : null,
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

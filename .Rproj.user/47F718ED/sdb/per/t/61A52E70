@@ -4,11 +4,11 @@
     "created" : 1490663310804.000,
     "dirty" : false,
     "encoding" : "UTF-8",
-    "folds" : "",
+    "folds" : "9|80|50|0|\n",
     "hash" : "681224575",
     "id" : "61A52E70",
     "lastKnownWriteTime" : 1490734702,
-    "last_content_update" : 1490745115534,
+    "last_content_update" : 1490830806357,
     "path" : "~/Projects/VAST Evaluation/AFSC_VAST_Evaluation/R/create-Data-Geostat.r",
     "project_path" : "R/create-Data-Geostat.r",
     "properties" : {
