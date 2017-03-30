@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "*.o\n*.dll\n*.so\n*~\n*.obj\n*.exe\n",
+    "created" : 1490744699515.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1665611541",
+    "id" : "833A3C0",
+    "lastKnownWriteTime" : 1490746030,
+    "last_content_update" : 1490746030245,
+    "path" : "~/Projects/VAST Evaluation/AFSC_VAST_Evaluation/.gitignore",
+    "project_path" : ".gitignore",
+    "properties" : {
+    },
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "gitignore"
+}
