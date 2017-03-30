@@ -4,3 +4,6 @@
 *~
 *.obj
 *.exe
+Thumbs.db
+*.Rproj.user
+*.Rhistory
