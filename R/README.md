@@ -11,3 +11,4 @@ Helper functions
 3.  create-VAST-input.r - Creates the [VAST](https://github.com/James-Thorson/VAST) TMB input object: TmbData. 
                             TmbData contains VAST model control parametes, spatial grid configuration, and model input data from
                             [RACE](https://www.afsc.noaa.gov/RACE/groundfish/bottom%20trawl%20surveys.php) surveys.
+4. plot-VAST-output.r - Wrapper function that generates [VAST](https://github.com/James-Thorson/VAST) diagnostic and prediction plots.
