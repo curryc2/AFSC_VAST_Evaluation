@@ -20,7 +20,7 @@ require(TMB)
 ##### SETUP INPUT DATA #####
 
 #Generate a dataset
-species.codes<- c(30420) #Rockfish
+species.codes<- 21740 #c(30420) #Rockfish
 lat_lon.def="mean"
 
 
@@ -103,7 +103,7 @@ Save = list("Opt"=Opt, "Report"=Report, "ParHat"=Obj$env$parList(Opt$par), "TmbD
 save(Save, file=paste0(DateFile,"Save.RData"))
 
 #========================================================================
-##### DIAGNOSTIC PLOTS #####
+##### DIAGNOSTIC AND PREDICTION PLOTS #####
 plot_VAST_output(Opt, Report, DateFile, Region, TmbData, Data_Geostat, Extrapolation_List, Spatial_List)
 
 
