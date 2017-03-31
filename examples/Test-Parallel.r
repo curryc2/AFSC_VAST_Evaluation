@@ -72,7 +72,8 @@ FieldConfig = c(Omega1 = 1, Epsilon1 = 1, Omega2 = 1, Epsilon2 = 1)
 RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0)
 OverdispersionConfig = c(Delta1 = 0, Delta2 = 0)
 
-ObsModel = c(1, 0) #Delta Model
+ObsModel = c(1, 0) #Lognormal dist for pos catch rates, logit-link for encounter probability.
+# ObsModel = c(2, 0) #Gamma dist for pos catch rates, logit-link for encounter probability.
 # ObsModel = c(1, 1) #Poisson-Process Link function approximating Tweedie distribution
 
 #SPECIFY OUTPUTS
@@ -82,7 +83,8 @@ Options = c(SD_site_density = 0, SD_site_logdensity = 0,
             Calculate_Coherence = 0)
 
 
-
+#=======================================================================
+##### WRAPPER FUNCTION FOR RUNNING IN PARALLEL #####
 
 
 #Temporary wrapper function for species
@@ -148,13 +150,11 @@ species_wrapper_fxn <- function(s) {
 
 } 
 
-
-
-#SNOWFALL CODE FOR PARALLEL
+#=======================================================================
+##### SNOWFALL CODE FOR PARALLEL #####
 sfInit(parallel=TRUE, cpus=n.cores, type='SOCK')
-sfExportAll()# - VERY SLOW!!!
-
-sfLibrary(TMB)
+sfExportAll() #Exportas all global variables to cores
+sfLibrary(TMB)  #Loads a package on all nodes
 sfLibrary(VAST)
 output <- sfLapply(species.series, fun=species_wrapper_fxn)
 output.snowfall <- unlist(rbind(output))
