@@ -55,7 +55,7 @@ plot_VAST_output <- function(Opt, Report, DateFile, Region, TmbData, Data_Geosta
   #  Creates "maps--" files
   SpatialDeltaGLMM:::plot_residuals(Lat_i = Data_Geostat[,"Lat"], Lon_i = Data_Geostat[, "Lon"], TmbData = TmbData,
                                     Report = Report, Q = Q, savedir = DateFile, MappingDetails = MapDetails_List[["MappingDetails"]],
-                                    PlotDF = MapDetails_List[["PlotDF"]], MapSizeRatio = c[["MapSizeRatio"]],
+                                    PlotDF = MapDetails_List[["PlotDF"]], MapSizeRatio = MapDetails_List[["MapSizeRatio"]],
                                     Xlim = MapDetails_List[["Xlim"]], Ylim = MapDetails_List[["Ylim"]],
                                     FileName = DateFile, Year_Set = Year_Set, Years2Include = Years2Include,
                                     Rotate = MapDetails_List[["Rotate"]], Cex = MapDetails_List[["Cex"]],

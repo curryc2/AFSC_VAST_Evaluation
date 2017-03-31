@@ -28,7 +28,6 @@ source("R/plot-VAST-output.r")
 
 #Create testing directory
 parallel.dir <- paste0(getwd(),'/examples/Test_Parallel')
-dir.create(parallel.dir)
 
 #Determine species list
 species.list <- read.csv("data/eval_species_list.csv")
