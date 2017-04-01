@@ -6,13 +6,14 @@
 #Purpose: To test impact of changing distribution on observation model for positive catch rates,
 #           across species.
 #  1) Loop through obs model specifications for positive catch rate distribution.
-#  2) 
+#  2) Run vAST model in parallel across species. 
 #
 #
 #
 #==================================================================================================
 #NOTES:
-#
+#  a) Originally included Normal distribution for positive catch rates,
+#       but produced unknown errors for some species.
 #==================================================================================================
 require(snowfall)
 require(parallel)
@@ -23,16 +24,18 @@ require(VAST)
 
 #Source necessary files
 source("R/create-VAST-input.r")
+source("R/cleanup-VAST-file.r")
 
-#Create testing directory
+#Create working directory
 working.dir <- paste0(getwd(),'/examples/Test_Obs_Model')
 
 #Determine species list
 species.list <- read.csv("data/eval_species_list.csv")
-#Limit to those included
-species.list <- species.list[species.list$include=='Y',]
 
+#Limit species included
+species.list <- species.list[species.list$include=='Y',]
 n.species <- nrow(species.list)
+#Create
 species.series <- c(1:n.species)
 
 #=======================================================================
@@ -40,24 +43,26 @@ species.series <- c(1:n.species)
 #Number of cores to use
 n.cores <- detectCores()-1
 
-
 #Setup observation model trials
-trial.obs <- c(0:7)
+# trial.obs <- c(0:2,5:7)
+trial.obs <- c(1:2,5:7)
 n.trial.obs <- length(trial.obs)
 
 #Names for trial Obs models
-names.trial.obs <- c('Normal','Lognormal','Gamma','Negative_binomial','Conway-Maxwell_Poisson','Poisson')
-
+# names.trial.obs <- c('Normal','Lognormal','Gamma','Negative_binomial','Conway-Maxwell_Poisson','Poisson')
+names.trial.obs <- c('Lognormal','Gamma','Negative_binomial','Conway-Maxwell_Poisson','Poisson')
 #=======================================================================
 ##### VAST MODEL SPECIFICATIONS #####
 
-lat_lon.def="mean"
+Version <- "VAST_v2_4_0"
+
+lat_lon.def <- "mean"
 
 #SPATIAL SETTINGS
-Method = c("Grid", "Mesh", "Spherical_mesh")[2]
-grid_size_km = 25
-n_x = c(100, 250, 500, 1000, 2000)[2] # Number of stations
-Kmeans_Config = list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )
+Method <- c("Grid", "Mesh", "Spherical_mesh")[2]
+grid_size_km <- 25
+n_x <- c(100, 250, 500, 1000, 2000)[2] # Number of stations
+Kmeans_Config <- list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )
 
 
 #SET SRATIFICATOIN
@@ -68,21 +73,18 @@ strata.limits <- data.frame(STRATA = c("All_areas"),
 
 
 #DERIVED OBJECTS
-Region = "Gulf_of_Alaska"
+Region <- "Gulf_of_Alaska"
 ###########################
 # DateFile=paste0(getwd(),'/examples/VAST_output/')
 
 #MODEL SETTINGS
-FieldConfig = c(Omega1 = 1, Epsilon1 = 1, Omega2 = 1, Epsilon2 = 1)
-RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0)
-OverdispersionConfig = c(Delta1 = 0, Delta2 = 0)
+FieldConfig <- c(Omega1 = 1, Epsilon1 = 1, Omega2 = 1, Epsilon2 = 1)
+RhoConfig <- c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0)
+OverdispersionConfig <- c(Delta1 = 0, Delta2 = 0)
 
-ObsModel = c(1, 0) #Lognormal dist for pos catch rates, logit-link for encounter probability.
-# ObsModel = c(2, 0) #Gamma dist for pos catch rates, logit-link for encounter probability.
-# ObsModel = c(1, 1) #Poisson-Process Link function approximating Tweedie distribution
 
 #SPECIFY OUTPUTS
-Options = c(SD_site_density = 0, SD_site_logdensity = 0,
+Options <- c(SD_site_density = 0, SD_site_logdensity = 0,
             Calculate_Range = 1, Calculate_evenness = 0, Calculate_effective_area = 1,
             Calculate_Cov_SE = 0, Calculate_Synchrony = 0,
             Calculate_Coherence = 0)
@@ -92,11 +94,11 @@ Options = c(SD_site_density = 0, SD_site_logdensity = 0,
 ##### WRAPPER FUNCTION FOR RUNNING IN PARALLEL #####
 
 
-
+s <- 1
 species_wrapper_fxn <- function(s) {
   
   #Define file for analyses
-  DateFile <- paste0(working.dir,"/",species.list$name[s],"/")
+  DateFile <- paste0(trial.dir,"/",species.list$name[s],"/")
   
   #Define species.codes
   species.codes <- species.list$species.code[s]
@@ -130,7 +132,7 @@ species_wrapper_fxn <- function(s) {
   #Build TMB Object
   #  Compilation may take some time
   TmbList <- VAST::Build_TMB_Fn(TmbData = TmbData, RunDir = DateFile,
-                                Version = "VAST_v2_4_0", RhoConfig = RhoConfig, loc_x = Spatial_List$loc_x,
+                                Version = Version, RhoConfig = RhoConfig, loc_x = Spatial_List$loc_x,
                                 Method = Method)
   Obj <- TmbList[["Obj"]]
   
@@ -147,6 +149,9 @@ species_wrapper_fxn <- function(s) {
   ##### DIAGNOSTIC AND PREDICTION PLOTS #####
   # plot_VAST_output(Opt, Report, DateFile, Region, TmbData, Data_Geostat, Extrapolation_List, Spatial_List)
   
+  #========================================================================
+  ##### CLEANUP VAST OUTPUT #####
+  cleanup_VAST_file(DateFile=DateFile, Version=Version)
   
   #========================================================================
   ##### RETURN SECTION #####
@@ -154,21 +159,33 @@ species_wrapper_fxn <- function(s) {
   
 } 
 
-#=======================================================================
-##### SNOWFALL CODE FOR PARALLEL #####
-sfInit(parallel=TRUE, cpus=n.cores, type='SOCK')
-sfExportAll() #Exportas all global variables to cores
-sfLibrary(TMB)  #Loads a package on all nodes
-sfLibrary(VAST)
-output <- sfLapply(species.series, fun=species_wrapper_fxn)
-output.snowfall <- unlist(rbind(output))
-sfStop()
+#Create a fun output AIC object
+AICs <- array(dim=c(n.trial.obs, n.species), dimnames=list(names.trial.obs,species.list$name))
 
 
 t <- 1
 for(t in 1:n.trial.obs) {
+  print(paste('## Trial Observation Model',t,'of',n.trial.obs))
+  print(paste('# Positive Catch Rate Model is:',names.trial.obs[t]))
+  #Specify trial observation model
+  ObsModel <- c(trial.obs[t], 0)
+  #Setup File
+  trial.dir <- paste0(working.dir,"/",names.trial.obs[t])
+  dir.create(trial.dir)
   
-}
+  #=======================================================================
+  ##### SNOWFALL CODE FOR PARALLEL #####
+  sfInit(parallel=TRUE, cpus=n.cores, type='SOCK')
+  sfExportAll() #Exportas all global variables to cores
+  sfLibrary(TMB)  #Loads a package on all nodes
+  sfLibrary(VAST)
+  output <- sfLapply(species.series, fun=species_wrapper_fxn)
+  sfStop()
+  
+  #Output
+  AICs[t,] <- unlist(rbind(output))
+  
+}# next t
 
 
 

@@ -11,3 +11,4 @@ Helper functions
                             TmbData contains VAST model control parametes, spatial grid configuration, and model input data from
                             [RACE](https://www.afsc.noaa.gov/RACE/groundfish/bottom%20trawl%20surveys.php) surveys.
 * plot-VAST-output.r - Wrapper function that generates [VAST](https://github.com/James-Thorson/VAST) diagnostic and prediction plots.
+* cleanup-VAST-file.r - Simple function to remove unnecessary VAST TMB model files after estimation.
