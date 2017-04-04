@@ -257,7 +257,8 @@ g <- ggplot(aic.list, aes(x=Species, y=value, fill=Obs)) +
        theme_gray() +
        geom_col(position='dodge') +
        theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-       labs(list(ylab='AIC', fill='Obs. Error\nDist.'))
+       labs(list(y='AIC', fill='Obs. Error\nDist.'))
+# g
 ggsave(paste0(working.dir,"/figs/AIC Compare at 100 knots.png"), plot=g, height=7, width=7)
 
 #COMPARE LOGNORMAL VS GAMMA
