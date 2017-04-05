@@ -49,7 +49,8 @@ FieldConfig = c(Omega1 = 1, Epsilon1 = 1, Omega2 = 1, Epsilon2 = 1)
 RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0)
 OverdispersionConfig = c(Delta1 = 0, Delta2 = 0)
 
-ObsModel = c(5, 0) #Delta Model
+ObsModel = c(1, 0) #Lognormal
+# ObsModel = c(2, 0) #Gamma
 # ObsModel = c(1, 1) #Poisson-Process Link function approximating Tweedie distribution
 
 #SPECIFY OUTPUTS

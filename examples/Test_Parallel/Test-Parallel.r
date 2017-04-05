@@ -142,7 +142,12 @@ species_wrapper_fxn <- function(s) {
   ##### DIAGNOSTIC AND PREDICTION PLOTS #####
   plot_VAST_output(Opt, Report, DateFile, Region, TmbData, Data_Geostat, Extrapolation_List, Spatial_List)
   
+  #========================================================================
+  ##### CLEANUP VAST OUTPUT #####
+  cleanup_VAST_file(DateFile=DateFile, Version=Version)
   
+  rm("VAST_input", "TmbData", "Data_Geosta", "Spatial_List", "Extrapolation_List",
+     "TmbList", "Obj", "Report", "Save")
   #========================================================================
   ##### RETURN SECTION #####
   return(Opt$AIC)
