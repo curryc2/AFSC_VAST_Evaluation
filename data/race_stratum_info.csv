@@ -1,0 +1,166 @@
+Survey,Stratum,Area (km2),Perimeter (km),Stratum INPFC Area,Stratum Min Depth (m),Stratum Max Depth (m),Stratum Description,Summary Area Code,Summary Depth Code,Summary Area Depth Code,Stratum Regulatory Area Name,Stratum Type
+AI,211,3693.321,,Western Aleutians,1,100,W Western Aleutians,299,991,291,ALEUTIANS,NEITHER
+AI,212,4065.172,,Western Aleutians,101,200,W Western Aleutians,299,992,292,ALEUTIANS,NEITHER
+AI,213,940.226,,Western Aleutians,201,300,W Western Aleutians,299,993,293,ALEUTIANS,NEITHER
+AI,214,1711.084,,Western Aleutians,301,500,W Western Aleutians,299,994,294,ALEUTIANS,NEITHER
+AI,221,1183.328,,Western Aleutians,1,100,E Western Aleutians,299,991,291,ALEUTIANS,NEITHER
+AI,222,1252.459,,Western Aleutians,101,200,E Western Aleutians,299,992,292,ALEUTIANS,NEITHER
+AI,223,783.403,,Western Aleutians,201,300,E Western Aleutians,299,993,293,ALEUTIANS,NEITHER
+AI,224,1561.386,,Western Aleutians,301,500,E Western Aleutians,299,994,294,ALEUTIANS,NEITHER
+AI,311,960.023,,Central Aleutians,1,100,Petrel Bank,3499,991,3491,ALEUTIANS,NORTH
+AI,312,1735.544,,Central Aleutians,101,200,Petrel Bank,3499,992,3492,ALEUTIANS,NORTH
+AI,313,766.43,,Central Aleutians,201,300,Petrel Bank,3499,993,3493,ALEUTIANS,NORTH
+AI,314,1237.475,,Central Aleutians,301,500,Petrel Bank,3499,994,3494,ALEUTIANS,NORTH
+AI,321,2105.636,,Central Aleutians,1,100,N Central Aleutians,3499,991,3491,ALEUTIANS,NORTH
+AI,322,1066.049,,Central Aleutians,101,200,N Central Aleutians,3499,992,3492,ALEUTIANS,NORTH
+AI,323,439.004,,Central Aleutians,201,300,N Central Aleutians,3499,993,3493,ALEUTIANS,NORTH
+AI,324,1239.743,,Central Aleutians,301,500,N Central Aleutians,3499,994,3494,ALEUTIANS,NORTH
+AI,411,1617.669,,Central Aleutians,1,100,SW Central Aleutians,3499,991,3491,ALEUTIANS,SOUTH
+AI,412,1052.298,,Central Aleutians,101,200,SW Central Aleutians,3499,992,3492,ALEUTIANS,SOUTH
+AI,413,426.035,,Central Aleutians,201,300,SW Central Aleutians,3499,993,3493,ALEUTIANS,SOUTH
+AI,414,789.21,,Central Aleutians,301,500,SW Central Aleutians,3499,994,3494,ALEUTIANS,SOUTH
+AI,421,1164.035,,Central Aleutians,1,100,SE Central Aleutians,3499,991,3491,ALEUTIANS,SOUTH
+AI,422,751.791,,Central Aleutians,101,200,SE Central Aleutians,3499,992,3492,ALEUTIANS,SOUTH
+AI,423,477.36,,Central Aleutians,201,300,SE Central Aleutians,3499,993,3493,ALEUTIANS,SOUTH
+AI,424,714.304,,Central Aleutians,301,500,SE Central Aleutians,3499,994,3494,ALEUTIANS,SOUTH
+AI,511,1932.476,,Eastern Aleutians,1,100,NW Eastern Aleutians,5699,991,5691,ALEUTIANS,NORTH
+AI,512,1594.312,,Eastern Aleutians,101,200,NW Eastern Aleutians,5699,992,5692,ALEUTIANS,NORTH
+AI,513,155.929,,Eastern Aleutians,201,300,NW Eastern Aleutians,5699,993,5693,ALEUTIANS,NORTH
+AI,521,1268.056,,Eastern Aleutians,1,100,NE Eastern Aleutians,5699,991,5691,ALEUTIANS,NORTH
+AI,522,2012.55,,Eastern Aleutians,101,200,NE Eastern Aleutians,5699,992,5692,ALEUTIANS,NORTH
+AI,523,1968.564,,Eastern Aleutians,201,300,NE Eastern Aleutians,5699,993,5693,ALEUTIANS,NORTH
+AI,594,2670.006,,Eastern Aleutians,301,500,Combined Eastern Aleutian Islands,5699,994,5694,ALEUTIANS,SOUTH
+AI,611,1906.756,,Eastern Aleutians,1,100,SW Eastern Aleutians,5699,991,5691,ALEUTIANS,SOUTH
+AI,612,2261.049,,Eastern Aleutians,101,200,SW Eastern Aleutians,5699,992,5692,ALEUTIANS,SOUTH
+AI,613,716.376,,Eastern Aleutians,201,300,SW Eastern Aleutians,5699,993,5693,ALEUTIANS,SOUTH
+AI,614,438.212,,Eastern Aleutians,301,500,SW Eastern Aleutians,5699,994,5694,ALEUTIANS,SOUTH
+AI,621,1740.635,,Eastern Aleutians,1,100,SE Eastern Aleutians,5699,991,5691,ALEUTIANS,SOUTH
+AI,622,1900.189,,Eastern Aleutians,101,200,SE Eastern Aleutians,5699,992,5692,ALEUTIANS,SOUTH
+AI,623,2060.609,,Eastern Aleutians,201,300,SE Eastern Aleutians,5699,993,5693,ALEUTIANS,SOUTH
+AI,624,2574.73,,Eastern Aleutians,301,500,SE Eastern Aleutians,5699,994,5694,ALEUTIANS,SOUTH
+AI,711,1585.64,,Southern Bering Sea,1,100,W Southern Bering Sea,799,991,791,S BERING SEA,NORTH
+AI,712,669.513,,Southern Bering Sea,101,200,W Southern Bering Sea,799,992,792,S BERING SEA,NORTH
+AI,721,2440.256,,Southern Bering Sea,1,100,E Southern Bering Sea,799,991,791,S BERING SEA,NORTH
+AI,722,1179.124,,Southern Bering Sea,101,200,E Southern Bering Sea,799,992,792,S BERING SEA,NORTH
+AI,793,563.858,,Southern Bering Sea,201,300,Combined Southern Bering Sea,799,993,793,S BERING SEA,NORTH
+AI,794,1043.168,,Southern Bering Sea,301,500,Combined Southern Bering Sea,799,994,794,S BERING SEA,NORTH
+EBS_SHELF,1,77871.19482,0,,0,0,,0,0,0,,
+EBS_SHELF,2,41027.07031,0,,0,0,,0,0,0,,
+EBS_SHELF,3,103300.2273,0,,0,0,,0,0,0,,
+EBS_SHELF,4,107822.2474,0,,0,0,,0,0,0,,
+EBS_SHELF,5,38792.43628,0,,0,0,,0,0,0,,
+EBS_SHELF,6,94562.32837,0,,0,0,,0,0,0,,
+EBS_SHELF,8,17954,0,,0,0,,0,0,0,,
+EBS_SHELF,9,11567.9597,0,,0,0,,0,0,0,,
+EBS_SHELF,10,77871.19482,0,,0,0,<50 m in SE section- INNER DOMAIN,0,0,0,,
+EBS_SHELF,20,41027.07031,0,,0,0,<50 m in NW section- INNER DOMAIN,0,0,0,,
+EBS_SHELF,31,94526.05701,0,,0,0,"50-100m in SE section, low density - MIDDLE DOMAIN",0,0,0,,
+EBS_SHELF,32,8774.170288,0,,0,0,"50-100m in SE section, high density, pribilofs - MIDDLE DOMAIN",0,0,0,,
+EBS_SHELF,41,62703.46301,0,,0,0,"50-100m in NW section, low density, - MIDDLE DOMAIN",0,0,0,,
+EBS_SHELF,42,24011.08752,0,,0,0,"50-100m in NW section, high density, pribilofs - MIDDLE DOMAIN",0,0,0,,
+EBS_SHELF,43,21107.6969,0,,0,0,"50-100m in NW section, high density, St.Matthew - MIDDLE DOMAIN",0,0,0,,
+EBS_SHELF,50,38792.43628,0,,0,0,"100-200 m, SE section - OUTER DOMAIN",0,0,0,,
+EBS_SHELF,61,88133.7146,0,,0,0,"100-200 m, NW section, low density - OUTER DOMAIN",0,0,0,,
+EBS_SHELF,62,6428.61377,0,,0,0,"100-200 m, NW section, high density, St. Matthew - OUTER DOMAIN",0,0,0,,
+EBS_SHELF,82,17954,0,,0,0,">50 m, N of standard area, between stratum 81 and convention line and stratum 90",0,0,0,,
+EBS_SHELF,90,11567.9597,0,,0,0,"> 100 m, N of standard area, between 100 m and convention line",0,0,0,,
+EBS_SHELF,100,118898.2651,0,,0,0,200-500 m South of 56.16,0,0,0,,
+EBS_SHELF,200,229076.4747,0,,0,0,,0,0,0,,
+EBS_SHELF,300,144922.7244,0,,0,0,,0,0,0,,
+EBS_SHELF,999,492897.4642,0,,0,0,,0,0,0,,
+EBS_SLOPE,1,12278.47,0,,0,0,EBS slope subarea 1 all depths 200-1200 meters,0,0,0,,
+EBS_SLOPE,2,3542.388,0,,0,0,EBS slope subarea 2 all depths 200-1200 meters,0,0,0,,
+EBS_SLOPE,3,4108.027,0,,0,0,EBS slope subarea 3 all depths 200-1200 meters,0,0,0,,
+EBS_SLOPE,4,4030.587,0,,0,0,EBS slope subarea 4 all depths 200-1200 meters,0,0,0,,
+EBS_SLOPE,5,2403.395,0,,0,0,EBS slope subarea 5 all depths 200-1200 meters,0,0,0,,
+EBS_SLOPE,6,6360.626,0,,0,0,EBS slope subarea 6 all depths 200-1200 meters,0,0,0,,
+EBS_SLOPE,11,4012.41,0,,0,0,EBS slope subarea 1 depth stratum 1 200-400 meters,0,0,0,,
+EBS_SLOPE,12,4062.77,0,,0,0,EBS slope subarea 1 depth stratum 2 400-600 meters,0,0,0,,
+EBS_SLOPE,13,1741.66,0,,0,0,EBS slope subarea 1 depth stratum 3 600-800 meters,0,0,0,,
+EBS_SLOPE,14,1354.74,0,,0,0,EBS slope subarea 1 depth stratum 4 800-1000 meters,0,0,0,,
+EBS_SLOPE,15,1106.89,0,,0,0,EBS slope subarea 1 depth stratum 5 1000-1200 meters,0,0,0,,
+EBS_SLOPE,21,1157.635,0,,0,0,EBS slope subarea 2 depth stratum 1 200-400 meters,0,0,0,,
+EBS_SLOPE,22,705.075,0,,0,0,EBS slope subarea 2 depth stratum 2 400-600 meters,0,0,0,,
+EBS_SLOPE,23,591.273,0,,0,0,EBS slope subarea 2 depth stratum 3 600-800 meters,0,0,0,,
+EBS_SLOPE,24,552.734,0,,0,0,EBS slope subarea 2 depth stratum 4 800-1000 meters,0,0,0,,
+EBS_SLOPE,25,535.671,0,,0,0,EBS slope subarea 2 depth stratum 5 1000-1200 meters,0,0,0,,
+EBS_SLOPE,31,903.783,0,,0,0,EBS slope subarea 3 depth stratum 1 200-400 meters,0,0,0,,
+EBS_SLOPE,32,886.107,0,,0,0,EBS slope subarea 3 depth stratum 2 400-600 meters,0,0,0,,
+EBS_SLOPE,33,910.262,0,,0,0,EBS slope subarea 3 depth stratum 3 600-800 meters,0,0,0,,
+EBS_SLOPE,34,732.352,0,,0,0,EBS slope subarea 3 depth stratum 4 800-1000 meters,0,0,0,,
+EBS_SLOPE,35,675.523,0,,0,0,EBS slope subarea 3 depth stratum 5 1000-1200 meters,0,0,0,,
+EBS_SLOPE,41,1236.274,0,,0,0,EBS slope subarea 4 depth stratum 1 200-400 meters,0,0,0,,
+EBS_SLOPE,42,730.35,0,,0,0,EBS slope subarea 4 depth stratum 2 400-600 meters,0,0,0,,
+EBS_SLOPE,43,693.954,0,,0,0,EBS slope subarea 4 depth stratum 3 600-800 meters,0,0,0,,
+EBS_SLOPE,44,707.59,0,,0,0,EBS slope subarea 4 depth stratum 4 800-1000 meters,0,0,0,,
+EBS_SLOPE,45,662.419,0,,0,0,EBS slope subarea 4 depth stratum 5 1000-1200 meters,0,0,0,,
+EBS_SLOPE,51,423.712,0,,0,0,EBS slope subarea 5 depth stratum 1 200-400 meters,0,0,0,,
+EBS_SLOPE,52,425.725,0,,0,0,EBS slope subarea 5 depth stratum 2 400-600 meters,0,0,0,,
+EBS_SLOPE,53,431.829,0,,0,0,EBS slope subarea 5 depth stratum 3 600-800 meters,0,0,0,,
+EBS_SLOPE,54,551.99,0,,0,0,EBS slope subarea 5 depth stratum 4 800-1000 meters,0,0,0,,
+EBS_SLOPE,55,570.139,0,,0,0,EBS slope subarea 5 depth stratum 5 1000-1200 meters,0,0,0,,
+EBS_SLOPE,61,2595.79,0,,0,0,EBS slope subarea 6 depth stratum 1 200-400 meters,0,0,0,,
+EBS_SLOPE,62,1705.756,0,,0,0,EBS slope subarea 6 depth stratum 2 400-600 meters,0,0,0,,
+EBS_SLOPE,63,917.491,0,,0,0,EBS slope subarea 6 depth stratum 3 600-800 meters,0,0,0,,
+EBS_SLOPE,64,645.173,0,,0,0,EBS slope subarea 6 depth stratum 4 800-1000 meters,0,0,0,,
+EBS_SLOPE,65,496.416,0,,0,0,EBS slope subarea 6 depth stratum 5 1000-1200 meters,0,0,0,,
+EBS_SLOPE,999999,32723.493,0,,0,0,EBS slope all subareas all depths 200-1200 meters,0,0,0,,
+GOA,10,8332.718,1700.816,Shumagin,1,100,Fox Islands,919,991,911,WESTERN GOA,SHELF
+GOA,11,13681.241,868.189,Shumagin,1,100,Davidson Bank,919,991,911,WESTERN GOA,SHELF
+GOA,12,6875.823,1918.516,Shumagin,1,100,Lower Alaska Peninsula,919,991,911,WESTERN GOA,SHELF
+GOA,13,12398.789,1783.463,Shumagin,1,100,Shumagin Bank,919,991,911,WESTERN GOA,SHELF
+GOA,20,7940.852,2470.078,Chirikof,1,100,Upper Alaska Peninsula,929,991,921,CENTRAL GOA,SHELF
+GOA,21,7302.086,632.708,Chirikof,1,100,Semidi Bank,929,991,921,CENTRAL GOA,SHELF
+GOA,22,10792.012,961.835,Chirikof,1,100,Chirikof Bank,929,991,921,CENTRAL GOA,SHELF
+GOA,30,5766.075,2047.126,Kodiak,1,100,Albatross Shallows,939,991,931,CENTRAL GOA,SHELF
+GOA,31,15403.147,1309.388,Kodiak,1,100,Albatross Banks,939,991,931,CENTRAL GOA,SHELF
+GOA,32,9886.88,837.051,Kodiak,1,100,Lower Cook Inlet,939,991,931,CENTRAL GOA,SHELF
+GOA,33,5260.082,2272.262,Kodiak,1,100,Kenai Peninsula,939,991,931,CENTRAL GOA,SHELF
+GOA,35,2199.622,1414.556,Kodiak,1,100,Northern Kodiak Shallows,939,991,931,CENTRAL GOA,SHELF
+GOA,40,9947.134,1722.954,Yakutat,1,100,Yakutat Shallows,949,991,941,EASTERN GOA,SHELF
+GOA,41,6714.31,904.018,Yakutat,1,100,Middleton Shallows,949,991,941,EASTERN GOA,SHELF
+GOA,50,6546.325,3271.581,Southeastern,1,100,Southeastern Shallows,959,991,951,EASTERN GOA,SHELF
+GOA,110,4245.316,639.47,Shumagin,101,200,Sanak Gully,919,992,912,WESTERN GOA,GULLY
+GOA,111,8153.739,2081.775,Shumagin,101,200,Shumagin Outer Shelf,919,992,912,WESTERN GOA,SHELF
+GOA,112,2278.242,348.565,Shumagin,101,200,West Shumagin Gully,919,992,912,WESTERN GOA,GULLY
+GOA,120,11104.039,962.173,Chirikof,101,200,East Shumagin Gully,929,992,922,CENTRAL GOA,GULLY
+GOA,121,7734.619,1843.775,Chirikof,101,200,Shelikof Edge,929,992,922,CENTRAL GOA,SHELF
+GOA,122,5010.738,898.952,Chirikof,101,200,Chirikof Outer Shelf,929,992,922,CENTRAL GOA,SHELF
+GOA,130,7911.775,1287.377,Kodiak,101,200,Albatross Gullies,939,992,932,CENTRAL GOA,GULLY
+GOA,131,7336.402,534.75,Kodiak,101,200,Portlock Flats,939,992,932,CENTRAL GOA,SHELF
+GOA,132,10980.778,745.385,Kodiak,101,200,Barren Islands,939,992,932,CENTRAL GOA,SHELF
+GOA,133,12077.011,989.657,Kodiak,101,200,Kenai Flats,939,992,932,CENTRAL GOA,SHELF
+GOA,134,5025.806,1235.143,Kodiak,101,200,Kodiak Outer Shelf,939,992,932,CENTRAL GOA,SHELF
+GOA,140,7345.605,992.786,Yakutat,101,200,Middleton Shelf,949,992,942,EASTERN GOA,SHELF
+GOA,141,5276.558,756.103,Yakutat,101,200,Yakataga Shelf,949,992,942,EASTERN GOA,SHELF
+GOA,142,9031.904,426.338,Yakutat,101,200,Yakutat Flats,949,992,942,EASTERN GOA,SHELF
+GOA,143,7727.531,729.892,Yakutat,101,200,Fairweather Shelf,949,992,942,EASTERN GOA,SHELF
+GOA,150,4196.382,808.483,Southeastern,101,200,Baranof-Chichagof Shelf,959,992,952,EASTERN GOA,SHELF
+GOA,151,6887.844,1094.22,Southeastern,101,200,Prince of Wales Shelf,959,992,952,EASTERN GOA,SHELF
+GOA,210,2787.949,1878.436,Shumagin,201,300,Shumagin Slope,919,993,913,WESTERN GOA,SLOPE
+GOA,220,10017.785,678.285,Chirikof,201,300,Lower Shelikof Gully,929,993,923,CENTRAL GOA,GULLY
+GOA,221,1528.313,832.464,Chirikof,201,300,Chirikof Slope,929,993,923,CENTRAL GOA,SLOPE
+GOA,230,6659.46,1012.591,Kodiak,201,300,Kenai Gullies,939,993,933,CENTRAL GOA,GULLY
+GOA,231,1622.614,1004.86,Kodiak,201,300,Kodiak Slope,939,993,933,CENTRAL GOA,SLOPE
+GOA,232,3208.227,333.202,Kodiak,201,300,Upper Shelikof Gully,939,993,933,CENTRAL GOA,GULLY
+GOA,240,3042.703,857.375,Yakutat,201,300,Yakutat Gullies,949,993,943,EASTERN GOA,GULLY
+GOA,241,2127.348,1421.962,Yakutat,201,300,Yakutat Slope,949,993,943,EASTERN GOA,SLOPE
+GOA,250,1125.262,666.829,Southeastern,201,300,Baranof-Chichagof Slope,959,993,953,EASTERN GOA,SLOPE
+GOA,251,3927.061,1157.364,Southeastern,201,300,Prince of Wales Slope/Gullies,959,993,953,EASTERN GOA,SLOPE
+GOA,310,2531.101,1778.137,Shumagin,301,500,Shumagin Slope,919,994,914,WESTERN GOA,SLOPE
+GOA,320,1603.961,805.575,Chirikof,301,500,Chirikof Slope,929,994,924,CENTRAL GOA,SLOPE
+GOA,330,2911.769,1337.188,Kodiak,301,500,Kodiak Slope,939,994,934,CENTRAL GOA,SLOPE
+GOA,340,1107.196,276.361,Yakutat,301,500,Yakutat Gullies,949,994,944,EASTERN GOA,GULLY
+GOA,341,1520.577,1427.265,Yakutat,301,500,Yakutat Slope,949,994,944,EASTERN GOA,SLOPE
+GOA,350,2344.327,460.034,Southeastern,301,500,Southeastern Deep Gullies,959,994,954,EASTERN GOA,GULLY
+GOA,351,772.66,1003.884,Southeastern,301,500,Southeastern Slope,959,994,954,EASTERN GOA,SLOPE
+GOA,410,2005.603,1847.096,Shumagin,501,700,Shumagin Slope,919,995,915,WESTERN GOA,SLOPE
+GOA,420,1953.21,840.567,Chirikof,501,700,Chirikof Slope,929,995,925,CENTRAL GOA,SLOPE
+GOA,430,1744.835,1276.398,Kodiak,501,700,Kodiak Slope,939,995,935,CENTRAL GOA,SLOPE
+GOA,440,1469.256,1434.651,Yakutat,501,700,Yakutat Slope,949,995,945,EASTERN GOA,SLOPE
+GOA,450,1033.46,1052.722,Southeastern,501,700,Southeastern Slope,959,995,955,EASTERN GOA,SLOPE
+GOA,510,1937.22,1932.281,Shumagin,701,1000,Shumagin Slope,919,996,916,WESTERN GOA,SLOPE
+GOA,520,3065.55,869.313,Chirikof,701,1000,Chirikof Slope,929,996,926,CENTRAL GOA,SLOPE
+GOA,530,3493.863,1316.058,Kodiak,701,1000,Kodiak Slope,939,996,936,CENTRAL GOA,SLOPE
+GOA,540,1887.412,1410.367,Yakutat,701,1000,Yakutat Slope,949,996,946,EASTERN GOA,SLOPE
+GOA,550,1206.344,1086.404,Southeastern,701,1000,Southeastern Slope,959,996,956,EASTERN GOA,SLOPE

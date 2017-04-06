@@ -12,3 +12,4 @@ Helper functions
                             [RACE](https://www.afsc.noaa.gov/RACE/groundfish/bottom%20trawl%20surveys.php) surveys.
 * plot-VAST-output.r - Wrapper function that generates [VAST](https://github.com/James-Thorson/VAST) diagnostic and prediction plots.
 * cleanup-VAST-file.r - Simple function to remove unnecessary VAST TMB model files after estimation.
+* calc-design-based-index.r - Calculates design-based biomass estimate from [RACE](https://www.afsc.noaa.gov/RACE/groundfish/bottom%20trawl%20surveys.php) surveys, along with Variance, SD, and CV. 

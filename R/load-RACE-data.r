@@ -9,7 +9,7 @@
 #' @return A data frame of RACE bottom trawl data, with rows equal to species-by-haul observations
 #' @export
 load_RACE_data <- function(species.codes=c(30152,30420), area="GOA", writeCSV=FALSE, writeDATA=FALSE) {
-  # require(FishData)
+  require(FishData)
 
   
   #FOR ORIGINAL .CSV INPUT
@@ -67,3 +67,4 @@ load_RACE_data <- function(species.codes=c(30152,30420), area="GOA", writeCSV=FA
   
   return(output)
 }
+
