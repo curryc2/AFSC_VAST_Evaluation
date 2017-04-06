@@ -28,7 +28,6 @@ create_VAST_input <- function(species.codes, lat_lon.def="mean", save.Record=TRU
                                 FieldConfig, RhoConfig, OverdispersionConfig,
                                 ObsModel, Options) {
   
-  # require(SpatialDeltaGLMM)
   source('R/create-Data-Geostat.r')
   
   #vERSION NUMBER

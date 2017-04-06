@@ -1,4 +1,4 @@
-#==================================================================================================
+ #==================================================================================================
 #Project Name: VAST spatial delta-GLMM (Thorson) Evaluation: Example Script
 #Creator: Curry James Cunningham, NOAA/NMFS, ABL
 #Date: 3.28.17
@@ -20,7 +20,7 @@ require(TMB)
 ##### SETUP INPUT DATA #####
 
 #Generate a dataset
-species.codes<- c(30420) #Rockfish
+species.codes<- 21740 #c(30420) #Rockfish
 lat_lon.def="mean"
 
 
@@ -49,7 +49,8 @@ FieldConfig = c(Omega1 = 1, Epsilon1 = 1, Omega2 = 1, Epsilon2 = 1)
 RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0)
 OverdispersionConfig = c(Delta1 = 0, Delta2 = 0)
 
-ObsModel = c(1, 0) #Delta Model
+ObsModel = c(1, 0) #Lognormal
+# ObsModel = c(2, 0) #Gamma
 # ObsModel = c(1, 1) #Poisson-Process Link function approximating Tweedie distribution
 
 #SPECIFY OUTPUTS
@@ -103,7 +104,7 @@ Save = list("Opt"=Opt, "Report"=Report, "ParHat"=Obj$env$parList(Opt$par), "TmbD
 save(Save, file=paste0(DateFile,"Save.RData"))
 
 #========================================================================
-##### DIAGNOSTIC PLOTS #####
+##### DIAGNOSTIC AND PREDICTION PLOTS #####
 plot_VAST_output(Opt, Report, DateFile, Region, TmbData, Data_Geostat, Extrapolation_List, Spatial_List)
 
 

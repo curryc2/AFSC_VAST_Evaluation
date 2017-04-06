@@ -1,12 +1,12 @@
-number,name,species.code
-1,Pacific ocean perch,30060
-2,Walleye pollock,21740
-3,Pacific cod,21720
-4,Northern rockfish,30420
-5,Dusky rockfish,30152
-6,Dover sole,10180
-7,Big skate,420
-8,Atka mackerel,21921
-9,Harlequin rockfish,30535
-10,Arrowtooth flounder,10110
-11,Spiny dogfish,310
+number,name,species.code,include
+1,Pacific ocean perch,30060,Y
+2,Walleye pollock,21740,Y
+3,Pacific cod,21720,Y
+4,Northern rockfish,30420,Y
+5,Dusky rockfish,30152,N
+6,Dover sole,10180,Y
+7,Big skate,420,Y
+8,Atka mackerel,21921,Y
+9,Harlequin rockfish,30535,Y
+10,Arrowtooth flounder,10110,Y
+11,Spiny dogfish,310,Y
