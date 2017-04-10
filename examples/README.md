@@ -3,13 +3,32 @@
 *	Note: Wrapper functions rely on calls to existing functions developed by J. Thorson [VAST](https://github.com/James-Thorson/VAST)
 
 
+***
+## Run VAST Single Species.r
+Example of calls to helper functions to:
+1.  Read in data
+2.  Construct VAST input
+3.  Compile and build VAST (TMB) model
+4.  Generate figures and model outputs
 
-Run VAST Single Species.r
-=============
-Example of calls to helper functions to read in data, construct VAST input, compile and build VAST (TMB) model, and generate figures.
+***
 
-Test-Parallel.r
-=============
-Example of how to create wrapper function to run VAST models in parallel across species.
+## Test_Parallel
+Example of how to create wrapper function to run [VAST](https://github.com/James-Thorson/VAST) models in parallel across species.
 
+***
 
+## Test_Obs_Model
+Evaluation of differences in [VAST](https://github.com/James-Thorson/VAST) model results for example species, with different observation models.
+
+***
+
+## Test_DesignBased_Estimator
+Simple comparison of design-based and [VAST](https://github.com/James-Thorson/VAST) model-based indices across years and species. 
+
+***
+
+## Test_Knot_Number
+Script to run comparison of [VAST](https://github.com/James-Thorson/VAST) indices with differing knot choices.
+
+***

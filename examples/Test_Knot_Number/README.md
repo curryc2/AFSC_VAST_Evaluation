@@ -1,8 +1,9 @@
 # Test_Knot_Number
-### R script 'Test-Knot-Number.r'
+#### R Script: Test-Knot-Number.r
 
+***
 Script to run comparison of VAST indices with differing knot choices.
-===============
+***
 
 1.  Calcualte design-based index.(NOTE: 2001 will be excluded from comparison due to incomplete survey)
 2.  Loop through trial knot numbers.
