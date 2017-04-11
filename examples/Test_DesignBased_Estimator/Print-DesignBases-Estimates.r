@@ -33,8 +33,8 @@ for(s in 1:n.species) {
   species.codes <- species.list$species.code[s]
   
   spec.name <- species.list$name[s]
-  db.est <- calc_design_based_index(species.codes=species.codes, Region=Region)
-  write.xlsx(db.est, file=paste0(getwd(), "/examples/Test_DesignBased_Estimator/Design Based Estimates.xlsx"), sheetName=spec.name,
+  db_est <- calc_design_based_index(species.codes=species.codes, Region=Region)
+  write.xlsx(db_est, file=paste0(getwd(), "/examples/Test_DesignBased_Estimator/Design Based Estimates.xlsx"), sheetName=spec.name,
                append=ifelse(s==1,FALSE,TRUE))
   
 }

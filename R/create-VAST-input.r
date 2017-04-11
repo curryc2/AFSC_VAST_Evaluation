@@ -63,6 +63,7 @@ create_VAST_input <- function(species.codes, lat_lon.def="mean", save.Record=TRU
   
   #Save Settings for Later reference
   if(save.Record==TRUE) {
+    warning("Currently save.Record=FALSE only accepted, easy-read records will not be saved.")
     # Record = ThorsonUtilities::bundlelist(c("Data_Set"=Data_Set,
     #                                         "Version"=Version, "Method"=Method, "grid_size_km"=grid_size_km,
     #                                         "n_x"=n_X, "FieldConfig"=FieldConfig,

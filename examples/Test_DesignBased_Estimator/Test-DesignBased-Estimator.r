@@ -63,7 +63,7 @@ for(s in 1:n.species) {
   spec.name <- species.list$name[s]
 #=======================================================================
 ##### Calculate design-based estimate  #####
-db.est <- calc_design_based_index(species.codes=species.codes, Region=Region)
+db_est <- calc_design_based_index(species.codes=species.codes, Region=Region)
 
 #=======================================================================
 ##### Run VAST model  #####
@@ -154,7 +154,7 @@ vast.est <- vast.est[Years2Include,]
 years <- Year_Set[Years2Include]
 
 # head(vast.est)
-# head(db.est)
+# head(db_est)
 
 # jpeg(paste0(DateFile, "Compare_", spec.name, "_", TmbData$n_x, " knots.jpg"), height=8, width=8, units='in')
 
@@ -162,7 +162,7 @@ pdf(paste0(DateFile, "Compare_", spec.name, "_", TmbData$n_x, " knots.pdf"), hei
 # pdf(paste0(DateFile, "trial.pdf"), height=8, width=8)
 
 y.lim <- c(0, max(vast.est$Estimate_metric_tons+2*vast.est$SD_mt,
-                  db.est$Biomass+2*db.est$SD))
+                  db_est$Biomass+2*db_est$SD))
 x.lim <- c(min(Year_Set), max(Year_Set))
 
 #Plot it out
@@ -173,14 +173,14 @@ grid(col='black')
 legend('bottomleft', legend=c('Design-based', 'VAST'), fill=c('blue', 'red'), ncol=2, bg='white')
 
 #Design-based
-polygon(x=c(years, rev(years)), y=c(db.est$Biomass+2*db.est$SD, rev(db.est$Biomass-2*db.est$SD)),
+polygon(x=c(years, rev(years)), y=c(db_est$Biomass+2*db_est$SD, rev(db_est$Biomass-2*db_est$SD)),
           border=FALSE, col=rgb(0,0,1, alpha=0.25))
 
-polygon(x=c(years, rev(years)), y=c(db.est$Biomass+1*db.est$SD, rev(db.est$Biomass-1*db.est$SD)),
+polygon(x=c(years, rev(years)), y=c(db_est$Biomass+1*db_est$SD, rev(db_est$Biomass-1*db_est$SD)),
         border=FALSE, col=rgb(0,0,1, alpha=0.25))
 
-lines(x=years, y=db.est$Biomass, lwd=2, col='blue')
-points(x=years, y=db.est$Biomass, pch=21, bg='blue')
+lines(x=years, y=db_est$Biomass, lwd=2, col='blue')
+points(x=years, y=db_est$Biomass, pch=21, bg='blue')
 
 #VAST
 polygon(x=c(years, rev(years)), y=c(vast.est$Estimate_metric_tons+2*vast.est$SD_mt,
