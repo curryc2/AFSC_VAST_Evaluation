@@ -10,7 +10,7 @@
 #==================================================================================================
 #NOTES:
 #
-#  a)
+#  a) Could calculate design-based estiamtes within wrapper function or at the end while plotting
 #
 #==================================================================================================
 require(VAST)
@@ -96,7 +96,7 @@ species_wrapper_fxn_knots <- function(s, n_x) {
   
   #Define file for analyses
   DateFile <- paste0(trial.dir,"/",species.list$name[s],"/")
-  
+  dir.create(DateFile)
   #Define species.codes
   species.codes <- species.list$species.code[s]
   
@@ -153,8 +153,9 @@ species_wrapper_fxn_knots <- function(s, n_x) {
   ##### CLEANUP VAST OUTPUT #####
   cleanup_VAST_file(DateFile=DateFile, Version=Version)
   
-  rm("VAST_input", "TmbData", "Data_Geosta", "Spatial_List", "Extrapolation_List",
-     "TmbList", "Obj", "Opt", "Report", "Save")
+  rm("VAST_input", "TmbData", "Data_Geostat", "Spatial_List", "Extrapolation_List",
+     "TmbList", "Obj", "Opt", "Report", "Save",
+     "db_est")
   
   #========================================================================
   ##### RETURN SECTION #####
@@ -166,6 +167,7 @@ species_wrapper_fxn_knots <- function(s, n_x) {
 #=======================================================================
 ##### Loop Through Trial Knots  #####
 if(do.estim==TRUE) {
+  time.1 <- date()
   
   t <- 1
   for(t in 1:n.trial.knots) {
@@ -173,12 +175,14 @@ if(do.estim==TRUE) {
     print(paste('# Trial Knots:',trial.knots[t]))
     #Specify trial observation model
 
-    #Setup File
-    trial.dir <- paste0(working.dir,"/",trial.knots[t],'_bias.corr_',bias.correct)
-    dir.create(trial.dir)
-    
     #Specify knots
     n_x <- trial.knots[t]
+    
+    #Setup File
+    trial.dir <- paste0(working.dir,"/",n_x,'_bias.corr_',bias.correct)
+    dir.create(trial.dir)
+    
+
     
     #=======================================================================
     ##### SNOWFALL CODE FOR PARALLEL #####
@@ -192,8 +196,14 @@ if(do.estim==TRUE) {
     sfStop()
     
   }# next t
+  time.2 <- date()
+  
+  print(paste('### START:', time.1))
+  print(paste('### END:', time.2))
 }
 
+#=======================================================================
+##### Plot Comparison of Results #####
 
 
 
