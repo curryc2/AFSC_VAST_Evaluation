@@ -217,10 +217,10 @@ if(do.estim==TRUE) {
     }#next s
   }#next t
   
-time.2 <- date()
+  time.2 <- date()
 
-print(paste('### START:', time.1))
-print(paste('### END:', time.2))
+  print(paste('### START:', time.1))
+  print(paste('### END:', time.2))
 
 }
 #=======================================================================
@@ -237,6 +237,7 @@ n.trial.knots
 #First get years
 load(paste0(working.dir,"/",trial.knots[1],"_bias.corr_",bias.correct,"/",species.list$name[1],"/db_est.RData"))
 yrs.surv <- db_est$YEAR
+n.yrs.surv <- length(yrs.surv)
 
 #Read in data
 
