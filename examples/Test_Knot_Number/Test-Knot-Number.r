@@ -185,7 +185,7 @@ if(do.estim==TRUE) {
     n_x <- trial.knots[t]
     
     #Setup File
-    trial.dir <- paste0(working.dir,"/",n_x,'_bias.corr_',bias.correct)
+    trial.dir <- paste0(working.dir,"/",n_x,"_bias.corr_",bias.correct)
     dir.create(trial.dir)
     
 
@@ -202,15 +202,29 @@ if(do.estim==TRUE) {
     sfStop()
     
   }# next t
-  time.2 <- date()
+
+
+
+  #Go back through and delete Unnecessary parameter estimates
+  t <- 1
+  for(t in 1:n.trial.knots) {
+    s <- 1
+    for(s in 1:n.species) {
+      temp.DateFile <- paste0(working.dir,"/",trial.knots[t],"_bias.corr_",bias.correct,"/",species.list$name[s],"/")
+      #Remove manually
+      file.remove(paste0(temp.DateFile,"parameter_estimates.Rdata"))
+      file.remove(paste0(temp.DateFile,"parameter_estimates.txt"))
+    }#next s
+  }#next t
   
-  print(paste('### START:', time.1))
-  print(paste('### END:', time.2))
+time.2 <- date()
+
+print(paste('### START:', time.1))
+print(paste('### END:', time.2))
+
 }
-
 #=======================================================================
-##### Plot Comparison of Results #####
-
+##### Plot Comparison of Results #####=
 #Flag for excluding the 2001 design-based index from comparison,
 #  given unequal spatial sampling.
 exclude.2001 <- TRUE 
@@ -221,8 +235,8 @@ n.trial.knots
 
 #Create data objects
 #First get years
-temp <- load(paste0(working.dir,"/",n_x,'_bias.corr_',bias.correct))
-yrs.surv <- 
+load(paste0(working.dir,"/",trial.knots[1],"_bias.corr_",bias.correct,"/",species.list$name[1],"/db_est.RData"))
+yrs.surv <- db_est$YEAR
 
 #Read in data
 
