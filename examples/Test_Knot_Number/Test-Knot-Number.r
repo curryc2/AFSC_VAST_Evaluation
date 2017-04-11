@@ -11,8 +11,14 @@
 #NOTES:
 #
 #  a) Could calculate design-based estiamtes within wrapper function or at the end while plotting
-#
+#  
 #==================================================================================================
+#TIMING:
+# For 10-1000, by 100 knots
+# [1] "### START: Mon Apr 10 16:17:08 2017"
+# [1] "### END: Mon Apr 10 22:54:04 2017"
+#==================================================================================================
+
 require(VAST)
 require(TMB)
 require(parallel)
@@ -44,7 +50,7 @@ species.series <- c(1:n.species)
 n.cores <- detectCores()-1
 
 #Boolean for running estimation models
-do.estim <- TRUE
+do.estim <- FALSE
 
 #Trial Knot Numbers
 trial.knots <- seq(100, 1000, by=100)
@@ -205,8 +211,23 @@ if(do.estim==TRUE) {
 #=======================================================================
 ##### Plot Comparison of Results #####
 
+#Flag for excluding the 2001 design-based index from comparison,
+#  given unequal spatial sampling.
+exclude.2001 <- TRUE 
+
+n.species
+n.trial.knots
 
 
+#Create data objects
+#First get years
+temp <- load(paste0(working.dir,"/",n_x,'_bias.corr_',bias.correct))
+yrs.surv <- 
+
+#Read in data
+
+
+#Plot Results
 
 
 
