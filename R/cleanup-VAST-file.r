@@ -11,10 +11,10 @@ cleanup_VAST_file <- function(DateFile, Version="VAST_v2_4_0") {
   
   
   #Delete VAST .dll ~ 13,3559 KB
-  if(.Platform$OS.type=='windows') {
-    unlink(paste0(DateFile,Version,".dll"))
-  }
-  if(.Platform$OS.type=='unix') {
-    unlink(paste0(DateFile,Version,".so"))
-  }
+  # if(.Platform$OS.type=='windows') {
+  #   unlink(paste0(DateFile,Version,".dll"))
+  # }
+  # if(.Platform$OS.type=='unix') {
+  #   unlink(paste0(DateFile,Version,".so"))
+  # }
 }

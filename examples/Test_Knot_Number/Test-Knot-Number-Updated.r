@@ -1,9 +1,10 @@
 #==================================================================================================
-#Project Name: VAST spatial delta-GLMM (Thorson) Evaluation: Compare Knot Number
+#Project Name: VAST spatial delta-GLMM (Thorson) Evaluation: Compare Knot Number --- UPDATED FOR LOWER STORAGE REQUIREMENTS
 #Creator: Curry James Cunningham, NOAA/NMFS, ABL
 #Date: 4.10.17
 #
 #Purpose: To explore sensitivity of model-based index estimates to different knot number specification
+#             THIS SCRIPT IS AN UPDATE FROM EARLIER VERSION TO REDUCE STORAGE REQUIREMENTS.
 #
 #
 #
@@ -147,9 +148,12 @@ species_wrapper_fxn_knots <- function(s, n_x) {
                              upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
                              bias.correct = bias.correct)
   #Save output
-  Report = Obj$report()
-  Save = list("Opt"=Opt, "Report"=Report, "ParHat"=Obj$env$parList(Opt$par), "TmbData"=TmbData)
-  save(Save, file=paste0(DateFile,"Save.RData"))
+  # Report = Obj$report()
+  # Save = list("Opt"=Opt, "Report"=Report, "ParHat"=Obj$env$parList(Opt$par), "TmbData"=TmbData)
+  # save(Save, file=paste0(DateFile,"Save.RData"))
+  
+  #Calculate index values
+  TmbData = TmbData, Sdreport = Opt[["SD"]]
   
   #========================================================================
   ##### DIAGNOSTIC AND PREDICTION PLOTS #####
@@ -180,7 +184,7 @@ if(do.estim==TRUE) {
     print(paste('## Trial Knot Number',t,'of',n.trial.knots))
     print(paste('# Trial Knots:',trial.knots[t]))
     #Specify trial observation model
-
+    
     #Specify knots
     n_x <- trial.knots[t]
     
@@ -188,7 +192,7 @@ if(do.estim==TRUE) {
     trial.dir <- paste0(working.dir,"/",n_x,"_bias.corr_",bias.correct)
     dir.create(trial.dir)
     
-
+    
     
     #=======================================================================
     ##### SNOWFALL CODE FOR PARALLEL #####
@@ -204,9 +208,9 @@ if(do.estim==TRUE) {
     
     
   }# next t
-
-
-
+  
+  
+  
   #Go back through and delete Unnecessary parameter estimates
   t <- 1
   for(t in 1:n.trial.knots) {
@@ -220,10 +224,10 @@ if(do.estim==TRUE) {
   }#next t
   
   time.2 <- date()
-
+  
   print(paste('### START:', time.1))
   print(paste('### END:', time.2))
-
+  
 }
 #=======================================================================
 ##### Plot Comparison of Results #####=
