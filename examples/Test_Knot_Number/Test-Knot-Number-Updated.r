@@ -29,7 +29,7 @@ require(snowfall)
 source("R/calc-design-based-index.r")
 source("R/create-VAST-input.r")
 source("R/cleanup-VAST-file.r")
-
+source("R/get-VAST-index.r")
 
 
 #Create working directory
@@ -54,7 +54,7 @@ n.cores <- detectCores()-1
 do.estim <- FALSE
 
 #Trial Knot Numbers
-trial.knots <- seq(100, 1000, by=100)
+trial.knots <- c(100,200,350,500)#seq(100, 1000, by=100)
 n.trial.knots <- length(trial.knots)
 
 #Boolean for bias correction
@@ -107,9 +107,6 @@ species_wrapper_fxn_knots <- function(s, n_x) {
   #Define species.codes
   species.codes <- species.list$species.code[s]
   
-  #Calculate design-based estimate
-  db_est <- calc_design_based_index(species.codes=species.codes, Region=Region)
-  save(db_est, file=paste0(DateFile,"db_est.RData"))
   #=======================================================================
   ##### READ IN DATA AND BUILD VAST INPUT #####
   #  NOTE: this will create the DateFile
@@ -153,30 +150,30 @@ species_wrapper_fxn_knots <- function(s, n_x) {
   # save(Save, file=paste0(DateFile,"Save.RData"))
   
   #Calculate index values
-  TmbData = TmbData, Sdreport = Opt[["SD"]]
-  
+  # TmbData = TmbData, Sdreport = Opt[["SD"]]
+  vast_est <- get_VAST_index(TmbData=TmbData, Sdreport=Opt[["SD"]], bias.correct=bias.correct, Data_Geostat=Data_Geostat)
   #========================================================================
   ##### DIAGNOSTIC AND PREDICTION PLOTS #####
   # plot_VAST_output(Opt, Report, DateFile, Region, TmbData, Data_Geostat, Extrapolation_List, Spatial_List)
   
   #========================================================================
   ##### CLEANUP VAST OUTPUT #####
-  cleanup_VAST_file(DateFile=DateFile, Version=Version)
+  # cleanup_VAST_file(DateFile=DateFile, Version=Version) #No longer necessary as we are deleting everything at the end
   
   rm("VAST_input", "TmbData", "Data_Geostat", "Spatial_List", "Extrapolation_List",
-     "TmbList", "Obj", "Opt", "Report", "Save",
-     "db_est")
+     "TmbList", "Obj", "Opt", "Report", "Save")
   
   #========================================================================
   ##### RETURN SECTION #####
-  # return(Opt$AIC)
-  
+  return(vast_est)
 } 
 
 
 #=======================================================================
 ##### Loop Through Trial Knots  #####
 if(do.estim==TRUE) {
+  vast_est.output <- vector('list', length=n.trial.knots)
+
   time.1 <- date()
   
   t <- 1
@@ -193,7 +190,6 @@ if(do.estim==TRUE) {
     dir.create(trial.dir)
     
     
-    
     #=======================================================================
     ##### SNOWFALL CODE FOR PARALLEL #####
     sfInit(parallel=TRUE, cpus=n.cores, type='SOCK')
@@ -205,22 +201,40 @@ if(do.estim==TRUE) {
     # sfRemover(VAST_input)
     sfStop()
     
-    
+    vast_est.output[[t]] <- output
     
   }# next t
   
+  #Dimensions for vast_est.output are 1) Trial knots, 2) Species
+  # vast_est.output[[1:n.trial.knots]][[1:n.species]]
   
+  #Create output directory
+  output.dir <- paste0(working.dir,"/output_bias.correct_",bias.correct)
+  dir.create(output.dir)
+  save(vast_est.output, file=paste0(output.dir,"/vast_est.output.RData"))
   
-  #Go back through and delete Unnecessary parameter estimates
+  #=======================================================================
+  ##### DELETE UNNECESSARY FILE STRUCTURE #####
+  #Must reset working directory
+  setwd(working.dir)
   t <- 1
   for(t in 1:n.trial.knots) {
-    s <- 1
-    for(s in 1:n.species) {
-      temp.DateFile <- paste0(working.dir,"/",trial.knots[t],"_bias.corr_",bias.correct,"/",species.list$name[s],"/")
+    # s <- 1
+    # for(s in 1:n.species) {
+      # temp.DateFile <- paste0(working.dir,"/",trial.knots[t],"_bias.corr_",bias.correct,"/",species.list$name[s],"/")
       #Remove manually
-      file.remove(paste0(temp.DateFile,"parameter_estimates.Rdata"))
-      file.remove(paste0(temp.DateFile,"parameter_estimates.txt"))
-    }#next s
+      # file.remove(paste0(temp.DateFile,"parameter_estimates.Rdata"))
+      # file.remove(paste0(temp.DateFile,"parameter_estimates.txt"))
+      
+      # #REMOVE EVERYTHING...
+      # # file.remove(paste0(working.dir,"/",trial.knots[t],"_bias.corr_",bias.correct,"/"), force=TRUE)
+      # print(unlink(paste0(working.dir,"/",trial.knots[t],"_bias.corr_",bias.correct,"/"), recursive=TRUE))
+      
+      
+      # unlink(paste0(working.dir,"/",trial.knots[t],"_bias.corr_",bias.correct,"/",species.list$name[s]), recursive=TRUE)
+    # }#next s
+    
+    unlink(paste0(working.dir,"/",trial.knots[t],"_bias.corr_",bias.correct), recursive=TRUE)
   }#next t
   
   time.2 <- date()
@@ -246,7 +260,9 @@ yrs.surv <- db_est$YEAR
 n.yrs.surv <- length(yrs.surv)
 
 #Read in data
-
+#Calculate design-based estimate
+db_est <- calc_design_based_index(species.codes=species.codes, Region=Region)
+save(db_est, file=paste0(DateFile,"db_est.RData"))
 
 #Plot Results
 

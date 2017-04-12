@@ -30,5 +30,9 @@ Simple comparison of design-based and [VAST](https://github.com/James-Thorson/VA
 
 ## Test_Knot_Number
 Script to run comparison of [VAST](https://github.com/James-Thorson/VAST) indices with differing knot choices.
+* Note: Directory for this example has two scripts "Test-Knot-Number.r" and "Test-Knot-Number-Updated.r"
+    + Updated version should be used.
+    + Test-Knot-Number.r -- creates a large file structure with much saved output. This was inefficient from a storage perspective.
+    + Test-Knot-Number-Updated.r -- Saves VAST indices at .RData object, which can be readily compared to design-based estimates. Saves space...
 
 ***

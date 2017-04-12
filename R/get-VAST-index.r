@@ -15,8 +15,8 @@
 #'
 get_VAST_index <- function(TmbData, Sdreport=Opt[["SD"]], bias.correct, Data_Geostat=NULL) {
   ###Testing
-  Sdreport=Opt[["SD"]]
-  bias.correct <- FALSE
+  # Sdreport=Opt[["SD"]]
+  # bias.correct <- FALSE
   
   #Initial Checkup
   # Which parameters
