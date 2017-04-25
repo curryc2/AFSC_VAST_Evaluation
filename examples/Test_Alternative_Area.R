@@ -24,7 +24,7 @@ require(ggplot2)
 ##### SETUP INPUT DATA #####
 
 #Generate a dataset
-species.codes <- 21921 #Atka Mackerel #c(30420) #Rockfish
+species.codes <- 21720 #Pacific Cod #c(30420) #Rockfish
 
 #DERIVED OBJECTS
 Region  <- "Gulf_of_Alaska"
@@ -44,7 +44,8 @@ dgs.ai <- create_Data_Geostat(species.codes, lat_lon.def="mean", area="AI")
 ggmap()
 
 #Lets get a map
-map.input <- dat.ai
+map.input <- dat.bs
+
 #Left, bottom, right, top
 map.dat <- get_map(location=c(min(map.input$START_LONGITUDE),min(map.input$START_LATITUDE),max(map.input$START_LONGITUDE), max(map.input$START_LATITUDE)),
                      maptype='terrain')
