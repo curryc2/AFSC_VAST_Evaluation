@@ -36,3 +36,6 @@ Script to run comparison of [VAST](https://github.com/James-Thorson/VAST) indice
     + Test-Knot-Number-Updated.r -- Saves VAST indices at .RData object, which can be readily compared to design-based estimates. Saves space...
 
 ***
+
+
+
