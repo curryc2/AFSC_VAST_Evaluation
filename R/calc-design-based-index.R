@@ -7,8 +7,8 @@
 #' @export
 calc_design_based_index <- function(species.codes, Region="Gulf_of_Alaska") {
   ### TESTING VALUES
-  # species.codes <- c(30420)
-  # Region <- 'Gulf_of_Alaska'
+  species.codes <- 21720 #Pacific Cod
+  Region <- 'Gulf_of_Alaska'
   ###
   require(dplyr)
   source("R/load-RACE-data.r")
