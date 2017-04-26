@@ -55,12 +55,23 @@ dim(goa_NR_PC)[1] == 2*dim(goa.North_Rockfish)[1]#Check!
 
 #==============================================================================
 #TEST: creating Data_Geostat object
-dgs.goa <- create_Data_Geostat(species.codes, lat_lon.def="mean", area="GOA")
-dgs.ai <- create_Data_Geostat(species.codes, lat_lon.def="mean", area="AI")
+dgs.goa <- create_Data_Geostat(species.codes, lat_lon.def="mean", survey="GOA")
+dim(dgs.goa)
 
-dgs.ebs <- create_Data_Geostat(species.codes, lat_lon.def="mean", area="EBS") #Doesn't work!!!
+dgs.ai <- create_Data_Geostat(species.codes, lat_lon.def="mean", survey="AI")
+dim(dgs.ai)
 
-dgs.bs <- create_Data_Geostat(species.codes, lat_lon.def="mean", area="BS")
+dgs.slope <- create_Data_Geostat(species.codes, lat_lon.def="mean", survey="EBS_SLOPE")
+dim(dgs.slope)
+
+dgs.shelf <- create_Data_Geostat(species.codes, lat_lon.def="mean", survey="EBS_SHELF")
+dim(dgs.shelf)
+
+#Try multispecies
+
+dgs.shelf.NR_PC <- create_Data_Geostat(species.codes=c(21720,30420), lat_lon.def="mean", survey="EBS_SHELF")
+dim(dgs.shelf.NR_PC)
+head(dgs.shelf.NR_PC)
 
 #==============================================================================
 #TEST: creating VAST input
@@ -74,9 +85,6 @@ dgs.bs <- create_Data_Geostat(species.codes, lat_lon.def="mean", area="BS")
 
 #==============================================================================
 #TEST: Design-based Index Function
-
-
-
 
 #
 ggmap()

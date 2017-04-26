@@ -9,7 +9,7 @@
 #' @param n_X 
 #' @param Kmeans_Config 
 #' @param strata.limits dataframe of strata limits for post-hoc apportionment
-#' @param Region string indicating region of evaluation, one of: Gulf_of_Alaska, Eastern_Bering_Sea, or Aleutian_Islands
+#' @param survey string indicating the survey for which data are being extracted: GOA, AI, EBS_SHELF, EBS_SLOPE
 #' @param DateFile path for directory housing VAST model and output figures and objects
 #' @param FieldConfig 
 #' @param RhoConfig 
@@ -23,7 +23,7 @@
 create_VAST_input <- function(species.codes, lat_lon.def="mean", save.Record=TRUE,
                                 Method="Mesh", grid_size_km=25, n_X=250,
                                 Kmeans_Config=list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 ),
-                                strata.limits=NULL, Region="Gulf_of_Alaska",
+                                strata.limits=NULL, survey="GOA",
                                 DateFile=paste0(getwd(),'/VAST_output/'),
                                 FieldConfig, RhoConfig, OverdispersionConfig,
                                 ObsModel, Options) {
@@ -44,16 +44,18 @@ create_VAST_input <- function(species.codes, lat_lon.def="mean", save.Record=TRU
   }
   
   #Determine Correct area to allign with RACE survey
-  if(Region %in% c("Gulf_of_Alaska", "Eastern_Bering_Sea", "Aleutian_Islands")) {
-    if(Region=="Gulf_of_Alaska") { area <- "GOA" }
-    if(Region=="Eastern_Bering_Sea") { area <- "BS" }
-    if(Region=="Aleutian_Islands") { area <- "AI" }
+  
+  if(survey %in% c("GOA","AI","EBS_SHELF",'EBS_SLOPE')) { 
+    if(survey=="GOA") { Region <- "Gulf_of_Alaska"; area <- "GOA" }
+    if(survey=="AI") { Region <- "Aleutian_Islands"; area <- "AI" }
+    if(survey=="EBS_SHELF" | survey=="EBS_SLOPE") { Region <- "Eastern_Bering_Sea"; area <- "BS" }
+    
   }else {
-    stop("Region must be one of: Gulf_of_Alaska, Eastern_Bering_Sea, Aleutian_Islands")
+    stop(paste("survey is:",survey,", should be one of: GOA, AI, EBS_SHELF, EBS_SLOPE"))
   }
   
   #Retreive Data
-  Data_Geostat <- create_Data_Geostat(species.codes=species.codes, lat_lon.def=lat_lon.def, area=area) 
+  Data_Geostat <- create_Data_Geostat(species.codes=species.codes, lat_lon.def=lat_lon.def, survey=survey) 
   
   #Build Extrapolition Grid
   Extrapolation_List  <- SpatialDeltaGLMM::Prepare_Extrapolation_Data_Fn(Region = Region, strata.limits = strata.limits)
