@@ -3,22 +3,25 @@
 #'
 #' @param species.codes vector of species codes for which data will be returned
 #' @param lat_lon.def string defining how tow-specific Latitude and Longitude will be calculated
-#' @param area string indicating area of survey interest: GOA, AI
+#' @param survey string indicating the survey for which data are being extracted: GOA, AI, EBS_SHELF, EBS_SLOPE
 #'
 #' @return dataframe Data_Geostat with input data for VAST
 #' @export
-create_Data_Geostat <- function(species.codes, lat_lon.def="mean", area="GOA") {
-  #TESTING
+create_Data_Geostat <- function(species.codes, lat_lon.def="mean", survey="GOA") {
+  ###TESTING###
   # species.codes <- c(30152,30420)
   # lat_lon.def <- "mean"
+  # survey <- 'EBS_SHELF'
+  #############
   
   source("R/load-RACE-data.r")
   
   #Check Inputs
   if(!lat_lon.def %in% c("mean", "start", "end")) { stop("lat_lon.def must be mean, start, or end") }
+  if(!survey %in% c("GOA","AI","EBS_SHELF",'EBS_SLOPE')) { stop(paste("survey is:",survey,", should be one of: GOA, AI, EBS_SHELF, EBS_SLOPE"))  }
   
   #Get Data
-  load.data <- load_RACE_data(species.codes=species.codes, area=area)
+  load.data <- load_RACE_data(species.codes=species.codes, survey=survey)
   
   #Create VAST input data object
   Data_Geostat <- NULL
