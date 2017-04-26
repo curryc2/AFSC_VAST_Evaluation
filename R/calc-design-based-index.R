@@ -39,7 +39,7 @@ calc_design_based_index <- function(species.codes, Region="Gulf_of_Alaska") {
   hstrat <- data.frame(load.data %>% group_by(Year, STRATUM) %>% summarize(n_sta=length(unique(HAULJOIN)))) #dplyr
   
   #Join together
-  # biomvar <- merge(cstrat, hstrat, by.x=c("Year","STRATUM"), by.y=c("Year","STRATUM"), all.x=TRUE)
+  # biomvar <- merge(cstrat, hstrat, by.x=c("Year","STRATUM"), by.y=c("Year","STRATUM"), all.x=TRUE) #all.x=TRUE, all.y=FALSE
   biomvar <- left_join(cstrat, hstrat, by=c("Year", "STRATUM")) #dplyr
   colnames(biomvar)<-c("YEAR","STRATUM","CPUE","VAR","n_stations")
   
@@ -47,7 +47,7 @@ calc_design_based_index <- function(species.codes, Region="Gulf_of_Alaska") {
   #Load Strata Data
   strata.data <- read.csv("data/race_stratum_info.csv", header=TRUE)
   #Limit to correct survey area
-  strata.area <- strata.data[strata.data$Survey==area,c(2,3,5)]
+  strata.area <- strata.data[strata.data$Survey==area,c(2,3,5)] #NEEDS TO BE UPDATED
   names(strata.area) <- c("STRATUM","AREA","INPFC_AREA")
   
   # biomvar <- merge(biomvar, strata.area, by=c("STRATUM"), all.x=TRUE) #plyr
