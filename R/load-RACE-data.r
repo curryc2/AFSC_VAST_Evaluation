@@ -12,11 +12,11 @@ load_RACE_data <- function(species.codes=c(30152,30420), survey="GOA", writeCSV=
   require(FishData)
   require(dplyr)
   ###TESTING###
-  species.codes <- 30420#21720 #Pacific Cod 
-  survey <- 'GOA'
+  # species.codes <- 21720 #Pacific Cod 30420#
+  # survey <- 'EBS_SHELF'
   #############
   
-  if(!survey %in% c("GOA","AI","EBS_SHELF",'EBS_SLOPE')) { stop(paste("survey is:",survey,"should be one of: GOA, AI, EBS_SHELF, EBS_SLOPE"))  }
+  if(!survey %in% c("GOA","AI","EBS_SHELF",'EBS_SLOPE')) { stop(paste("survey is:",survey,", should be one of: GOA, AI, EBS_SHELF, EBS_SLOPE"))  }
   #FOR ORIGINAL .CSV INPUT
   # #Opening section to determine suitability
   # if(file.exists("data/race_base_haul.csv")==FALSE) { stop("data/race_base_haul.csv NOT FOUND") }
@@ -51,8 +51,6 @@ load_RACE_data <- function(species.codes=c(30152,30420), survey="GOA", writeCSV=
                                                species_subset=species.codes,
                                                if_multiple_records="First",
                                                 Method="Fast")
-  dim(catchhaul.2)
-  
   #Bring in cruise info
   #Add year of survey and name
   cruise.info <- read.csv("data/race_cruise_info.csv", header=TRUE, stringsAsFactors=FALSE)
@@ -70,13 +68,13 @@ load_RACE_data <- function(species.codes=c(30152,30420), survey="GOA", writeCSV=
   
   #Add species name
   species.code.data <- read.csv("data/race_species_codes.csv", header=TRUE, stringsAsFactors=FALSE)
-  output <- left_join(x=catchhaul.3, y=species.code.data[,c("Species.Code","Common.Name")], 
-                       by=c("SPECIES_CODE"="Species.Code"))
-  output.2 <- merge(x=catchhaul.3, y=species.code.data[,c("Species.Code","Common.Name")], 
+  # output <- inner_join(x=catchhaul.3, y=species.code.data[,c("Species.Code","Common.Name")], 
+                       # by=c("SPECIES_CODE"="Species.Code"))
+  output <- merge(x=catchhaul.3, y=species.code.data[,c("Species.Code","Common.Name")], 
                        by.x="SPECIES_CODE", by.y="Species.Code")
   
   # #Limit to specific survey
-  catchhaul.3 <- catchhaul.3[catchhaul.3$Survey==survey,]
+  output <- output[output$Survey==survey,]
   
   #Return Section
   if(writeCSV==TRUE) { write.csv(output, file="output/RACE_data_output.csv") }
