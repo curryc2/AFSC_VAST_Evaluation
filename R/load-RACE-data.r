@@ -46,21 +46,33 @@ load_RACE_data <- function(species.codes=c(30152,30420), survey="GOA", writeCSV=
   
   #Add in zero observations for catch weight, for no catches.
   #  Drawing on Jim Thorson's code from FishData
+  #NOTE: species.codes are now treated as a factor.
   catchhaul.2 <- FishData::add_missing_zeros(data_frame=catchhaul, unique_sample_ID_colname="HAULJOIN",
                                                sample_colname="WEIGHT", species_colname="SPECIES_CODE",
                                                species_subset=species.codes,
                                                if_multiple_records="First",
                                                 Method="Fast")
+  
+
+  
+  
   #Bring in cruise info
   #Add year of survey and name
   cruise.info <- read.csv("data/race_cruise_info.csv", header=TRUE, stringsAsFactors=FALSE)
-  catchhaul.3 <- left_join(x=catchhaul.2, y=cruise.info[,c("Cruise.Join.ID","Year","Survey")],
-                             by=c("CRUISEJOIN.x"="Cruise.Join.ID"))
+  # catchhaul.3 <- left_join(x=catchhaul.2, y=cruise.info[,c("Cruise.Join.ID","Year","Survey")],
+  #                            by=c("CRUISEJOIN.x"="Cruise.Join.ID"))
   
+  #User inner_join because it removes hauls WITHOUT identified Year and Survey
+  catchhaul.3 <- inner_join(x=catchhaul.2, y=cruise.info[,c("Cruise.Join.ID","Year","Survey")],
+                           by=c("CRUISEJOIN.x"="Cruise.Join.ID"))
+
   
+  # #Find difference
+  # loc <- which(catchhaul.3$CRUISEJOIN.x %in% catchhaul.3.in$CRUISEJOIN.x)
+  # catchhaul.3[-loc,]
   
-  # #Limit to specific survey
-  # catchhaul.3 <- catchhaul.3[catchhaul.3$Survey==survey,]
+  #Limit to specific survey
+  catchhaul.3 <- catchhaul.3[catchhaul.3$Survey==survey,]
   
   #Calculate and add Effort and CPUE
   catchhaul.3$effort <- catchhaul.3$NET_WIDTH*catchhaul.3$DISTANCE_FISHED/1000
@@ -68,13 +80,14 @@ load_RACE_data <- function(species.codes=c(30152,30420), survey="GOA", writeCSV=
   
   #Add species name
   species.code.data <- read.csv("data/race_species_codes.csv", header=TRUE, stringsAsFactors=FALSE)
-  # output <- inner_join(x=catchhaul.3, y=species.code.data[,c("Species.Code","Common.Name")], 
-                       # by=c("SPECIES_CODE"="Species.Code"))
+  
+  #Convert codes to a factor
+  # species.code.data$Species.Code <- as.factor(species.code.data$Species.Code)
+  # 
+  # output <- left_join(x=catchhaul.3, y=species.code.data[,c("Species.Code","Common.Name")],
+  #                      by=c("SPECIES_CODE"="Species.Code"))
   output <- merge(x=catchhaul.3, y=species.code.data[,c("Species.Code","Common.Name")], 
                        by.x="SPECIES_CODE", by.y="Species.Code")
-  
-  # #Limit to specific survey
-  output <- output[output$Survey==survey,]
   
   #Return Section
   if(writeCSV==TRUE) { write.csv(output, file="output/RACE_data_output.csv") }

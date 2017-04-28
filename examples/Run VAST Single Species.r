@@ -12,7 +12,8 @@
 #==================================================================================================
 source('R/create-VAST-input.r')
 source('R/plot-VAST-output.r')
-
+source('R/cleanup-VAST-file.r')
+ 
 require(VAST)
 require(TMB)
 
@@ -20,7 +21,7 @@ require(TMB)
 ##### SETUP INPUT DATA #####
 
 #Generate a dataset
-species.codes<- 21740 #c(30420) #Rockfish
+species.codes<- 21740# 21740 #c(30420) #Rockfish
 lat_lon.def="mean"
 
 
@@ -28,7 +29,7 @@ lat_lon.def="mean"
 #SPATIAL SETTINGS
 Method = c("Grid", "Mesh", "Spherical_mesh")[2]
 grid_size_km = 25
-n_x = c(100, 250, 500, 1000, 2000)[1] # Number of stations
+n_x = c(100, 250, 500, 1000, 2000)[2] # Number of stations
 Kmeans_Config = list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )
 
 
@@ -40,9 +41,12 @@ strata.limits <- data.frame(STRATA = c("All_areas"),
 
 
 #DERIVED OBJECTS
-Region = "Gulf_of_Alaska"
+survey <- "EBS_SHELF"
 ###########################
-DateFile=paste0(getwd(),'/examples/VAST_output/')
+trial.file <- paste0(getwd(),"/examples/VAST_output/")
+dir.create(trial.file)
+
+DateFile <- paste0(trial.file,survey,"_",species.codes,"/")
 
 #MODEL SETTINGS
 FieldConfig = c(Omega1 = 1, Epsilon1 = 1, Omega2 = 1, Epsilon2 = 1)
@@ -66,9 +70,9 @@ Options = c(SD_site_density = 0, SD_site_logdensity = 0,
 
 
 VAST_input <- create_VAST_input(species.codes=species.codes, lat_lon.def=lat_lon.def, save.Record=TRUE,
-                                     Method="Mesh", grid_size_km=25, n_X=250,
-                                     Kmeans_Config=list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 ),
-                                     strata.limits=NULL, Region="Gulf_of_Alaska",
+                                     Method=Method, grid_size_km=grid_size_km, n_X=n_X,
+                                     Kmeans_Config=Kmeans_Config,
+                                     strata.limits=NULL, survey=survey,
                                      DateFile=DateFile,
                                      FieldConfig, RhoConfig, OverdispersionConfig,
                                      ObsModel, Options)
@@ -97,7 +101,7 @@ Obj <- TmbList[["Obj"]]
 
 Opt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
                           upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
-                          bias.correct = TRUE)
+                          bias.correct = FALSE)
 #Save output
 Report = Obj$report()
 Save = list("Opt"=Opt, "Report"=Report, "ParHat"=Obj$env$parList(Opt$par), "TmbData"=TmbData)
@@ -105,9 +109,11 @@ save(Save, file=paste0(DateFile,"Save.RData"))
 
 #========================================================================
 ##### DIAGNOSTIC AND PREDICTION PLOTS #####
-plot_VAST_output(Opt, Report, DateFile, Region, TmbData, Data_Geostat, Extrapolation_List, Spatial_List)
+plot_VAST_output(Opt, Report, DateFile, survey, TmbData, Data_Geostat, Extrapolation_List, Spatial_List)
 
-
+#========================================================================
+##### CLEAN UP MODEL FILES #####
+cleanup_VAST_file(DateFile, Version="VAST_v2_4_0")
 
 # 
 # 

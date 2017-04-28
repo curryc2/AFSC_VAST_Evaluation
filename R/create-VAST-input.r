@@ -44,7 +44,6 @@ create_VAST_input <- function(species.codes, lat_lon.def="mean", save.Record=TRU
   }
   
   #Determine Correct area to allign with RACE survey
-  
   if(survey %in% c("GOA","AI","EBS_SHELF",'EBS_SLOPE')) { 
     if(survey=="GOA") { Region <- "Gulf_of_Alaska"; area <- "GOA" }
     if(survey=="AI") { Region <- "Aleutian_Islands"; area <- "AI" }
@@ -61,7 +60,7 @@ create_VAST_input <- function(species.codes, lat_lon.def="mean", save.Record=TRU
   Extrapolation_List  <- SpatialDeltaGLMM::Prepare_Extrapolation_Data_Fn(Region = Region, strata.limits = strata.limits)
   
   #Create Location for Saving Files
-  dir.create(DateFile)
+  dir.create(DateFile) #Recursive may need to be false if other elements exist
   
   #Save Settings for Later reference
   if(save.Record==TRUE) {
