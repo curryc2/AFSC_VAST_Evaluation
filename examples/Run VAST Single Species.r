@@ -21,15 +21,15 @@ require(TMB)
 ##### SETUP INPUT DATA #####
 
 #Generate a dataset
-species.codes<- 21740# 21740 #c(30420) #Rockfish
-lat_lon.def="mean"
+species.codes<- 21921 #21740# 21740 #c(30420) #Rockfish
+lat_lon.def="start"
 
-
+survey <- "AI"
 
 #SPATIAL SETTINGS
 Method = c("Grid", "Mesh", "Spherical_mesh")[2]
 grid_size_km = 25
-n_x = c(100, 250, 500, 1000, 2000)[2] # Number of stations
+n_x = c(100, 250, 500, 1000, 2000)[1] # Number of stations
 Kmeans_Config = list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )
 
 
@@ -41,7 +41,7 @@ strata.limits <- data.frame(STRATA = c("All_areas"),
 
 
 #DERIVED OBJECTS
-survey <- "EBS_SHELF"
+
 ###########################
 trial.file <- paste0(getwd(),"/examples/VAST_output/")
 dir.create(trial.file)

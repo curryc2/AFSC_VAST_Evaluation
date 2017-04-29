@@ -53,12 +53,19 @@ create_VAST_input <- function(species.codes, lat_lon.def="mean", save.Record=TRU
     stop(paste("survey is:",survey,", should be one of: GOA, AI, EBS_SHELF, EBS_SLOPE"))
   }
   
+  # Region <- "Other"
+  
   #Retreive Data
   Data_Geostat <- create_Data_Geostat(species.codes=species.codes, lat_lon.def=lat_lon.def, survey=survey) 
   
   #Build Extrapolition Grid
-  Extrapolation_List  <- SpatialDeltaGLMM::Prepare_Extrapolation_Data_Fn(Region = Region, strata.limits = strata.limits)
-  
+  if(Region=="Other") {
+    observations_LL <- Data_Geostat[, which(names(Data_Geostat) %in% c("Lat","Lon"))]
+    Extrapolation_List  <- SpatialDeltaGLMM::Prepare_Extrapolation_Data_Fn(Region=Region, strata.limits=strata.limits,
+                                                                             observations_LL=Data_Geostat)
+  }else {
+    Extrapolation_List  <- SpatialDeltaGLMM::Prepare_Extrapolation_Data_Fn(Region=Region, strata.limits=strata.limits)
+  }
   #Create Location for Saving Files
   dir.create(DateFile) #Recursive may need to be false if other elements exist
   
