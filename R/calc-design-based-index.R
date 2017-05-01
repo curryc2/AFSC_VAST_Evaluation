@@ -7,8 +7,8 @@
 #' @export
 calc_design_based_index <- function(species.codes, survey) {
   ### TESTING VALUES
-  species.codes <- 21720 #Pacific Cod
-  survey <- 'GOA'
+  # species.codes <- 21720 #Pacific Cod
+  # survey <- 'GOA'
   ###
   require(dplyr)
   source("R/load-RACE-data.r")
