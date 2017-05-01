@@ -24,7 +24,6 @@ source("R/cleanup-VAST-file.r")
 #=======================================================================
 ##### CONTROL SECTION #####
 
-Region <- "Gulf_of_Alaska"
 
 working.dir <- getwd()
 
@@ -63,12 +62,12 @@ for(s in 1:n.species) {
   spec.name <- species.list$name[s]
 #=======================================================================
 ##### Calculate design-based estimate  #####
-db_est <- calc_design_based_index(species.codes=species.codes, Region=Region)
+db_est <- calc_design_based_index(species.codes=species.codes, survey=survey)
 
 #=======================================================================
 ##### Run VAST model  #####
 
-lat_lon.def <- "mean"
+lat_lon.def <- "start"
 
 #SPATIAL SETTINGS
 Method = c("Grid", "Mesh", "Spherical_mesh")[2]
@@ -104,9 +103,9 @@ Options = c(SD_site_density = 0, SD_site_logdensity = 0,
 
 #Create input
 VAST_input <- create_VAST_input(species.codes=species.codes, lat_lon.def=lat_lon.def, save.Record=TRUE,
-                                Method="Mesh", grid_size_km=25, n_X=250,
-                                Kmeans_Config=list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 ),
-                                strata.limits=NULL, Region="Gulf_of_Alaska",
+                                Method=Method, grid_size_km=grid_size_km, n_X=n_X,
+                                Kmeans_Config=Kmeans_Config,
+                                strata.limits=NULL, survey=survey,
                                 DateFile=DateFile,
                                 FieldConfig, RhoConfig, OverdispersionConfig,
                                 ObsModel, Options)

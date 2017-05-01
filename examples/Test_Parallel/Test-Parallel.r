@@ -25,6 +25,7 @@ require(VAST)
 #Source necessary files
 source("R/create-VAST-input.r")
 source("R/plot-VAST-output.r")
+source("R/cleanup-VAST-file.r")
 
 #Create testing directory
 parallel.dir <- paste0(getwd(),'/examples/Test_Parallel')
@@ -34,6 +35,7 @@ species.list <- read.csv("data/eval_species_list.csv")
 #Limit to those included
 species.list <- species.list[species.list$include=='Y',]
 
+#NOTE: This now represents speciesXsurvey
 n.species <- nrow(species.list)
 species.series <- c(1:n.species)
 
@@ -45,7 +47,7 @@ n.cores <- detectCores()-1
 #=======================================================================
 ##### VAST MODEL SPECIFICATIONS #####
 
-lat_lon.def="mean"
+lat_lon.def <- "start"
 
 #SPATIAL SETTINGS
 Method = c("Grid", "Mesh", "Spherical_mesh")[2]
@@ -90,22 +92,23 @@ Options = c(SD_site_density = 0, SD_site_logdensity = 0,
 species_wrapper_fxn <- function(s) {
   
   #Define file for analyses
-  DateFile <- paste0(parallel.dir,"/",species.list$name[s],"/")
+  DateFile <- paste0(parallel.dir,"/",species.list$survey[s],"_",species.list$name[s],"/")
   
   #Define species.codes
   species.codes <- species.list$species.code[s]
-  
+  survey <- species.list$survey[s]
   #=======================================================================
   ##### READ IN DATA AND BUILD VAST INPUT #####
   #  NOTE: this will create the DateFile
   
   VAST_input <- create_VAST_input(species.codes=species.codes, lat_lon.def=lat_lon.def, save.Record=TRUE,
-                                  Method="Mesh", grid_size_km=25, n_X=250,
-                                  Kmeans_Config=list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 ),
-                                  strata.limits=NULL, Region="Gulf_of_Alaska",
+                                  Method=Method, grid_size_km=grid_size_km, n_X=n_X,
+                                  Kmeans_Config=Kmeans_Config,
+                                  strata.limits=NULL, survey=survey,
                                   DateFile=DateFile,
                                   FieldConfig, RhoConfig, OverdispersionConfig,
                                   ObsModel, Options)
+  
   
   
   
@@ -139,7 +142,7 @@ species_wrapper_fxn <- function(s) {
   
   #========================================================================
   ##### DIAGNOSTIC AND PREDICTION PLOTS #####
-  plot_VAST_output(Opt, Report, DateFile, Region, TmbData, Data_Geostat, Extrapolation_List, Spatial_List)
+  plot_VAST_output(Opt, Report, DateFile, survey, TmbData, Data_Geostat, Extrapolation_List, Spatial_List)
   
   #========================================================================
   ##### CLEANUP VAST OUTPUT #####
