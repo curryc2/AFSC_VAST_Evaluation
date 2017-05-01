@@ -83,8 +83,8 @@ summary(c.nr$Catch_KG*(0.01/c.nr$AreaSwept_km2))
 
 
 
-
-
+Extrapolation_List  <- SpatialDeltaGLMM::Prepare_Extrapolation_Data_Fn(Region="Gulf_of_Alaska", strata.limits=strata.limits)
+names(Extrapolation_List)
 
 
 

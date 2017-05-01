@@ -1,29 +1,42 @@
 #' Function to calculate design-based survey abundance estimate from RACE survey data.
 #'
 #' @param species.codes vector of species codes for which data will be returned
-#' @param Region string indicating region of evaluation, one of: Gulf_of_Alaska, Eastern_Bering_Sea, or Aleutian_Islands
+#' @param survey string indicating the survey for which data are being extracted: GOA, AI, EBS_SHELF, EBS_SLOPE
 #'
 #' @return data frame containing annual survey biomass estimate, variance, SD, and CV.
 #' @export
-calc_design_based_index <- function(species.codes, Region="Gulf_of_Alaska") {
+calc_design_based_index <- function(species.codes, survey) {
   ### TESTING VALUES
   species.codes <- 21720 #Pacific Cod
-  Region <- 'Gulf_of_Alaska'
+  survey <- 'GOA'
   ###
   require(dplyr)
   source("R/load-RACE-data.r")
+  
+  
   #Input Checking...
-  if(Region %in% c("Gulf_of_Alaska", "Eastern_Bering_Sea", "Aleutian_Islands")) {
-    if(Region=="Gulf_of_Alaska") { area <- "GOA"; survey <- "GOA" }
-    if(Region=="Eastern_Bering_Sea") { area <- "BS"; stop("Error: Currently not implemented for EBS, need to correct slope vs shelf survey") }
-    if(Region=="Aleutian_Islands") { area <- "AI"; survey <- "AI" }
+  # if(Region %in% c("Gulf_of_Alaska", "Eastern_Bering_Sea", "Aleutian_Islands")) {
+  #   if(Region=="Gulf_of_Alaska") { area <- "GOA"; survey <- "GOA" }
+  #   if(Region=="Eastern_Bering_Sea") { area <- "BS"; stop("Error: Currently not implemented for EBS, need to correct slope vs shelf survey") }
+  #   if(Region=="Aleutian_Islands") { area <- "AI"; survey <- "AI" }
+  # }else {
+  #   stop("Region must be one of: Gulf_of_Alaska, Eastern_Bering_Sea, Aleutian_Islands")
+  # }
+  
+  
+  # if(length(species.codes)>1) { stop("Error: calc_design_based_index is currently only tested for a single species.") }
+  if(survey %in% c("GOA","AI","EBS_SHELF",'EBS_SLOPE')) { 
+    if(survey=="GOA") { Region <- "Gulf_of_Alaska"; area <- "GOA" }
+    if(survey=="AI") { Region <- "Aleutian_Islands"; area <- "AI" }
+    if(survey=="EBS_SHELF" | survey=="EBS_SLOPE") { Region <- "Eastern_Bering_Sea"; area <- "BS" }
+    
   }else {
-    stop("Region must be one of: Gulf_of_Alaska, Eastern_Bering_Sea, Aleutian_Islands")
+    stop(paste("survey is:",survey,", should be one of: GOA, AI, EBS_SHELF, EBS_SLOPE"))
   }
-  if(length(species.codes)>1) { stop("Error: calc_design_based_index is currently only tested for a single species.") }
+  
   
   #Load RACE survey data
-  load.data <- load_RACE_data(species.codes=species.codes, area=area, writeCSV=FALSE, writeDATA=FALSE)
+  load.data <- load_RACE_data(species.codes=species.codes, survey=survey, writeCSV=FALSE, writeDATA=FALSE)
   
   #Calculate design-based estimator
   

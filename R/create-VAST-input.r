@@ -38,9 +38,9 @@ create_VAST_input <- function(species.codes, lat_lon.def="mean", save.Record=TRU
   
   #Operation if no strata.limits are defined
   if(is.null(strata.limits)) {
-    strata.limits <- data.frame(STRATA = c("All_areas"),
-                                west_border = c(-Inf),
-                                east_border = c(Inf))
+    strata.limits <- data.frame(STRATA = c("All_areas"))#,
+                                # west_border = c(-Inf),
+                                # east_border = c(Inf))
   }
   
   #Determine Correct area to allign with RACE survey
@@ -59,13 +59,15 @@ create_VAST_input <- function(species.codes, lat_lon.def="mean", save.Record=TRU
   Data_Geostat <- create_Data_Geostat(species.codes=species.codes, lat_lon.def=lat_lon.def, survey=survey) 
   
   #Build Extrapolition Grid
+  start.time <- date()
   if(Region=="Other") {
-    observations_LL <- Data_Geostat[, which(names(Data_Geostat) %in% c("Lat","Lon"))]
     Extrapolation_List  <- SpatialDeltaGLMM::Prepare_Extrapolation_Data_Fn(Region=Region, strata.limits=strata.limits,
-                                                                             observations_LL=Data_Geostat)
+                                                                             observations_LL=Data_Geostat[,c("Lat","Lon")],
+                                                                             maximum_distance_from_sample=15)
   }else {
     Extrapolation_List  <- SpatialDeltaGLMM::Prepare_Extrapolation_Data_Fn(Region=Region, strata.limits=strata.limits)
   }
+  end.time <- date()
   #Create Location for Saving Files
   dir.create(DateFile) #Recursive may need to be false if other elements exist
   

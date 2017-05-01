@@ -21,10 +21,10 @@ require(TMB)
 ##### SETUP INPUT DATA #####
 
 #Generate a dataset
-species.codes<- 21921 #21740# 21740 #c(30420) #Rockfish
+species.codes<- 21740#10110 #21740# 21740 #c(30420) #Rockfish
 lat_lon.def="start"
 
-survey <- "AI"
+survey <- "EBS_SHELF"
 
 #SPATIAL SETTINGS
 Method = c("Grid", "Mesh", "Spherical_mesh")[2]
@@ -35,9 +35,7 @@ Kmeans_Config = list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )
 
 #SET SRATIFICATOIN
 #Basic - Single Area
-strata.limits <- data.frame(STRATA = c("All_areas"),
-                            west_border = c(-Inf),
-                            east_border = c(Inf))
+strata.limits <- data.frame(STRATA = c("All_areas"))
 
 
 #DERIVED OBJECTS
@@ -83,8 +81,10 @@ VAST_input <- create_VAST_input(species.codes=species.codes, lat_lon.def=lat_lon
 TmbData <- VAST_input$TmbData
 Data_Geostat <- VAST_input$Data_Geostat
 Spatial_List <- VAST_input$Spatial_List
-Extrapolation_List <- VAST_input$Extrapolation_List
-
+Extrapolation_List <- VAST_input$Extrapolation_List #Becomes zeros for non-GOA
+head(Extrapolation_List$a_el)
+head(Extrapolation_List$Area_km2_x)
+head(Extrapolation_List$Data_Extrap)
 
 #=======================================================================
 ##### RUN VAST #####
@@ -113,7 +113,7 @@ plot_VAST_output(Opt, Report, DateFile, survey, TmbData, Data_Geostat, Extrapola
 
 #========================================================================
 ##### CLEAN UP MODEL FILES #####
-cleanup_VAST_file(DateFile, Version="VAST_v2_4_0")
+# cleanup_VAST_file(DateFile, Version="VAST_v2_4_0")
 
 # 
 # 

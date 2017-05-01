@@ -56,13 +56,12 @@ Kmeans_Config = list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )
 
 #SET SRATIFICATOIN
 #Basic - Single Area
-strata.limits <- data.frame(STRATA = c("All_areas"),
-                            west_border = c(-Inf),
-                            east_border = c(Inf))
+strata.limits <- data.frame(STRATA = c("All_areas"))#,
+                            # west_border = c(-Inf),
+                            # east_border = c(Inf))
 
 
 #DERIVED OBJECTS
-Region = "Gulf_of_Alaska"
 ###########################
 # DateFile=paste0(getwd(),'/examples/VAST_output/')
 

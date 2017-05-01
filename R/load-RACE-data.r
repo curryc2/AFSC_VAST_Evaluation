@@ -16,7 +16,14 @@ load_RACE_data <- function(species.codes=c(30152,30420), survey="GOA", writeCSV=
   # survey <- 'EBS_SHELF'
   #############
   
-  if(!survey %in% c("GOA","AI","EBS_SHELF",'EBS_SLOPE')) { stop(paste("survey is:",survey,", should be one of: GOA, AI, EBS_SHELF, EBS_SLOPE"))  }
+  if(survey %in% c("GOA","AI","EBS_SHELF",'EBS_SLOPE')) { 
+    if(survey=="GOA") { Region <- "Gulf_of_Alaska"; area <- "GOA" }
+    if(survey=="AI") { Region <- "Aleutian_Islands"; area <- "AI" }
+    if(survey=="EBS_SHELF" | survey=="EBS_SLOPE") { Region <- "Eastern_Bering_Sea"; area <- "BS" }
+    
+  }else {
+    stop(paste("survey is:",survey,", should be one of: GOA, AI, EBS_SHELF, EBS_SLOPE"))
+  }
   #FOR ORIGINAL .CSV INPUT
   # #Opening section to determine suitability
   # if(file.exists("data/race_base_haul.csv")==FALSE) { stop("data/race_base_haul.csv NOT FOUND") }
@@ -73,6 +80,7 @@ load_RACE_data <- function(species.codes=c(30152,30420), survey="GOA", writeCSV=
   
   #Limit to specific survey
   catchhaul.3 <- catchhaul.3[catchhaul.3$Survey==survey,]
+  # catchhaul.3 <- catchhaul.3[catchhaul.3$Survey==survey & catchhaul.3$REGION.x==area,]
   
   #Calculate and add Effort and CPUE
   catchhaul.3$effort <- catchhaul.3$NET_WIDTH*catchhaul.3$DISTANCE_FISHED/1000
