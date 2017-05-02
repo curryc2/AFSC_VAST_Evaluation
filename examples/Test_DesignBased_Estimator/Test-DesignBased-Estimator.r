@@ -44,21 +44,8 @@ species.series <- c(1:n.species)
 
 
 
-
-
-s <- 1
-for(s in 1:n.species) {
-  print(paste(s, 'of', n.species))
-  species.codes <- species.list$species.code[s]
-
-  spec.name <- species.list$name[s]
-  #=======================================================================
-  ##### Calculate design-based estimate  #####
-  db_est <- calc_design_based_index(species.codes=species.codes, survey=survey)
-
-  #=======================================================================
-  ##### Run VAST model  #####
-
+#=======================================================================
+##### Run VAST model  #####
 lat_lon.def <- "start" 
 
 #SPATIAL SETTINGS
@@ -75,6 +62,16 @@ strata.limits <- data.frame(STRATA = c("All_areas"))
 
 #DERIVED OBJECTS
 Version <-  "VAST_v2_4_0"
+
+s <- 1
+for(s in 1:n.species) {
+  print(paste(s, 'of', n.species))
+  species.codes <- species.list$species.code[s]
+  survey <- species.list$survey[s]
+  spec.name <- species.list$name[s]
+  #=======================================================================
+  ##### Calculate design-based estimate  #####
+  db_est <- calc_design_based_index(species.codes=species.codes, survey=survey)
 
 ###########################
 DateFile=paste0(getwd(),'/examples/Test_DesignBased_Estimator/')
