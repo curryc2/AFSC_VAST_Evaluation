@@ -42,7 +42,7 @@ source("R/cleanup-VAST-file.r")
 working.dir <- paste0(getwd(),'/examples/Test_Obs_Model')
 
 #Determine species list
-species.list <- read.csv("data/eval_species_list.csv")
+species.list <- read.csv("data/eval_species_list.csv", stringsAsFactors=FALSE)
 
 #Limit species included
 species.list <- species.list[species.list$include=='Y',]

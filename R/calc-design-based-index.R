@@ -11,7 +11,7 @@ calc_design_based_index <- function(species.codes, survey) {
   # survey <- 'GOA'
   ###
   require(dplyr)
-  source("R/load-RACE-data.r")
+  # source("R/load-RACE-data.r")
   
   
   #Input Checking...
@@ -60,7 +60,7 @@ calc_design_based_index <- function(species.codes, survey) {
   #Load Strata Data
   strata.data <- read.csv("data/race_stratum_info.csv", header=TRUE)
   #Limit to correct survey area
-  strata.area <- strata.data[strata.data$Survey==area,c(2,3,5)] #NEEDS TO BE UPDATED
+  strata.area <- strata.data[strata.data$Survey==survey,c(2,3,5)] #NEEDS TO BE UPDATED
   names(strata.area) <- c("STRATUM","AREA","INPFC_AREA")
   
   # biomvar <- merge(biomvar, strata.area, by=c("STRATUM"), all.x=TRUE) #plyr

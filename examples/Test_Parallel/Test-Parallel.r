@@ -37,7 +37,7 @@ working.dir <- getwd()
 parallel.dir <- paste0(getwd(),'/examples/Test_Parallel')
 
 #Determine species list
-species.list <- read.csv("data/eval_species_list.csv")
+species.list <- read.csv("data/eval_species_list.csv", stringsAsFactors=FALSE)
 #Limit to those included
 species.list <- species.list[species.list$include=='Y',]
 

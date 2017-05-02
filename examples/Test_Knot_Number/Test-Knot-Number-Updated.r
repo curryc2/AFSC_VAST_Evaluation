@@ -37,7 +37,7 @@ source("R/get-VAST-index.r")
 working.dir <- paste0(getwd(),"/examples/Test_Knot_Number")
 
 #Determine species list
-species.list <- read.csv("data/eval_species_list.csv")
+species.list <- read.csv("data/eval_species_list.csv", stringsAsFactors=FALSE)
 
 #Limit species included
 species.list <- species.list[species.list$include=='Y',]
