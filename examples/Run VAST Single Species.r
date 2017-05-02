@@ -21,10 +21,10 @@ require(TMB)
 ##### SETUP INPUT DATA #####
 
 #Generate a dataset
-species.codes<- 21740#10110 #21740# 21740 #c(30420) #Rockfish
+species.codes<- 10110#10110 #21740# 21740 #c(30420) #Rockfish
 lat_lon.def="start"
 
-survey <- "EBS_SHELF"
+survey <- "GOA"
 
 #SPATIAL SETTINGS
 Method = c("Grid", "Mesh", "Spherical_mesh")[2]
@@ -39,7 +39,7 @@ strata.limits <- data.frame(STRATA = c("All_areas"))
 
 
 #DERIVED OBJECTS
-
+Version <-  "VAST_v2_4_0"
 ###########################
 trial.file <- paste0(getwd(),"/examples/VAST_output/")
 dir.create(trial.file)

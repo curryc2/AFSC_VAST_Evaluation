@@ -4,7 +4,7 @@ number,name,species.code,include,survey,Region
 3,Walleye pollock,21740,Y,GOA,Gulf_of_Alaska
 4,Walleye pollock,21740,Y,AI,Aleutian_Islands
 5,Pacific cod,21720,Y,GOA,Gulf_of_Alaska
-6,Pacific cod,21720,Y,EBS_SHELF,Eastern_Bering_Sea
+6,Pacific cod,21720,N,EBS_SHELF,Eastern_Bering_Sea
 7,Pacific cod,21720,Y,AI,Aleutian_Islands
 8,Northern rockfish,30420,Y,GOA,Gulf_of_Alaska
 9,Northern rockfish,30420,Y,AI,Aleutian_Islands

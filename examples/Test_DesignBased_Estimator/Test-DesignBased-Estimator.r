@@ -84,6 +84,8 @@ strata.limits <- data.frame(STRATA = c("All_areas"),
 
 
 #DERIVED OBJECTS
+Version <-  "VAST_v2_4_0"
+
 ###########################
 DateFile=paste0(getwd(),'/examples/Test_DesignBased_Estimator/')
 

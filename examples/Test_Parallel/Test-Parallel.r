@@ -64,6 +64,7 @@ strata.limits <- data.frame(STRATA = c("All_areas"))#,
 
 
 #DERIVED OBJECTS
+Version <-  "VAST_v2_4_0"
 ###########################
 # DateFile=paste0(getwd(),'/examples/VAST_output/')
 
@@ -158,14 +159,22 @@ species_wrapper_fxn <- function(s) {
 
 #=======================================================================
 ##### SNOWFALL CODE FOR PARALLEL #####
+start.time <- date()
+
 sfInit(parallel=TRUE, cpus=n.cores, type='SOCK')
 sfExportAll() #Exportas all global variables to cores
 sfLibrary(TMB)  #Loads a package on all nodes
 sfLibrary(VAST)
 output <- sfLapply(species.series, fun=species_wrapper_fxn)
-output.snowfall <- unlist(rbind(output))
 sfStop()
 
+output.snowfall <- unlist(rbind(output))
+
+end.time <- date()
+
+#Print timing
+print(paste('START:',start.time))
+print(paste('End:',end.time))
 
 
 
