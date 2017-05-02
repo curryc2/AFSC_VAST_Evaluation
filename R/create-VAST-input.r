@@ -28,7 +28,7 @@ create_VAST_input <- function(species.codes, lat_lon.def="mean", save.Record=TRU
                                 FieldConfig, RhoConfig, OverdispersionConfig,
                                 ObsModel, Options) {
   
-  source('R/create-Data-Geostat.r')
+  # source('R/create-Data-Geostat.r')
   
   #vERSION NUMBER
   Version  <- "VAST_v2_4_0"

@@ -13,7 +13,10 @@
 #
 #==================================================================================================
 #NOTES:
-#
+# Timings:
+#  100 n_X, and no bias cor
+# [1] "START: Tue May 02 09:00:52 2017"
+# [1] "End: Tue May 02 09:14:15 2017"
 #==================================================================================================
 require(snowfall)
 require(parallel)
@@ -24,10 +27,13 @@ require(VAST)
 
 #Source necessary files
 source("R/create-VAST-input.r")
+source("R/create-Data-Geostat.r")
+source("R/load-RACE-data.r")
 source("R/plot-VAST-output.r")
 source("R/cleanup-VAST-file.r")
 
 #Create testing directory
+working.dir <- getwd()
 parallel.dir <- paste0(getwd(),'/examples/Test_Parallel')
 
 #Determine species list
@@ -52,7 +58,7 @@ lat_lon.def <- "start"
 #SPATIAL SETTINGS
 Method = c("Grid", "Mesh", "Spherical_mesh")[2]
 grid_size_km = 25
-n_x = c(100, 250, 500, 1000, 2000)[2] # Number of stations
+n_x = c(100, 250, 500, 1000, 2000)[1] # Number of stations
 Kmeans_Config = list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )
 
 
@@ -91,7 +97,7 @@ Options = c(SD_site_density = 0, SD_site_logdensity = 0,
 #Temporary wrapper function for species
 # s <- 1 #S is for species number
 species_wrapper_fxn <- function(s) {
-  
+# for(s in 1:n.species) {  
   #Define file for analyses
   DateFile <- paste0(parallel.dir,"/",species.list$survey[s],"_",species.list$name[s],"/")
   
@@ -152,6 +158,8 @@ species_wrapper_fxn <- function(s) {
   rm("VAST_input", "TmbData", "Data_Geosta", "Spatial_List", "Extrapolation_List",
      "TmbList", "Obj", "Report", "Save")
   #========================================================================
+  #Reset working directory
+  setwd(working.dir)
   ##### RETURN SECTION #####
   return(Opt$AIC)
 
@@ -166,6 +174,8 @@ sfExportAll() #Exportas all global variables to cores
 sfLibrary(TMB)  #Loads a package on all nodes
 sfLibrary(VAST)
 output <- sfLapply(species.series, fun=species_wrapper_fxn)
+
+# output <- sfLapply(1:3, fun=species_wrapper_fxn)
 sfStop()
 
 output.snowfall <- unlist(rbind(output))

@@ -10,9 +10,11 @@
 #NOTES:
 #
 #==================================================================================================
-source('R/create-VAST-input.r')
-source('R/plot-VAST-output.r')
-source('R/cleanup-VAST-file.r')
+ source("R/create-VAST-input.r")
+ source("R/create-Data-Geostat.r")
+ source("R/load-RACE-data.r")
+ source("R/plot-VAST-output.r")
+ source("R/cleanup-VAST-file.r")
  
 require(VAST)
 require(TMB)
@@ -21,10 +23,10 @@ require(TMB)
 ##### SETUP INPUT DATA #####
 
 #Generate a dataset
-species.codes<- 10110#10110 #21740# 21740 #c(30420) #Rockfish
+species.codes<- 21720#10110 #21740# 21740 #c(30420) #Rockfish
 lat_lon.def="start"
 
-survey <- "GOA"
+survey <- "EBS_SHELF"
 
 #SPATIAL SETTINGS
 Method = c("Grid", "Mesh", "Spherical_mesh")[2]
@@ -113,7 +115,7 @@ plot_VAST_output(Opt, Report, DateFile, survey, TmbData, Data_Geostat, Extrapola
 
 #========================================================================
 ##### CLEAN UP MODEL FILES #####
-# cleanup_VAST_file(DateFile, Version="VAST_v2_4_0")
+cleanup_VAST_file(DateFile, Version="VAST_v2_4_0")
 
 # 
 # 

@@ -14,7 +14,7 @@ create_Data_Geostat <- function(species.codes, lat_lon.def="start", survey="GOA"
   # survey <- 'EBS_SHELF'
   #############
   
-  source("R/load-RACE-data.r")
+  # source("R/load-RACE-data.r")
   
   #Check Inputs
   if(!lat_lon.def %in% c("mean", "start", "end")) { stop("lat_lon.def must be mean, start, or end") }

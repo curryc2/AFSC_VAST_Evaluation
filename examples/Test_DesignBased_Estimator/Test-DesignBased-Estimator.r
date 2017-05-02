@@ -19,24 +19,16 @@ require(TMB)
 
 source("R/calc-design-based-index.r")
 source("R/create-VAST-input.r")
-source("R/cleanup-VAST-file.r")
+source("R/create-Data-Geostat.r")
+source("R/load-RACE-data.r")
 
+source("R/cleanup-VAST-file.r")
+source("R/get-VAST-index.r")
 #=======================================================================
 ##### CONTROL SECTION #####
 
 
 working.dir <- getwd()
-
-#OLD: run single example
-
-# species.codes <- 21740
-# #First, determine which sepecies we are evaluating
-# species.data <- read.csv("data/race_species_codes.csv", header=TRUE, stringsAsFactors=FALSE)
-# 
-# spec.name <- species.data$Common.Name[species.data$Species.Code==species.codes]
-#run all
-
-
 
 
 #NEW: Run all species... to lazy for parallel right now.
@@ -60,14 +52,14 @@ for(s in 1:n.species) {
   species.codes <- species.list$species.code[s]
 
   spec.name <- species.list$name[s]
-#=======================================================================
-##### Calculate design-based estimate  #####
-db_est <- calc_design_based_index(species.codes=species.codes, survey=survey)
+  #=======================================================================
+  ##### Calculate design-based estimate  #####
+  db_est <- calc_design_based_index(species.codes=species.codes, survey=survey)
 
-#=======================================================================
-##### Run VAST model  #####
+  #=======================================================================
+  ##### Run VAST model  #####
 
-lat_lon.def <- "start"
+lat_lon.def <- "start" 
 
 #SPATIAL SETTINGS
 Method = c("Grid", "Mesh", "Spherical_mesh")[2]
@@ -78,9 +70,7 @@ Kmeans_Config = list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )
 
 #SET SRATIFICATOIN
 #Basic - Single Area
-strata.limits <- data.frame(STRATA = c("All_areas"),
-                            west_border = c(-Inf),
-                            east_border = c(Inf))
+strata.limits <- data.frame(STRATA = c("All_areas"))
 
 
 #DERIVED OBJECTS
@@ -138,21 +128,25 @@ Opt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
 ##### Plot comparison of design-based and model-based estimates #####
 
 
-Year_Set <- seq(min(Data_Geostat[,'Year']),max(Data_Geostat[,'Year']))
-Years2Include <- which( Year_Set %in% sort(unique(Data_Geostat[,'Year'])))
-#Extract Index from VAST
-Index = SpatialDeltaGLMM::PlotIndex_Fn(DirName = DateFile,
-                                       TmbData = TmbData, Sdreport = Opt[["SD"]],
-                                       Year_Set = Year_Set,
-                                       Years2Include = Years2Include,
-                                       use_biascorr = TRUE)
+# Year_Set <- seq(min(Data_Geostat[,'Year']),max(Data_Geostat[,'Year']))
+# Years2Include <- which( Year_Set %in% sort(unique(Data_Geostat[,'Year'])))
+# #Extract Index from VAST
+# Index = SpatialDeltaGLMM::PlotIndex_Fn(DirName = DateFile,
+#                                        TmbData = TmbData, Sdreport = Opt[["SD"]],
+#                                        Year_Set = Year_Set,
+#                                        Years2Include = Years2Include,
+#                                        use_biascorr = TRUE)
+# 
+# 
+# 
+# vast.est <- Index$Table
+# vast.est <- vast.est[Years2Include,]
+# #Easier extraction method
+# years <- Year_Set[Years2Include]
 
 
 
-vast.est <- Index$Table
-vast.est <- vast.est[Years2Include,]
-#Easier extraction method
-years <- Year_Set[Years2Include]
+vast_est <- get_VAST_index(TmbData=TmbData, Sdreport=Opt[["SD"]], bias.correct=bias.correct, Data_Geostat=Data_Geostat)
 
 # head(vast.est)
 # head(db_est)

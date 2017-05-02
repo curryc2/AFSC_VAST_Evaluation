@@ -63,8 +63,7 @@ bias.correct <- FALSE
 #=======================================================================
 ##### Run VAST model  #####
 Version <- "VAST_v2_4_0"
-Region <- "Gulf_of_Alaska"
-lat_lon.def <- "mean"
+lat_lon.def <- "start"
 
 #SPATIAL SETTINGS
 Method = c("Grid", "Mesh", "Spherical_mesh")[2]
@@ -75,9 +74,7 @@ Kmeans_Config = list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )
 
 #SET SRATIFICATOIN
 #Basic - Single Area
-strata.limits <- data.frame(STRATA = c("All_areas"),
-                            west_border = c(-Inf),
-                            east_border = c(Inf))
+strata.limits <- data.frame(STRATA = c("All_areas"))
 
 #MODEL SETTINGS
 FieldConfig = c(Omega1 = 1, Epsilon1 = 1, Omega2 = 1, Epsilon2 = 1)
@@ -118,7 +115,7 @@ species_wrapper_fxn_knots <- function(s, n_x) {
   VAST_input <- create_VAST_input(species.codes=species.codes, lat_lon.def=lat_lon.def, save.Record=FALSE,
                                   Method=Method, grid_size_km=grid_size_km, n_X=n_x,
                                   Kmeans_Config=Kmeans_Config,
-                                  strata.limits=strata.limits, Region=Region,
+                                  strata.limits=strata.limits, survey=survey,
                                   DateFile=DateFile,
                                   FieldConfig, RhoConfig, OverdispersionConfig,
                                   ObsModel, Options)
@@ -158,7 +155,7 @@ species_wrapper_fxn_knots <- function(s, n_x) {
   vast_est <- get_VAST_index(TmbData=TmbData, Sdreport=Opt[["SD"]], bias.correct=bias.correct, Data_Geostat=Data_Geostat)
   #========================================================================
   ##### DIAGNOSTIC AND PREDICTION PLOTS #####
-  # plot_VAST_output(Opt, Report, DateFile, Region, TmbData, Data_Geostat, Extrapolation_List, Spatial_List)
+  # plot_VAST_output(Opt, Report, DateFile, survey, TmbData, Data_Geostat, Extrapolation_List, Spatial_List)
   
   #========================================================================
   ##### CLEANUP VAST OUTPUT #####
@@ -278,7 +275,7 @@ db.list <- NULL
 s <- 1
 for(s in 1:n.species ) {
   #Get design-based estimate
-  db_est <- calc_design_based_index(species.codes=species.list$species.code[s], Region=Region)
+  db_est <- calc_design_based_index(species.codes=species.list$species.code[s], survey=survey)
   temp.species <- species.list$name[s]
   temp.list <- cbind(db_est[,c(1,2,4,5)], temp.species, "Design-based", 'Design-based')
   #Add it
