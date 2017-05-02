@@ -145,7 +145,7 @@ species_wrapper_fxn <- function(s) {
   #Save output
   Report = Obj$report()
   Save = list("Opt"=Opt, "Report"=Report, "ParHat"=Obj$env$parList(Opt$par), "TmbData"=TmbData)
-  save(Save, file=paste0(DateFile,"Save.RData"))
+  # save(Save, file=paste0(DateFile,"Save.RData")) #Works, but I want to save space
   
   #========================================================================
   ##### DIAGNOSTIC AND PREDICTION PLOTS #####
@@ -186,5 +186,9 @@ end.time <- date()
 print(paste('START:',start.time))
 print(paste('End:',end.time))
 
-
-
+#=======================================================================
+##### POST-HOC REMOVAL OF LARGE DATA OBJECT #####
+s <- 1
+for(s in 1:n.species) {
+  unlink(paste0(parallel.dir,"/",species.list$survey[s],"_",species.list$name[s],"/Save.RData"), recursive=TRUE)
+}
