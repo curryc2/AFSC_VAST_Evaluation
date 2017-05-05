@@ -15,7 +15,7 @@
 require(xlsx)
 source("R/calc-design-based-index.r")
 
-Region <- "Gulf_of_Alaska"
+
 
 #Determine species list
 species.list <- read.csv("data/eval_species_list.csv", stringsAsFactors=FALSE)
@@ -31,10 +31,12 @@ s <- 1
 for(s in 1:n.species) {
   print(paste(s, 'of', n.species))
   species.codes <- species.list$species.code[s]
-  
+  survey <- species.list$survey[s]
   spec.name <- species.list$name[s]
-  db_est <- calc_design_based_index(species.codes=species.codes, Region=Region)
-  write.xlsx(db_est, file=paste0(getwd(), "/examples/Test_DesignBased_Estimator/Design Based Estimates.xlsx"), sheetName=spec.name,
+  
+  db_est <- calc_design_based_index(species.codes=species.codes, survey=survey)
+  write.xlsx(db_est, file=paste0(getwd(), "/examples/Test_DesignBased_Estimator/Design Based Estimates.xlsx"),
+                                   sheetName=paste0(survey,"_",spec.name),
                append=ifelse(s==1,FALSE,TRUE))
   
 }

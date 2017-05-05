@@ -10,9 +10,12 @@
 #NOTES:
 #
 #==================================================================================================
-source('R/create-VAST-input.r')
-source('R/plot-VAST-output.r')
-
+ source("R/create-VAST-input.r")
+ source("R/create-Data-Geostat.r")
+ source("R/load-RACE-data.r")
+ source("R/plot-VAST-output.r")
+ source("R/cleanup-VAST-file.r")
+ 
 require(VAST)
 require(TMB)
 
@@ -20,29 +23,30 @@ require(TMB)
 ##### SETUP INPUT DATA #####
 
 #Generate a dataset
-species.codes<- 21740 #c(30420) #Rockfish
-lat_lon.def="mean"
+species.codes<- 21740#10110 #21740# 21740 #c(30420) #Rockfish
+lat_lon.def="start"
 
-
+survey <- "EBS_SHELF"
 
 #SPATIAL SETTINGS
 Method = c("Grid", "Mesh", "Spherical_mesh")[2]
 grid_size_km = 25
-n_x = c(100, 250, 500, 1000, 2000)[1] # Number of stations
+n_x = c(100, 250, 500, 1000, 2000)[2] # Number of stations
 Kmeans_Config = list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )
 
 
 #SET SRATIFICATOIN
 #Basic - Single Area
-strata.limits <- data.frame(STRATA = c("All_areas"),
-                            west_border = c(-Inf),
-                            east_border = c(Inf))
+strata.limits <- data.frame(STRATA = c("All_areas"))
 
 
 #DERIVED OBJECTS
-Region = "Gulf_of_Alaska"
+Version <-  "VAST_v2_4_0"
 ###########################
-DateFile=paste0(getwd(),'/examples/VAST_output/')
+trial.file <- paste0(getwd(),"/examples/VAST_output/")
+dir.create(trial.file)
+
+DateFile <- paste0(trial.file,survey,"_",species.codes,"/")
 
 #MODEL SETTINGS
 FieldConfig = c(Omega1 = 1, Epsilon1 = 1, Omega2 = 1, Epsilon2 = 1)
@@ -66,9 +70,9 @@ Options = c(SD_site_density = 0, SD_site_logdensity = 0,
 
 
 VAST_input <- create_VAST_input(species.codes=species.codes, lat_lon.def=lat_lon.def, save.Record=TRUE,
-                                     Method="Mesh", grid_size_km=25, n_X=250,
-                                     Kmeans_Config=list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 ),
-                                     strata.limits=NULL, Region="Gulf_of_Alaska",
+                                     Method=Method, grid_size_km=grid_size_km, n_x=n_x,
+                                     Kmeans_Config=Kmeans_Config,
+                                     strata.limits=NULL, survey=survey,
                                      DateFile=DateFile,
                                      FieldConfig, RhoConfig, OverdispersionConfig,
                                      ObsModel, Options)
@@ -79,8 +83,10 @@ VAST_input <- create_VAST_input(species.codes=species.codes, lat_lon.def=lat_lon
 TmbData <- VAST_input$TmbData
 Data_Geostat <- VAST_input$Data_Geostat
 Spatial_List <- VAST_input$Spatial_List
-Extrapolation_List <- VAST_input$Extrapolation_List
-
+Extrapolation_List <- VAST_input$Extrapolation_List #Becomes zeros for non-GOA
+head(Extrapolation_List$a_el)
+head(Extrapolation_List$Area_km2_x)
+head(Extrapolation_List$Data_Extrap)
 
 #=======================================================================
 ##### RUN VAST #####
@@ -90,14 +96,14 @@ Extrapolation_List <- VAST_input$Extrapolation_List
 #Build TMB Object
 #  Compilation may take some time
 TmbList <- VAST::Build_TMB_Fn(TmbData = TmbData, RunDir = DateFile,
-                                Version = "VAST_v2_4_0", RhoConfig = RhoConfig, loc_x = Spatial_List$loc_x,
+                                Version = Version, RhoConfig = RhoConfig, loc_x = Spatial_List$loc_x,
                                 Method = Method)
 Obj <- TmbList[["Obj"]]
 
 
 Opt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
                           upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
-                          bias.correct = TRUE)
+                          bias.correct = FALSE)
 #Save output
 Report = Obj$report()
 Save = list("Opt"=Opt, "Report"=Report, "ParHat"=Obj$env$parList(Opt$par), "TmbData"=TmbData)
@@ -105,9 +111,11 @@ save(Save, file=paste0(DateFile,"Save.RData"))
 
 #========================================================================
 ##### DIAGNOSTIC AND PREDICTION PLOTS #####
-plot_VAST_output(Opt, Report, DateFile, Region, TmbData, Data_Geostat, Extrapolation_List, Spatial_List)
+plot_VAST_output(Opt, Report, DateFile, survey, TmbData, Data_Geostat, Extrapolation_List, Spatial_List)
 
-
+#========================================================================
+##### CLEAN UP MODEL FILES #####
+cleanup_VAST_file(DateFile, Version=Version)
 
 # 
 # 
