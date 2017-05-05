@@ -23,7 +23,7 @@ require(TMB)
 ##### SETUP INPUT DATA #####
 
 #Generate a dataset
-species.codes<- 21720#10110 #21740# 21740 #c(30420) #Rockfish
+species.codes<- 21740#10110 #21740# 21740 #c(30420) #Rockfish
 lat_lon.def="start"
 
 survey <- "EBS_SHELF"
@@ -31,7 +31,7 @@ survey <- "EBS_SHELF"
 #SPATIAL SETTINGS
 Method = c("Grid", "Mesh", "Spherical_mesh")[2]
 grid_size_km = 25
-n_x = c(100, 250, 500, 1000, 2000)[1] # Number of stations
+n_x = c(100, 250, 500, 1000, 2000)[2] # Number of stations
 Kmeans_Config = list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )
 
 
@@ -70,7 +70,7 @@ Options = c(SD_site_density = 0, SD_site_logdensity = 0,
 
 
 VAST_input <- create_VAST_input(species.codes=species.codes, lat_lon.def=lat_lon.def, save.Record=TRUE,
-                                     Method=Method, grid_size_km=grid_size_km, n_X=n_X,
+                                     Method=Method, grid_size_km=grid_size_km, n_x=n_x,
                                      Kmeans_Config=Kmeans_Config,
                                      strata.limits=NULL, survey=survey,
                                      DateFile=DateFile,
@@ -96,7 +96,7 @@ head(Extrapolation_List$Data_Extrap)
 #Build TMB Object
 #  Compilation may take some time
 TmbList <- VAST::Build_TMB_Fn(TmbData = TmbData, RunDir = DateFile,
-                                Version = "VAST_v2_4_0", RhoConfig = RhoConfig, loc_x = Spatial_List$loc_x,
+                                Version = Version, RhoConfig = RhoConfig, loc_x = Spatial_List$loc_x,
                                 Method = Method)
 Obj <- TmbList[["Obj"]]
 
@@ -115,7 +115,7 @@ plot_VAST_output(Opt, Report, DateFile, survey, TmbData, Data_Geostat, Extrapola
 
 #========================================================================
 ##### CLEAN UP MODEL FILES #####
-cleanup_VAST_file(DateFile, Version="VAST_v2_4_0")
+cleanup_VAST_file(DateFile, Version=Version)
 
 # 
 # 

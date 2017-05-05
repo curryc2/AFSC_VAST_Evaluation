@@ -6,7 +6,7 @@
 #' @param lat_lon.def string defining how tow-specific Latitude and Longitude will be calculated
 #' @param Method 
 #' @param grid_size_km 
-#' @param n_X 
+#' @param n_x 
 #' @param Kmeans_Config 
 #' @param strata.limits dataframe of strata limits for post-hoc apportionment
 #' @param survey string indicating the survey for which data are being extracted: GOA, AI, EBS_SHELF, EBS_SLOPE
@@ -21,7 +21,7 @@
 #' @return VAST_input: Containing Data_Geostat, Spatial_List, Extrapolation_List, and TmbData
 #' @export
 create_VAST_input <- function(species.codes, lat_lon.def="mean", save.Record=TRUE,
-                                Method="Mesh", grid_size_km=25, n_X=250,
+                                Method="Mesh", grid_size_km=25, n_x=250,
                                 Kmeans_Config=list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 ),
                                 strata.limits=NULL, survey="GOA",
                                 DateFile=paste0(getwd(),'/VAST_output/'),

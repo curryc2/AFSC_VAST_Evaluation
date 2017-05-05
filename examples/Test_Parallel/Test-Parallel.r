@@ -33,8 +33,8 @@ source("R/plot-VAST-output.r")
 source("R/cleanup-VAST-file.r")
 
 #Create testing directory
-working.dir <- getwd()
-parallel.dir <- paste0(getwd(),'/examples/Test_Parallel')
+home.dir <- getwd()
+working.dir <- paste0(home.dir,'/examples/Test_Parallel')
 
 #Determine species list
 species.list <- read.csv("data/eval_species_list.csv", stringsAsFactors=FALSE)
@@ -71,6 +71,8 @@ strata.limits <- data.frame(STRATA = c("All_areas"))#,
 
 #DERIVED OBJECTS
 Version <-  "VAST_v2_4_0"
+
+bias.correct <- FALSE
 ###########################
 # DateFile=paste0(getwd(),'/examples/VAST_output/')
 
@@ -99,7 +101,7 @@ Options = c(SD_site_density = 0, SD_site_logdensity = 0,
 species_wrapper_fxn <- function(s) {
 # for(s in 1:n.species) {  
   #Define file for analyses
-  DateFile <- paste0(parallel.dir,"/",species.list$survey[s],"_",species.list$name[s],"/")
+  DateFile <- paste0(working.dir,"/",species.list$survey[s],"_",species.list$name[s],"/")
   
   #Define species.codes
   species.codes <- species.list$species.code[s]
@@ -109,7 +111,7 @@ species_wrapper_fxn <- function(s) {
   #  NOTE: this will create the DateFile
   
   VAST_input <- create_VAST_input(species.codes=species.codes, lat_lon.def=lat_lon.def, save.Record=TRUE,
-                                  Method=Method, grid_size_km=grid_size_km, n_X=n_X,
+                                  Method=Method, grid_size_km=grid_size_km, n_x=n_x,
                                   Kmeans_Config=Kmeans_Config,
                                   strata.limits=NULL, survey=survey,
                                   DateFile=DateFile,
@@ -141,7 +143,7 @@ species_wrapper_fxn <- function(s) {
   
   Opt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
                              upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
-                             bias.correct = FALSE)
+                             bias.correct = bias.correct)
   #Save output
   Report = Obj$report()
   Save = list("Opt"=Opt, "Report"=Report, "ParHat"=Obj$env$parList(Opt$par), "TmbData"=TmbData)
@@ -159,7 +161,7 @@ species_wrapper_fxn <- function(s) {
      "TmbList", "Obj", "Report", "Save")
   #========================================================================
   #Reset working directory
-  setwd(working.dir)
+  setwd(home.dir)
   ##### RETURN SECTION #####
   return(Opt$AIC)
 
@@ -190,5 +192,5 @@ print(paste('End:',end.time))
 ##### POST-HOC REMOVAL OF LARGE DATA OBJECT #####
 s <- 1
 for(s in 1:n.species) {
-  unlink(paste0(parallel.dir,"/",species.list$survey[s],"_",species.list$name[s],"/Save.RData"), recursive=TRUE)
+  unlink(paste0(working.dir,"/",species.list$survey[s],"_",species.list$name[s],"/Save.RData"), recursive=TRUE)
 }

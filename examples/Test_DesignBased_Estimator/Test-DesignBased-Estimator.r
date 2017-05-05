@@ -13,6 +13,12 @@
 #  a) Should be implemented as a function which calls RACE data read fxn.
 #  b) Should return point estimate and SD by year.
 #  c) Selection of strata should be clear
+
+
+#TIMINGS:
+# [1] "START: Thu May 04 11:28:52 2017" No EBS stocks
+# [1] "END: Thu May 04 11:44:49 2017"
+
 #==================================================================================================
 require(VAST)
 require(TMB)
@@ -51,7 +57,7 @@ lat_lon.def <- "start"
 #SPATIAL SETTINGS
 Method = c("Grid", "Mesh", "Spherical_mesh")[2]
 grid_size_km = 25
-n_x = c(100, 250, 500, 1000, 2000)[2] # Number of stations
+n_x = c(100, 250, 500, 1000, 2000)[1] # Number of stations
 Kmeans_Config = list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )
 
 
@@ -81,8 +87,8 @@ Options = c(SD_site_density = 0, SD_site_logdensity = 0,
 
 start.time <- date()
 
-s <- 14
-# for(s in 1:n.species) {
+s <- 1
+for(s in 1:n.species) {
   print(paste(s, 'of', n.species))
   species.codes <- species.list$species.code[s]
   survey <- species.list$survey[s]
@@ -96,7 +102,7 @@ s <- 14
   DateFile=paste0(getwd(),'/examples/Test_DesignBased_Estimator/')
   #Create input
   VAST_input <- create_VAST_input(species.codes=species.codes, lat_lon.def=lat_lon.def, save.Record=TRUE,
-                                  Method=Method, grid_size_km=grid_size_km, n_X=n_X,
+                                  Method=Method, grid_size_km=grid_size_km, n_x=n_x,
                                   Kmeans_Config=Kmeans_Config,
                                   strata.limits=NULL, survey=survey,
                                   DateFile=DateFile,
@@ -109,11 +115,13 @@ s <- 14
   Spatial_List <- VAST_input$Spatial_List
   Extrapolation_List <- VAST_input$Extrapolation_List
 
-
+  unique(Extrapolation_List$a_el)
+  unique(Extrapolation_List$Data_Extrap$Include)
+  unique(Extrapolation_List$Data_Extrap$Area_in_survey_km2)
   #Build TMB Object
   #  Compilation may take some time
   TmbList <- VAST::Build_TMB_Fn(TmbData = TmbData, RunDir = DateFile,
-                                Version = "VAST_v2_4_0", RhoConfig = RhoConfig, loc_x = Spatial_List$loc_x,
+                                Version = Version, RhoConfig = RhoConfig, loc_x = Spatial_List$loc_x,
                                 Method = Method)
   Obj <- TmbList[["Obj"]]
 

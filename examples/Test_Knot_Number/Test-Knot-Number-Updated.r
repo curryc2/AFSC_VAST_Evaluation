@@ -29,12 +29,16 @@ require(ggplot2)
 
 source("R/calc-design-based-index.r")
 source("R/create-VAST-input.r")
+source("R/create-Data-Geostat.r")
+source("R/load-RACE-data.r")
+
 source("R/cleanup-VAST-file.r")
 source("R/get-VAST-index.r")
 
 
+home.dir <- getwd()
 #Create working directory
-working.dir <- paste0(getwd(),"/examples/Test_Knot_Number")
+working.dir <- paste0(home.dir, "/examples/Test_Knot_Number")
 
 #Determine species list
 species.list <- read.csv("data/eval_species_list.csv", stringsAsFactors=FALSE)
@@ -52,14 +56,14 @@ species.series <- c(1:n.species)
 n.cores <- detectCores()-1
 
 #Boolean for running estimation models
-do.estim <- FALSE
+do.estim <- TRUE
 
 #Trial Knot Numbers
-trial.knots <- c(100,200,350,500)#seq(100, 1000, by=100)
+trial.knots <- c(100,200,300,400,500,750,1000)#seq(100, 1000, by=100)
 n.trial.knots <- length(trial.knots)
 
 #Boolean for bias correction
-bias.correct <- FALSE
+bias.correct <- TRUE
 #=======================================================================
 ##### Run VAST model  #####
 Version <- "VAST_v2_4_0"
@@ -103,17 +107,20 @@ s <- 1
 species_wrapper_fxn_knots <- function(s, n_x) {
   
   #Define file for analyses
-  DateFile <- paste0(trial.dir,"/",species.list$name[s],"/")
+  DateFile <- paste0(trial.dir,"/",species.list$survey[s],"_",species.list$name[s],"/")
+  
   dir.create(DateFile)
+  
   #Define species.codes
   species.codes <- species.list$species.code[s]
+  survey <- species.list$survey[s]
   
   #=======================================================================
   ##### READ IN DATA AND BUILD VAST INPUT #####
   #  NOTE: this will create the DateFile
   
   VAST_input <- create_VAST_input(species.codes=species.codes, lat_lon.def=lat_lon.def, save.Record=FALSE,
-                                  Method=Method, grid_size_km=grid_size_km, n_X=n_x,
+                                  Method=Method, grid_size_km=grid_size_km, n_x=n_x,
                                   Kmeans_Config=Kmeans_Config,
                                   strata.limits=strata.limits, survey=survey,
                                   DateFile=DateFile,
@@ -165,6 +172,7 @@ species_wrapper_fxn_knots <- function(s, n_x) {
      "TmbList", "Obj", "Opt", "Report", "Save")
   
   #========================================================================
+  setwd(home.dir)
   ##### RETURN SECTION #####
   return(vast_est)
 } 
@@ -261,13 +269,15 @@ for(t in 1:n.trial.knots) {
     #Calculate CV
     CV <- temp.list$SD_mt/temp.list$Estimate_metric_tons
     temp.species <- species.list$name[s]
+    temp.survey <- species.list$survey[s]
+    temp.name <- paste0(temp.survey,": ",temp.species)
     #Bind it
-    temp.list <- cbind(temp.list, CV, temp.species, 'VAST', trial.knots[t])
+    temp.list <- cbind(temp.list, CV, temp.survey, temp.species, temp.name, 'VAST', trial.knots[t])
     #Add it
     vast.list <- rbind(vast.list, temp.list)
   }#next s
 }#next t
-names(vast.list) <- c('Year','Biomass','SD','CV','Species','Model','Knots')
+names(vast.list) <- c('Year','Biomass','SD','CV','Survey','Species','Name','Model','Knots')
 
 
 #Add Design-based estimates
@@ -275,13 +285,15 @@ db.list <- NULL
 s <- 1
 for(s in 1:n.species ) {
   #Get design-based estimate
-  db_est <- calc_design_based_index(species.codes=species.list$species.code[s], survey=survey)
+  db_est <- calc_design_based_index(species.codes=species.list$species.code[s], survey=species.list$survey[s])
   temp.species <- species.list$name[s]
-  temp.list <- cbind(db_est[,c(1,2,4,5)], temp.species, "Design-based", 'Design-based')
+  temp.survey <- species.list$survey[s]
+  temp.name <- paste0(temp.survey,": ",temp.species)
+  temp.list <- cbind(db_est[,c(1,2,4,5)], temp.survey, temp.species, temp.name, "Design-based", 'Design-based')
   #Add it
   db.list <- rbind(db.list, temp.list)
 }#next s
-names(db.list) <- c('Year','Biomass','SD','CV','Species','Model','Knots')
+names(db.list) <- c('Year','Biomass','SD','CV','Survey','Species', 'Name','Model','Knots')
 
 #Combine the lists
 survey.list <- rbind(vast.list,db.list)
@@ -289,16 +301,27 @@ survey.list <- rbind(vast.list,db.list)
 
 #=======================================================================
 ##### Plot Comparison of Results #####
-
+scale.hues <- c(25,250)
+dpi <- 300
 #Find years survey was conducted
-yrs.surv <- sort(unique(survey.list$Year[survey.list$Model=='Design-based']))
 
+surveys <- unique(survey.list$Survey)
+n.surveys <- length(surveys)
+
+survey.list$Knots <- factor(survey.list$Knots, levels=c(trial.knots,'Design-based'))
+
+
+s <- 1
+for(s in 1:n.surveys) {
+#GOA
+survey <- surveys[s]
 #Limit data set
-plot.list <- survey.list[survey.list$Year %in% yrs.surv,]
+plot.list <- survey.list[survey.list$Survey==survey,]
+yrs.surv <- sort(unique(plot.list$Year[plot.list$Model=='Design-based']))
+plot.list <- plot.list[plot.list$Year %in% yrs.surv,]
 
 #Remove 2001 from design-based results because of incomplete sampling
-plot.list <- plot.list[-which(plot.list$Year==2001 & plot.list$Model=='Design-based'),]
-plot.list$Knots <- as.factor(plot.list$Knots)
+if(survey=='GOA') { plot.list <- plot.list[-which(plot.list$Year==2001 & plot.list$Model=='Design-based'),] }
 plot.list$Biomass <- plot.list$Biomass/1e6
 
 #PLOT Indices
@@ -307,31 +330,47 @@ g <- ggplot(plot.list, aes(x=Year, y=Biomass, color=Knots, lty=Model)) +
        geom_line() +
        facet_wrap(~Species, scales='free') +
        labs(list(y='Biomass (millions lbs)')) +
-       ggtitle('Survey:', subtitle='Gulf of Alaska')
-       
+       # ggtitle('Survey:', subtitle='Gulf of Alaska') +
+       ggtitle(paste(survey, 'Survey')) +
+       scale_color_hue(h=scale.hues)
+       # scale_color_brewer(type='seq', palette=1)
+   # g    
+
+
 
 # g
-ggsave(paste0(output.dir, "/VAST Index Compare v DB.png"), g, height=6, width=9, units='in')
+ggsave(paste0(output.dir,"/", survey," VAST Index Compare v DB.png"), g, height=6, width=9, units='in')
 #Vast Models only
 g2 <- ggplot(plot.list[plot.list$Model=='VAST',], aes(x=Year, y=Biomass, color=Knots)) +
         theme_gray() +
         geom_line() +
         facet_wrap(~Species, scales='free') +
         labs(list(y='Biomass (millions lbs)')) +
-        ggtitle('Survey:', subtitle='Gulf of Alaska')
+        # ggtitle('Survey:', subtitle='Gulf of Alaska') +
+        ggtitle(paste(survey, 'Survey')) +
+        scale_color_hue(h=scale.hues)
 
 # g2
-ggsave(paste0(output.dir, "/VAST Index Compare.png"), g2, height=6, width=9, units='in')
+ggsave(paste0(output.dir,"/", survey," VAST Index Compare.png"), g2, height=6, width=9, units='in')
 
 #Plot Survey Variance Measures
 
 g3 <- ggplot(plot.list, aes(x=Species, y=CV, fill=Knots)) +
         theme_gray() +
         geom_boxplot() +
-        labs(list(y='Annual Survey CV')) +
-        theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, debug=FALSE))
+        labs(list(y=paste('Annual Survey CV'))) +
+        theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, debug=FALSE)) +
+        scale_color_hue(h=scale.hues) +
+        ggtitle(paste(survey, 'Survey'))
+        
 
-ggsave(paste0(output.dir, "/CV Compare.png"), g3, height=6, width=8, units='in')
+ggsave(paste0(output.dir,"/", survey," CV Compare.png"), g3, height=6, width=8, units='in')
+
+
+# png(paste0(output.dir,'/', survey, ' Figures.png'), height=7, width=8, units='in', res=500)
+# dev.off()
+}
+
 
 #Facet
 # g.multi <- vector('list', length=n.species)
