@@ -11,8 +11,8 @@
 #==================================================================================================
 #NOTES:
 #
-#  a) Could calculate design-based estiamtes within wrapper function or at the end while plotting
-#  
+#  a) Could calculate design-based estiamtes within wrapper function or at the end while plotting.
+#  b) Trouble with bias.corr=TRUE, Memory allocation fail, 200 kts, unknown species, during parallel. 
 #==================================================================================================
 #TIMING:
 # For 10-1000, by 100 knots
@@ -56,14 +56,14 @@ species.series <- c(1:n.species)
 n.cores <- detectCores()-1
 
 #Boolean for running estimation models
-do.estim <- TRUE
+do.estim <- FALSE
 
 #Trial Knot Numbers
 trial.knots <- c(100,200,300,400,500,750,1000)#seq(100, 1000, by=100)
 n.trial.knots <- length(trial.knots)
 
 #Boolean for bias correction
-bias.correct <- TRUE
+bias.correct <- FALSE
 #=======================================================================
 ##### Run VAST model  #####
 Version <- "VAST_v2_4_0"
