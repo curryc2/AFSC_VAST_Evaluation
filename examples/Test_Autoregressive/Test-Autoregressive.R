@@ -19,7 +19,6 @@
 #TIMING:
 #
 #==================================================================================================
-
 require(VAST)
 require(TMB)
 require(parallel)
@@ -172,7 +171,7 @@ wrapper_fxn <- function(s, n_x, RhoConfig) {
                              bias.correct = bias.correct)
   #Save output
   # Report = Obj$report()
-  # Save = list("Opt"=Opt, "Report"=Report, "ParHat"=Obj$env$parList(Opt$par), "TmbData"=TmbData)
+  Save = list("Opt"=Opt, "Report"=Report, "ParHat"=Obj$env$parList(Opt$par), "TmbData"=TmbData)
   # save(Save, file=paste0(DateFile,"Save.RData"))
   
   #Calculate index values
@@ -187,12 +186,16 @@ wrapper_fxn <- function(s, n_x, RhoConfig) {
   # cleanup_VAST_file(DateFile=DateFile, Version=Version) #No longer necessary as we are deleting everything at the end
   
   rm("VAST_input", "TmbData", "Data_Geostat", "Spatial_List", "Extrapolation_List",
-     "TmbList", "Obj", "Opt", "Report", "Save")
+     "TmbList", "Obj", "Save")#, "Opt", "Report")
   
   #========================================================================
   setwd(home.dir)
   ##### RETURN SECTION #####
-  return(vast_est)
+  out <- NULL
+  out$vast_est <- vast_est
+  out$Opt <- Opt
+  out$Report <- Report
+  return(out)
 } 
 
 
@@ -222,6 +225,7 @@ if(do.estim==TRUE) {
     for(r in 1:n.trial.rho) {
       #Specify intercepts and spatio-temporal variation across time
       RhoConfig <- trial.rho[r,]
+      names(RhoConfig) <- c('Beta1','Beta2','Epsilon1','Epsilon2')
       
       #Record
       if(RhoConfig[1]==RhoConfig[2]) {#IF intercept specs are the same
@@ -262,6 +266,9 @@ if(do.estim==TRUE) {
   #Create output directory
   dir.create(output.dir)
   save(vast_est.output, file=paste0(output.dir,"/vast_est.output.RData"))
+  #Also save specifications
+  vast_specs <- data.frame(vast_knots, vast_rho.int, vast_rho.stRE)
+  write.csv(vast_specs, file=paste0(output.dir,"/vast_specs.csv"))
   
   #=======================================================================
   ##### DELETE UNNECESSARY FILE STRUCTURE #####

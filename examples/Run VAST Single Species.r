@@ -23,16 +23,16 @@ require(TMB)
 ##### SETUP INPUT DATA #####
 
 #Generate a dataset
-species.codes<- 21740#10110 #21740# 21740 #c(30420) #Rockfish
-lat_lon.def="start"
+species.codes <- 30420#21740#10110 #21740# 21740 #c(30420) #Rockfish
+lat_lon.def <- "start"
 
-survey <- "EBS_SHELF"
+survey <- "GOA"
 
 #SPATIAL SETTINGS
-Method = c("Grid", "Mesh", "Spherical_mesh")[2]
-grid_size_km = 25
-n_x = c(100, 250, 500, 1000, 2000)[2] # Number of stations
-Kmeans_Config = list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )
+Method <- c("Grid", "Mesh", "Spherical_mesh")[2]
+grid_size_km <- 25
+n_x <- c(100, 250, 500, 1000, 2000)[1] # Number of stations
+Kmeans_Config <- list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )
 
 
 #SET SRATIFICATOIN
@@ -50,7 +50,7 @@ DateFile <- paste0(trial.file,survey,"_",species.codes,"/")
 
 #MODEL SETTINGS
 FieldConfig = c(Omega1 = 1, Epsilon1 = 1, Omega2 = 1, Epsilon2 = 1)
-RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0)
+RhoConfig = c(Beta1 = 2, Beta2 = 2, Epsilon1 = 0, Epsilon2 = 4)
 OverdispersionConfig = c(Delta1 = 0, Delta2 = 0)
 
 ObsModel = c(1, 0) #Lognormal
@@ -77,16 +77,14 @@ VAST_input <- create_VAST_input(species.codes=species.codes, lat_lon.def=lat_lon
                                      FieldConfig, RhoConfig, OverdispersionConfig,
                                      ObsModel, Options)
 
-
-
 #Unpack
 TmbData <- VAST_input$TmbData
 Data_Geostat <- VAST_input$Data_Geostat
 Spatial_List <- VAST_input$Spatial_List
 Extrapolation_List <- VAST_input$Extrapolation_List #Becomes zeros for non-GOA
-head(Extrapolation_List$a_el)
-head(Extrapolation_List$Area_km2_x)
-head(Extrapolation_List$Data_Extrap)
+# head(Extrapolation_List$a_el)
+# head(Extrapolation_List$Area_km2_x)
+# head(Extrapolation_List$Data_Extrap)
 
 #=======================================================================
 ##### RUN VAST #####
