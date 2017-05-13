@@ -5,7 +5,7 @@
 Compares influence of different autoregressive structures for [VAST](https://github.com/James-Thorson/VAST) model parameters over time.
 ***
 
-1.  Use baseline knot numbers = 100, 500, 1000. 
+1.  Use baseline knot numbers = 100, 500. 
 2.  Loop over RhoConfig specifications.
     + Intercept (Beta) RhoConfig[1:2] = (0) Independent among years, (2) Random walk, (4) Autoregressive
     + Spatio-temporal RE (Epsilon) RhoConfig[3:4] = (0) Independent among years, (2) Random walk, (4) Autoregressive
@@ -15,6 +15,14 @@ Compares influence of different autoregressive structures for [VAST](https://git
 5.  Saves index values and uncertainty, optimization results for retreiving AIC, and Report object.
 
 *	Note: Wrapper functions rely on calls to existing functions developed by J. Thorson [VAST](https://github.com/James-Thorson/VAST)
+
+* Note: We have remove EBS_SHELF Arrowtooth from this example, given error. 
+
+***
+#### Issues
+1.  Error prevented exection for EBS_SHELF Arrowtooth Flounder.
+    + Rho specs: int_RW-FE stRE_IaY Rho specs.
+    + 500, but NOT 100 knots. 
 
 ***
 #### Output Objects

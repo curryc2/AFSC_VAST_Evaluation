@@ -1,0 +1,60 @@
+$par
+  ln_H_input   ln_H_input   L_omega1_z L_epsilon1_z    logkappa1   logsigmaB1   L_omega2_z L_epsilon2_z    logkappa2   logsigmaB2    logSigmaM 
+   0.5552808    0.1946423   -2.0683308    0.5610051   -4.6311638   -3.0760930   -1.8035489    0.8039662   -4.5137077   -2.0213206    0.8685358 
+
+$objective
+[1] 25387.84
+
+$convergence
+[1] 0
+
+$iterations
+[1] 1
+
+$evaluations
+function gradient 
+       2        1 
+
+$message
+[1] "relative convergence (4)"
+
+$run_time
+Time difference of 39.60496 secs
+
+$number_of_coefficients
+ Total  Fixed Random 
+  7731     11   7720 
+
+$AIC
+[1] 50797.68
+
+$diagnostics
+          Param starting_value      Lower        MLE     Upper final_gradient
+1    ln_H_input     0.00000000 -50.000000  0.5552808 50.000000  -2.626272e-05
+2    ln_H_input     0.00000000 -50.000000  0.1946423 50.000000  -6.524841e-05
+3    L_omega1_z    -0.45298313 -50.000000 -2.0683308 50.000000  -4.310752e-04
+4  L_epsilon1_z     0.89954907 -50.000000  0.5610051 50.000000   8.667427e-06
+5     logkappa1    -0.10536052  -6.735082 -4.6311638 -2.472959   6.741316e-04
+6    logsigmaB1     0.00000000 -50.000000 -3.0760930 50.000000  -1.239465e-04
+7    L_omega2_z    -1.48495711 -50.000000 -1.8035489 50.000000   2.526554e-04
+8  L_epsilon2_z     0.05975676 -50.000000  0.8039662 50.000000  -6.540785e-04
+9     logkappa2    -0.10536052  -6.735082 -4.5137077 -2.472959   3.807675e-04
+10   logsigmaB2     0.00000000 -50.000000 -2.0213206 50.000000   1.059243e-04
+11    logSigmaM     1.60943791 -50.000000  0.8685358 10.000000  -3.379798e-04
+
+$SD
+sdreport(.) result
+               Estimate Std. Error
+ln_H_input    0.5552808 0.15484834
+ln_H_input    0.1946423 0.15331221
+L_omega1_z   -2.0683308 0.24643218
+L_epsilon1_z  0.5610051 0.05944014
+logkappa1    -4.6311638 0.15051641
+logsigmaB1   -3.0760930 0.56842233
+L_omega2_z   -1.8035489 0.21252958
+L_epsilon2_z  0.8039662 0.08494819
+logkappa2    -4.5137077 0.13954882
+logsigmaB2   -2.0213206 0.39102378
+logSigmaM     0.8685358 0.01139889
+Maximum gradient component: 0.0006741316 
+

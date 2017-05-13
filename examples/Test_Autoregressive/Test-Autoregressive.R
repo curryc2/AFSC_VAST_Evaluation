@@ -7,13 +7,15 @@
 #Purpose: To explore VAST model-based index sensitivity to autoregressive specifications on:
 #           1) Intercept
 #           2) Spatio-temporal random effect
-#           3) Fix the number of knots @ 500, to begin with and consider changing to c(100,500,1000) for sensitivity
+#           3) Fix the number of knots @ 500, to begin with and consider changing to c(100,500) for sensitivity
+#           4) Given 
 #
 #
 #
 #==================================================================================================
 #NOTES:
-#
+#  a) int_RW-FE stRE_IaY - Fails on EBS Arrowtooth flounder. 
+#  b) As a result we have removed EBS_SHELF Arrowtooth from this example.
 #  
 #==================================================================================================
 #TIMING:
@@ -39,12 +41,14 @@ home.dir <- getwd()
 #Create working directory
 working.dir <- paste0(home.dir, "/examples/Test_Autoregressive")
 
-
 #Determine species list
 species.list <- read.csv("data/eval_species_list.csv", stringsAsFactors=FALSE)
 
 #Limit species included
 species.list <- species.list[species.list$include=='Y',]
+#Remove EBS_SHELF Arrowtooth
+species.list <- species.list[species.list$survey!='EBS_SHELF',]
+
 n.species <- nrow(species.list)
 
 #Create
@@ -170,8 +174,8 @@ wrapper_fxn <- function(s, n_x, RhoConfig) {
                              upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
                              bias.correct = bias.correct)
   #Save output
-  # Report = Obj$report()
-  Save = list("Opt"=Opt, "Report"=Report, "ParHat"=Obj$env$parList(Opt$par), "TmbData"=TmbData)
+  Report = Obj$report()
+  # Save = list("Opt"=Opt, "Report"=Report, "ParHat"=Obj$env$parList(Opt$par), "TmbData"=TmbData)
   # save(Save, file=paste0(DateFile,"Save.RData"))
   
   #Calculate index values
@@ -186,7 +190,7 @@ wrapper_fxn <- function(s, n_x, RhoConfig) {
   # cleanup_VAST_file(DateFile=DateFile, Version=Version) #No longer necessary as we are deleting everything at the end
   
   rm("VAST_input", "TmbData", "Data_Geostat", "Spatial_List", "Extrapolation_List",
-     "TmbList", "Obj", "Save")#, "Opt", "Report")
+     "TmbList", "Obj")#, "Save")#, "Opt", "Report")
   
   #========================================================================
   setwd(home.dir)
@@ -288,7 +292,10 @@ if(do.estim==TRUE) {
   load(paste0(output.dir,"/vast_est.output.RData"))
 }
 
-
+#Figures to include
+#  1) AIC comparison across rho specs
+#  2) CV Bodplots
+#  3) Index values
 
 
 

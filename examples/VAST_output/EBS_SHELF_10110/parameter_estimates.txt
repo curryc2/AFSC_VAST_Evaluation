@@ -1,0 +1,64 @@
+$par
+  ln_H_input   ln_H_input   L_omega1_z L_epsilon1_z    logkappa1   logsigmaB1   L_omega2_z L_epsilon2_z    logkappa2 
+   0.4073052   -0.8079981   -3.2186150   -1.4985935   -5.2335672   -0.2930996   -1.3371964    0.6615544   -5.0786622 
+  logsigmaB2 Epsilon_rho2    logSigmaM 
+  -0.8231220    0.6609723    0.1288159 
+
+$objective
+[1] 32798.53
+
+$convergence
+[1] 0
+
+$iterations
+[1] 1
+
+$evaluations
+function gradient 
+       2        1 
+
+$message
+[1] "relative convergence (4)"
+
+$run_time
+Time difference of 1.870437 mins
+
+$number_of_coefficients
+ Total  Fixed Random 
+  8434     12   8422 
+
+$AIC
+[1] 65621.06
+
+$diagnostics
+          Param starting_value      Lower        MLE    Upper final_gradient
+1    ln_H_input      0.0000000 -50.000000  0.4073052 50.00000  -1.158808e-03
+2    ln_H_input      0.0000000 -50.000000 -0.8079981 50.00000  -6.443418e-04
+3    L_omega1_z     -0.8310774 -50.000000 -3.2186150 50.00000   4.007952e-05
+4  L_epsilon1_z     -1.6415360 -50.000000 -1.4985935 50.00000  -2.119940e-04
+5     logkappa1     -0.1053605  -5.993888 -5.2335672 -2.50234  -8.878637e-05
+6    logsigmaB1      0.0000000 -50.000000 -0.2930996 50.00000  -2.055188e-05
+7    L_omega2_z     -1.1725211 -50.000000 -1.3371964 50.00000  -2.672668e-04
+8  L_epsilon2_z      1.1164188 -50.000000  0.6615544 50.00000  -4.964819e-04
+9     logkappa2     -0.1053605  -5.993888 -5.0786622 -2.50234   1.838053e-04
+10   logsigmaB2      0.0000000 -50.000000 -0.8231220 50.00000  -3.683618e-05
+11 Epsilon_rho2      0.0000000  -0.990000  0.6609723  0.99000   8.930675e-04
+12    logSigmaM      1.6094379 -50.000000  0.1288159 10.00000   4.285233e-04
+
+$SD
+sdreport(.) result
+               Estimate Std. Error
+ln_H_input    0.4073052 0.09264508
+ln_H_input   -0.8079981 0.12523760
+L_omega1_z   -3.2186150 0.37695116
+L_epsilon1_z -1.4985935 0.11100801
+logkappa1    -5.2335672 0.09748408
+logsigmaB1   -0.2930996 0.35789143
+L_omega2_z   -1.3371964 0.15420727
+L_epsilon2_z  0.6615544 0.04449330
+logkappa2    -5.0786622 0.10762237
+logsigmaB2   -0.8231220 0.31371460
+Epsilon_rho2  0.6609723 0.06244761
+logSigmaM     0.1288159 0.00992874
+Maximum gradient component: 0.001158808 
+

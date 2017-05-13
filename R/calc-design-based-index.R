@@ -2,13 +2,15 @@
 #'
 #' @param species.codes vector of species codes for which data will be returned
 #' @param survey string indicating the survey for which data are being extracted: GOA, AI, EBS_SHELF, EBS_SLOPE
+#' @param reg.area string indicating Regulatory Area Name for 
 #'
 #' @return data frame containing annual survey biomass estimate, variance, SD, and CV.
 #' @export
-calc_design_based_index <- function(species.codes, survey) {
+calc_design_based_index <- function(species.codes, survey, reg.area=NULL) {
   ### TESTING VALUES
   # species.codes <- 21720 #Pacific Cod
   # survey <- 'GOA'
+  # reg.area <- 'WESTERN GOA'
   ###
   require(dplyr)
   # source("R/load-RACE-data.r")
@@ -54,17 +56,31 @@ calc_design_based_index <- function(species.codes, survey) {
   #Join together
   # biomvar <- merge(cstrat, hstrat, by.x=c("Year","STRATUM"), by.y=c("Year","STRATUM"), all.x=TRUE) #all.x=TRUE, all.y=FALSE
   biomvar <- left_join(cstrat, hstrat, by=c("Year", "STRATUM")) #dplyr
-  colnames(biomvar)<-c("YEAR","STRATUM","CPUE","VAR","n_stations")
+  colnames(biomvar) <- c("YEAR","STRATUM","CPUE","VAR","n_stations")
   
   
   #Load Strata Data
   strata.data <- read.csv("data/race_stratum_info.csv", header=TRUE)
   #Limit to correct survey area
-  strata.area <- strata.data[strata.data$Survey==survey,c(2,3,5)] #NEEDS TO BE UPDATED
-  names(strata.area) <- c("STRATUM","AREA","INPFC_AREA")
+  strata.area <- strata.data[strata.data$Survey==survey,c(2,3,5,12)] #NEEDS TO BE UPDATED
+  names(strata.area) <- c("STRATUM","AREA","INPFC_AREA","REGULATORY.AREA")
   
   # biomvar <- merge(biomvar, strata.area, by=c("STRATUM"), all.x=TRUE) #plyr
   biomvar <- left_join(biomvar, strata.area, by=c("STRATUM")) #dplyr
+  
+  #####
+  if(!is.null(reg.area)) {
+    if(survey=='GOA') {
+      if(reg.area %in% c("WESTERN GOA","CENTRAL GOA","EASTERN GOA")) {
+        biomvar <- biomvar[biomvar$REGULATORY.AREA==reg.area,]
+      }else {
+        stop(paste0("Current reg.area: ", reg.area, ", must be one of WESTERN GOA, CENTRAL GOA, EASTERN GOA"))
+      }
+    }else {
+      stop("Regulatory Area Subsampling Currently only Implemented for Gulf of Alaska")
+    }
+  }
+  ####
   
   biomvar$BIOMASS<-(biomvar$CPUE/biomvar$n_stations)*biomvar$AREA
   biomvar$VAR2<-biomvar$AREA^2*(biomvar$VAR/biomvar$n_stations)

@@ -1,5 +1,8 @@
 Directory for ADMB Code
 =============
 Contents:
-1) re.tpl - Random effects model, currently used for area apportionment
 
+Object                  |                                   
+------------------------|---------------------------------------------------
+re.tpl                  | Random effects model (ADMB-RE), currently used for area apportionment
+re.dat                  | Example input file for RE model

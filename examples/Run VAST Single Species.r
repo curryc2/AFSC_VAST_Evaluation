@@ -23,10 +23,10 @@ require(TMB)
 ##### SETUP INPUT DATA #####
 
 #Generate a dataset
-species.codes <- 30420#21740#10110 #21740# 21740 #c(30420) #Rockfish
+species.codes <- 10110#30420#21740#10110 #21740# 21740 #c(30420) #Rockfish
 lat_lon.def <- "start"
 
-survey <- "GOA"
+survey <- "EBS_SHELF"
 
 #SPATIAL SETTINGS
 Method <- c("Grid", "Mesh", "Spherical_mesh")[2]
