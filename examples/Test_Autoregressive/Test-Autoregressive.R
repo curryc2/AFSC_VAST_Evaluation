@@ -60,10 +60,10 @@ species.series <- c(1:n.species)
 n.cores <- detectCores()-1
 
 #Boolean for running estimation models
-do.estim <- TRUE
+do.estim <- FALSE
 
 #Trial Knot Numbers
-trial.knots <- c(100,500,1000)
+trial.knots <- c(100,500)
 n.trial.knots <- length(trial.knots)
 
 #Trial AUTOREGRESSIVE specifications
@@ -117,7 +117,7 @@ Options = c(SD_site_density = 0, SD_site_logdensity = 0,
 
 #Output Directory Name
 output.dir <- paste0(working.dir,"/output_bias.correct_",bias.correct)
-
+dir.create(output.dir)
 
 
 #=======================================================================
@@ -198,18 +198,19 @@ wrapper_fxn <- function(s, n_x, RhoConfig) {
   out <- NULL
   out$vast_est <- vast_est
   out$Opt <- Opt
-  out$Report <- Report
   return(out)
 } 
 
 
 #=======================================================================
 ##### Loop Through Trial Knots  #####
+vast_est.output <- vector('list', length=(n.trial.knots * n.trial.rho))
+vast_knots <- vector(length=(n.trial.knots * n.trial.rho))
+vast_rho.int <- vector(length=(n.trial.knots * n.trial.rho))
+vast_rho.stRE <- vector(length=(n.trial.knots * n.trial.rho))
+
 if(do.estim==TRUE) {
-  vast_est.output <- vector('list', length=(n.trial.knots * n.trial.rho))
-  vast_knots <- vector(length=(n.trial.knots * n.trial.rho))
-  vast_rho.int <- vector(length=(n.trial.knots * n.trial.rho))
-  vast_rho.stRE <- vector(length=(n.trial.knots * n.trial.rho))
+
   
   time.1 <- date()
   
@@ -242,7 +243,7 @@ if(do.estim==TRUE) {
       }else {
         vast_rho.stRE[counter] <- paste0(rho.stRE.types[RhoConfig[3]+1], "-", rho.stRE.types[RhoConfig[4]+1])
       }
-      
+      vast_knots[counter] <- n_x
       
       #Setup File
       trial.dir <- paste0(working.dir,"/",n_x,"_bias.corr_",bias.correct)
@@ -259,8 +260,17 @@ if(do.estim==TRUE) {
       sfLibrary(VAST)
       output <- sfLapply(species.series, fun=wrapper_fxn, n_x=n_x, RhoConfig=RhoConfig)
       sfStop()
-    
+
       vast_est.output[[counter]] <- output
+
+      #For Update
+      # output <- vast_est.output[[counter]]
+      # save(output, file=paste0(output.dir, "/testVAST_output_",counter,".RData"), compression_level=9)
+      saveRDS(output, file=paste0(output.dir, "/VAST_output_",counter,".rds"))
+      #Real
+      
+      
+      counter <- counter+1
     }#next r
   }#next t
   
@@ -268,8 +278,7 @@ if(do.estim==TRUE) {
   # vast_est.output[[1:n.trial.knots]][[1:n.species]]
   
   #Create output directory
-  dir.create(output.dir)
-  save(vast_est.output, file=paste0(output.dir,"/vast_est.output.RData"))
+  # save(vast_est.output, file=paste0(output.dir,"/vast_est.output.RData"))
   #Also save specifications
   vast_specs <- data.frame(vast_knots, vast_rho.int, vast_rho.stRE)
   write.csv(vast_specs, file=paste0(output.dir,"/vast_specs.csv"))
@@ -277,19 +286,33 @@ if(do.estim==TRUE) {
   #=======================================================================
   ##### DELETE UNNECESSARY FILE STRUCTURE #####
   #Must reset working directory
-  # setwd(working.dir)
-  # t <- 1
-  # for(t in 1:n.trial.knots) {
-  #   unlink(paste0(working.dir,"/",trial.knots[t],"_bias.corr_",bias.correct), recursive=TRUE)
-  # }#next t
-  # 
-  # time.2 <- date()
-  # 
-  # print(paste('### START:', time.1))
-  # print(paste('### END:', time.2))
+  setwd(working.dir)
+  t <- 1
+  for(t in 1:n.trial.knots) {
+    unlink(paste0(working.dir,"/",trial.knots[t],"_bias.corr_",bias.correct), recursive=TRUE)
+  }#next t
+
+  time.2 <- date()
+
+  print(paste('### START:', time.1))
+  print(paste('### END:', time.2))
   
 }else {
-  load(paste0(output.dir,"/vast_est.output.RData"))
+  
+  
+  #Old
+  # load(paste0(output.dir,"/vast_est.output.RData"))
+  
+  specs <- read.csv(paste0(output.dir,"/vast_specs.csv"), header=TRUE, stringsAsFactors=FALSE)
+  n.specs <- nrow(specs)
+  
+  for(i in 1:n.specs) {
+    print(i)
+    vast_est.output[[i]] <- readRDS(file=paste0(output.dir, "/VAST_output_",i,".rds"))
+    vast_knots[i] <- specs$vast_knots[i]
+    vast_rho.int[i] <- specs$vast_rho.int[i]
+    vast_rho.stRE[i] <- specs$vast_rho.stRE[i]
+  }#next i
 }
 
 #Figures to include
@@ -297,14 +320,137 @@ if(do.estim==TRUE) {
 #  2) CV Bodplots
 #  3) Index values
 
+rockfish.dir <- paste0(output.dir,"/Rockfish Figs")
+dir.create(rockfish.dir)
+
+#Determine location of rockfish in species list
+
+loc.rf <- which(species.list$name %in% c("Pacific ocean perch","Northern rockfish","Harlequin rockfish"))
+n.loc.rf <- length(loc.rf)
+
+#==========================================
+#Extract data
+vast.list <- NULL
+aic.list <- NULL
+AIC <- vector(length=0)
+
+s <- 1
+for(s in loc.rf) {
+  counter <- 1
+  
+  temp.species <- species.list$name[s]
+  temp.survey <- species.list$survey[s]
+  temp.name <- paste0(temp.survey,": ",temp.species)
+  
+  t <- 1
+  for(t in 1:n.trial.knots) {
+    r <- 1
+    for(r in 1:n.trial.rho) {
+      
+      #Rho Values
+      rho.int <- paste0(rho.int.types[trial.rho[r,1]+1], "-", rho.int.types[trial.rho[r,2]+1])
+      
+      AIC <- append(AIC,vast_est.output[[counter]][[s]]$Opt$AIC)
+      
+      temp.aic <-  c(temp.survey, temp.species, temp.name,
+                       'VAST', trial.knots[t], rho.int) 
+      
+      #Get VAST model index
+      temp.list <- vast_est.output[[counter]][[s]]$vast_est[c(1,4,6)]
+      
+      
+      #Calculate CV
+      CV <- temp.list$SD_mt/temp.list$Estimate_metric_tons
+      temp.species <- species.list$name[s]
+      temp.survey <- species.list$survey[s]
+      temp.name <- paste0(temp.survey,": ",temp.species)
+      #Bind it
+      temp.list <- cbind(temp.list, CV, temp.survey, temp.species, temp.name, 'VAST', trial.knots[t], rho.int)
+      
+      
+      #Add it
+      vast.list <- rbind(vast.list, temp.list)
+      aic.list <- rbind(aic.list, temp.aic)     
+      
+    
+      vast_est.output[[counter]][[s]]$vast_est
+    
+      counter <- counter+1
+    }#next r
+  }#next t
+}#next species
+
+#Combine pieces of AIC df
+aic.list <- data.frame(AIC,aic.list)
+names(aic.list) <- c('AIC','Survey','Species','Name','Model','Knots','Rho_Intercept')
+
+#Calculate dcesign based estimates
+#Add Design-based estimates
+db.list <- NULL
+for(s in loc.rf) {
+  #Get design-based estimate
+  db_est <- calc_design_based_index(species.codes=species.list$species.code[s], survey=species.list$survey[s])
+  temp.species <- species.list$name[s]
+  temp.survey <- species.list$survey[s]
+  temp.name <- paste0(temp.survey,": ",temp.species)
+  temp.list <- cbind(db_est[,c(1,2,4,5)], temp.survey, temp.species, temp.name, "Design-based", "Design-based","Design-based")
+  #Add it
+  db.list <- rbind(db.list, temp.list)
+}#next s
 
 
 
+names(db.list) <- c('Year','Biomass','SD','CV','Survey','Species', 'Name','Model','Knots','Rho_Intercept')
+names(vast.list) <- c('Year','Biomass','SD','CV','Survey','Species', 'Name','Model','Knots','Rho_Intercept')
+all.list <- rbind(data.frame(db.list), data.frame(vast.list))
+
+#Plot the AIC first
+aic.list <- data.frame(aic.list)
+aic.list$AIC <- as.numeric(aic.list$AIC)
+
+g <- ggplot(aic.list, aes(x=Rho_Intercept, y=AIC, colour=Knots)) +
+       theme_gray() +
+       geom_point(size=5, alpha=0.5) +
+       facet_wrap(Survey~Species, scales='free')
+g
+ggsave(paste0(output.dir,'/AIC Compare.png'), plot=g, height=7, width=9, units='in', dpi=500)
 
 
+g <- ggplot(aic.list, aes(x=Knots, y=AIC, colour=Rho_Intercept)) +
+  theme_gray() +
+  geom_point(size=5, alpha=0.5) +
+  facet_wrap(Survey~Species, scales='free')
+g
+
+g <- ggplot(aic.list, aes(x=Rho_Intercept, y=AIC, colour=Knots)) +
+       theme_gray() +
+       geom_point(size=5, alpha=0.5) +
+       facet_grid(Species~Survey, scales='free')
+g
 
 
+#Plot some trends
+vast.list$Knots <- as.factor(vast.list$Knots)
+g <- ggplot(vast.list[vast.list$Survey=='GOA',],
+              aes(x=Year, y=Biomass, group=Rho_Intercept, colour=Rho_Intercept)) +
+       theme_gray() +
+       geom_line() +
+       facet_grid(Species~Knots, scales='free')
+g
+facet
 
+g <- ggplot(vast.list[vast.list$Survey=='GOA',],
+              aes(x=Knots, y=Biomass, group=Rho_Intercept, fill=Rho_Intercept)) +
+       theme_gray() +
+       geom_boxplot() +
+       facet_wrap(~Species, scales='free')
+g
 
+g <- ggplot(vast.list[vast.list$Survey=='GOA' & vast.list$Rho_Intercept!='RW-FE',],
+              aes(x=Year, y=Biomass/1e6,  colour=Rho_Intercept)) +
+              theme_gray() +
+              geom_line() +
+              facet_grid(Species~Knots, scales='free')
+g
 
 

@@ -23,15 +23,17 @@ require(TMB)
 ##### SETUP INPUT DATA #####
 
 #Generate a dataset
-species.codes <- 10110#30420#21740#10110 #21740# 21740 #c(30420) #Rockfish
+species.codes <- 21740#30420#21740#10110 #21740# 21740 #c(30420) #Rockfish
 lat_lon.def <- "start"
 
-survey <- "EBS_SHELF"
+survey <- "GOA"
+#"EBS_SHELF"
+#"AI"
 
 #SPATIAL SETTINGS
 Method <- c("Grid", "Mesh", "Spherical_mesh")[2]
 grid_size_km <- 25
-n_x <- c(100, 250, 500, 1000, 2000)[1] # Number of stations
+n_x <- c(100, 250, 500, 1000, 2000)[3] # Number of stations
 Kmeans_Config <- list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )
 
 
@@ -62,6 +64,8 @@ Options = c(SD_site_density = 0, SD_site_logdensity = 0,
             Calculate_Range = 1, Calculate_evenness = 0, Calculate_effective_area = 1,
             Calculate_Cov_SE = 0, Calculate_Synchrony = 0,
             Calculate_Coherence = 0)
+
+bias.correct <- TRUE
 
 #=======================================================================
 ##### READ IN DATA AND BUILD vAST INPUT #####
@@ -101,7 +105,7 @@ Obj <- TmbList[["Obj"]]
 
 Opt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
                           upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
-                          bias.correct = FALSE)
+                          bias.correct = bias.correct)
 #Save output
 Report = Obj$report()
 Save = list("Opt"=Opt, "Report"=Report, "ParHat"=Obj$env$parList(Opt$par), "TmbData"=TmbData)

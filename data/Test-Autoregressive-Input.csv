@@ -1,5 +1,5 @@
-Parameter,Model,Trial_1,Trial_2,Trial_3,Trial_4
-Intercept,Encounter Probability,0,2,0,2
-Intercept,Positive Catch Rate,0,0,2,2
-Spatio-temporal RE,Encounter Probability,0,0,0,0
-Spatio-temporal RE,Positive Catch Rate,0,0,0,0
+Parameter,Model,Trial_1,Trial_2,Trial_3,Trial_4,Trial_5,Trial_6,Trial_7
+Intercept,Encounter Probability,0,2,0,2,4,0,4
+Intercept,Positive Catch Rate,0,0,2,2,0,4,4
+Spatio-temporal RE,Encounter Probability,0,0,0,0,0,0,0
+Spatio-temporal RE,Positive Catch Rate,0,0,0,0,0,0,0

@@ -13,6 +13,7 @@
 #
 #  a) Could calculate design-based estiamtes within wrapper function or at the end while plotting.
 #  b) Trouble with bias.corr=TRUE, Memory allocation fail, 200 kts, unknown species, during parallel. 
+#  b.1) Problem is with EBS Arrowtooth. for bias.corr=TRUE, this species will be remove and knot numbers limited. 
 #==================================================================================================
 #TIMING:
 # For 10-1000, by 100 knots
@@ -25,6 +26,7 @@ require(TMB)
 require(parallel)
 require(snowfall)
 require(ggplot2)
+require(cowplot)
 
 
 source("R/calc-design-based-index.r")
@@ -56,14 +58,25 @@ species.series <- c(1:n.species)
 n.cores <- detectCores()-1
 
 #Boolean for running estimation models
-do.estim <- FALSE
+do.estim <- TRUE
 
 #Trial Knot Numbers
 trial.knots <- c(100,200,300,400,500,750,1000)#seq(100, 1000, by=100)
 n.trial.knots <- length(trial.knots)
 
 #Boolean for bias correction
-bias.correct <- FALSE
+bias.correct <- TRUE
+
+#Update if
+if(bias.correct==TRUE) {
+  species.list <- species.list[-which(species.list$survey=='EBS_SHELF'),]
+  n.species <- nrow(species.list)
+  species.series <- c(1:n.species)
+  
+  
+  trial.knots <- c(100,200,300,400,500)
+  n.trial.knots <- length(trial.knots)
+}
 #=======================================================================
 ##### Run VAST model  #####
 Version <- "VAST_v2_4_0"
@@ -301,8 +314,8 @@ survey.list <- rbind(vast.list,db.list)
 
 #=======================================================================
 ##### Plot Comparison of Results #####
-scale.hues <- c(25,250)
-dpi <- 300
+scale.hues <- c(5,250)
+dpi <- 500
 #Find years survey was conducted
 
 surveys <- unique(survey.list$Survey)
@@ -310,7 +323,8 @@ n.surveys <- length(surveys)
 
 survey.list$Knots <- factor(survey.list$Knots, levels=c(trial.knots,'Design-based'))
 
-
+#========================================
+#Plot All Species Across Surveys
 s <- 1
 for(s in 1:n.surveys) {
 #GOA
@@ -329,7 +343,7 @@ g <- ggplot(plot.list, aes(x=Year, y=Biomass, color=Knots, lty=Model)) +
        theme_gray() +
        geom_line() +
        facet_wrap(~Species, scales='free') +
-       labs(list(y='Biomass (millions lbs)')) +
+       labs(list(y='Biomass (millions of metric tonnes)')) +
        # ggtitle('Survey:', subtitle='Gulf of Alaska') +
        ggtitle(paste(survey, 'Survey')) +
        scale_color_hue(h=scale.hues)
@@ -339,37 +353,86 @@ g <- ggplot(plot.list, aes(x=Year, y=Biomass, color=Knots, lty=Model)) +
 
 
 # g
-ggsave(paste0(output.dir,"/", survey," VAST Index Compare v DB.png"), g, height=6, width=9, units='in')
+ggsave(paste0(output.dir,"/", survey," VAST Index Compare v DB.png"), g, height=6, width=9, units='in', dpi=dpi)
+
 #Vast Models only
 g2 <- ggplot(plot.list[plot.list$Model=='VAST',], aes(x=Year, y=Biomass, color=Knots)) +
         theme_gray() +
         geom_line() +
         facet_wrap(~Species, scales='free') +
-        labs(list(y='Biomass (millions lbs)')) +
+        labs(list(y='Biomass (millions of metric tonnes)')) +
         # ggtitle('Survey:', subtitle='Gulf of Alaska') +
         ggtitle(paste(survey, 'Survey')) +
         scale_color_hue(h=scale.hues)
 
 # g2
-ggsave(paste0(output.dir,"/", survey," VAST Index Compare.png"), g2, height=6, width=9, units='in')
+ggsave(paste0(output.dir,"/", survey," VAST Index Compare.png"), g2, height=6, width=9, units='in', dpi=dpi)
 
 #Plot Survey Variance Measures
 
 g3 <- ggplot(plot.list, aes(x=Species, y=CV, fill=Knots)) +
         theme_gray() +
-        geom_boxplot() +
+        geom_boxplot(aes(lty=Model)) +
         labs(list(y=paste('Annual Survey CV'))) +
         theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, debug=FALSE)) +
-        scale_color_hue(h=scale.hues) +
+        scale_fill_hue(h=scale.hues) +
         ggtitle(paste(survey, 'Survey'))
         
 
-ggsave(paste0(output.dir,"/", survey," CV Compare.png"), g3, height=6, width=8, units='in')
+ggsave(paste0(output.dir,"/", survey," CV Compare.png"), g3, height=6, width=8, units='in', dpi=dpi)
 
 
 # png(paste0(output.dir,'/', survey, ' Figures.png'), height=7, width=8, units='in', res=500)
 # dev.off()
 }
+
+
+#========================================
+#Plot GOA Pollock
+survey <- 'Gulf of Alaska'
+plot.list <- survey.list[survey.list$Survey=='GOA' & survey.list$Species=='Walleye pollock',]
+yrs.surv <- sort(unique(plot.list$Year[plot.list$Model=='Design-based']))
+plot.list <- plot.list[plot.list$Year %in% yrs.surv,]
+
+#Remove 2001 from design-based results because of incomplete sampling
+if(survey=='GOA') { plot.list <- plot.list[-which(plot.list$Year==2001 & plot.list$Model=='Design-based'),] }
+plot.list$Biomass <- plot.list$Biomass/1e6
+
+#PLOT Indices
+g.idx <- ggplot(plot.list, aes(x=Year, y=Biomass, color=Knots, lty=Model)) +
+           theme_gray() +
+           geom_line() +
+           facet_wrap(~Species, scales='free') +
+           labs(list(y='Biomass (millions of metric tonnes)')) +
+           # ggtitle('Survey:', subtitle='Gulf of Alaska') +
+           # ggtitle(paste(survey, 'Survey')) +
+           scale_color_hue(h=scale.hues)
+g.idx
+ggsave(paste0(output.dir,"/GOA Pollock Idx.png"), g.idx, height=6, width=8, units='in', dpi=dpi)
+
+g.cv <- ggplot(plot.list, aes(x=Knots, y=CV, fill=Knots)) +
+  theme_gray() +
+  # geom_boxplot(aes(lty=Model)) +
+  geom_boxplot() +
+  facet_wrap(~Species, scales='free') +
+  labs(list(y=paste('Annual Survey CV'))) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, debug=FALSE)) +
+  scale_fill_hue(h=scale.hues) +
+  # ggtitle(paste(survey, 'Survey')) +
+  
+  theme(legend.position='none')
+  
+# g.cv
+
+
+#Combine plots with gridExtra
+g.both <- plot_grid(g.idx, g.cv, nrow=1, ncol=2, rel_widths=c(3.5,1))
+g.both
+
+ggsave(paste0(output.dir,"/GOA Pollock Idx and CV.png"), g.both, height=5, width=8, units='in', dpi=dpi)
+
+
+
 
 
 #Facet
