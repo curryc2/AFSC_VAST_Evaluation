@@ -8,3 +8,4 @@ Thumbs.db
 .Rproj.user
 .Rhistory
 .RData
+*.DS_Store
