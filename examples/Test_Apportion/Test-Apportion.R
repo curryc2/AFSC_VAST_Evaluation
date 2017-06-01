@@ -12,12 +12,11 @@
 #
 #==================================================================================================
 #NOTES:
-#
+#  a) Spiny Dogfish removed from evaluation because design based index is 0 for Western GOA in 2013
 #  
 #==================================================================================================
 #TIMING:
-#
-#==================================================================================================
+##==================================================================================================
 
 require(VAST)
 require(TMB)
@@ -25,6 +24,8 @@ require(parallel)
 require(snowfall)
 require(ggplot2)
 require(R2admb)
+require(reshape2)
+require(gridExtra)
 
 
 source("R/calc-design-based-index.r")
@@ -35,6 +36,7 @@ source("R/load-RACE-data.r")
 source("R/cleanup-VAST-file.r")
 source("R/get-VAST-index.r")
 
+source("R/run-RE-model.r")
 
 home.dir <- getwd()
 #Create working directory
@@ -48,6 +50,7 @@ species.list <- read.csv("data/eval_species_list.csv", stringsAsFactors=FALSE)
 species.list <- species.list[species.list$include=='Y',]
 #Limit to GOA
 species.list <- species.list[species.list$survey=='GOA',]
+species.list <- species.list[species.list$name!='Spiny dogfish',]
 n.species <- nrow(species.list)
 
 #Create
@@ -55,11 +58,16 @@ species.series <- c(1:n.species)
 
 #=======================================================================
 ##### CONTROL SECTION #####
+#Specify process error terms for RE model
+n_PE <- 3
+PE_vec <- c(1:3)
+#####
+
 #Number of cores to use
 n.cores <- detectCores()-1
 
 #Boolean for running estimation models
-do.estim <- TRUE
+do.estim <- FALSE
 
 #Trial Knot Numbers
 trial.knots <- c(100,500,1000)
@@ -74,7 +82,8 @@ rho.stRE.types <- c('IaY',NA,'RW',NA,'AR')
 
 #Read in Autoregressive Input
 # trial.rho <- t(read.csv('Data/Test-Autoregressive-Input.csv', header=TRUE, stringsAsFactors=FALSE)[,-c(1:2)])
-trial.rho <- matrix(c(2,2,0,0),ncol=4, nrow=1)
+trial.rho <- matrix(c(2,2,0,0,
+                      4,4,0,0),ncol=4, nrow=2, byrow=TRUE)
 n.trial.rho <- nrow(trial.rho)
 
 # #Intercept
@@ -120,15 +129,15 @@ Options = c(SD_site_density = 0, SD_site_logdensity = 0,
 
 #Output Directory Name
 output.dir <- paste0(working.dir,"/output_bias.correct_",bias.correct)
-
+dir.create(output.dir)
 
 
 #=======================================================================
 ##### WRAPPER FUNCTION FOR RUNNING IN PARALLEL #####
 
-s <- 1
+s <- 9 #Spiny dogfish
 # for(s in 1:n.species) {
-wrapper_fxn <- function(s, n_x, RhoConfig) {
+wrapper_fxn <- function(s, n_x, RhoConfig, n_PE, PE_vec) {
   
   #Define file for analyses
   DateFile <- paste0(trial.dir,"/",species.list$survey[s],"_",species.list$name[s],"/")
@@ -179,7 +188,7 @@ wrapper_fxn <- function(s, n_x, RhoConfig) {
                              upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
                              bias.correct = bias.correct)
   #Save output
-  Report = Obj$report()
+  # Report = Obj$report()
   # Save = list("Opt"=Opt, "Report"=Report, "ParHat"=Obj$env$parList(Opt$par), "TmbData"=TmbData)
   # save(Save, file=paste0(DateFile,"Save.RData"))
   
@@ -196,7 +205,6 @@ wrapper_fxn <- function(s, n_x, RhoConfig) {
   
   rm("VAST_input", "TmbData", "Data_Geostat", "Spatial_List", "Extrapolation_List",
      "TmbList", "Obj")#, "Save")#, "Opt", "Report")
-  
   #========================================================================
   setwd(home.dir)
   #========================================================================
@@ -209,25 +217,41 @@ wrapper_fxn <- function(s, n_x, RhoConfig) {
   #Bring Together (except 2001 when Eastern GOA was not surveyed)
   input.yrs <- sort(unique(temp.west$YEAR))
   #Remove 2001
-  input.yrs <- input.idx.yrs[-which(input.yrs==2001)]
+  input.yrs <- input.yrs[-which(input.yrs==2001)]
   
+  #Index values
   input.idx <- data.frame(temp.west$Biomass[temp.west$YEAR %in% input.yrs],
-                             temp.cent$Biomass[temp.cent$YEAR %in% input.yrs],
-                             temp.east$Biomass[temp.east$YEAR %in% input.yrs])
-  names(input.db.idx) <- c("Western","Centeral","Eastern")
+                          temp.cent$Biomass[temp.cent$YEAR %in% input.yrs],
+                          temp.east$Biomass[temp.east$YEAR %in% input.yrs])
+  names(input.idx) <- c("Western","Centeral","Eastern")
+  input.idx <- as.matrix(input.idx)
+  
+  #Index CV
+  input.cv <- data.frame(temp.west$CV[temp.west$YEAR %in% input.yrs],
+                         temp.cent$CV[temp.cent$YEAR %in% input.yrs],
+                         temp.east$CV[temp.east$YEAR %in% input.yrs])
+  
+  names(input.cv) <- c("Western","Centeral","Eastern")
+  input.cv <- as.matrix(input.cv)
+  
+  #Copy, compile, call ADMB-RE model
+  biomA <- run_RE_model(input.yrs, input.idx, input.cv, DateFile, home.dir, n_PE=n_PE, PE_vec=PE_vec)
+    
+  #========================================================================
+  setwd(home.dir)
   
   ##### RETURN SECTION #####
   out <- NULL
   out$vast_est <- vast_est
   out$Opt <- Opt
-  out$Report <- Report
+  out$biomA <- biomA
   return(out)
 } 
 
 
 #=======================================================================
 ##### Loop Through Trial Knots  #####
-# if(do.estim==TRUE) {
+if(do.estim==TRUE) {
   vast_est.output <- vector('list', length=(n.trial.knots * n.trial.rho))
   vast_knots <- vector(length=(n.trial.knots * n.trial.rho))
   vast_rho.int <- vector(length=(n.trial.knots * n.trial.rho))
@@ -239,7 +263,7 @@ wrapper_fxn <- function(s, n_x, RhoConfig) {
   counter <- 1
   
   t <- 1
-  # for(t in 1:n.trial.knots) {
+  for(t in 1:n.trial.knots) {
     print(paste('## Trial Knot Number',t,'of',n.trial.knots))
     print(paste('# Trial Knots:',trial.knots[t]))
     #Specify trial observation model
@@ -248,7 +272,7 @@ wrapper_fxn <- function(s, n_x, RhoConfig) {
     n_x <- trial.knots[t]
     
     r <- 1
-    # for(r in 1:n.trial.rho) {
+    for(r in 1:n.trial.rho) {
       #Specify intercepts and spatio-temporal variation across time
       RhoConfig <- trial.rho[r,]
       names(RhoConfig) <- c('Beta1','Beta2','Epsilon1','Epsilon2')
@@ -264,7 +288,8 @@ wrapper_fxn <- function(s, n_x, RhoConfig) {
       }else {
         vast_rho.stRE[counter] <- paste0(rho.stRE.types[RhoConfig[3]+1], "-", rho.stRE.types[RhoConfig[4]+1])
       }
-      
+      #Update Knot List
+      vast_knots[counter] <- n_x
       
       #Setup File
       trial.dir <- paste0(working.dir,"/",n_x,"_bias.corr_",bias.correct)
@@ -279,10 +304,15 @@ wrapper_fxn <- function(s, n_x, RhoConfig) {
       sfExportAll() #Exportas all global variables to cores
       sfLibrary(TMB)  #Loads a package on all nodes
       sfLibrary(VAST)
-      output <- sfLapply(species.series, fun=wrapper_fxn, n_x=n_x, RhoConfig=RhoConfig)
+      output <- sfLapply(species.series, fun=wrapper_fxn, n_x=n_x, RhoConfig=RhoConfig, n_PE=n_PE, PE_vec=PE_vec)
       sfStop()
       
+      #Add to list
       vast_est.output[[counter]] <- output
+      #Save Object for storage
+      saveRDS(output, file=paste0(output.dir,"/VAST_output_",counter,".rds"))
+      #Update Counter
+      counter <- counter + 1
     }#next r
   }#next t
   
@@ -290,8 +320,8 @@ wrapper_fxn <- function(s, n_x, RhoConfig) {
   # vast_est.output[[1:n.trial.knots]][[1:n.species]]
   
   #Create output directory
-  dir.create(output.dir)
-  save(vast_est.output, file=paste0(output.dir,"/vast_est.output.RData"))
+  # dir.create(output.dir)
+  # save(vast_est.output, file=paste0(output.dir,"/vast_est.output.RData"))
   #Also save specifications
   vast_specs <- data.frame(vast_knots, vast_rho.int, vast_rho.stRE)
   write.csv(vast_specs, file=paste0(output.dir,"/vast_specs.csv"))
@@ -299,41 +329,159 @@ wrapper_fxn <- function(s, n_x, RhoConfig) {
   #=======================================================================
   ##### DELETE UNNECESSARY FILE STRUCTURE #####
   #Must reset working directory
-  # setwd(working.dir)
-  # t <- 1
-  # for(t in 1:n.trial.knots) {
-  #   unlink(paste0(working.dir,"/",trial.knots[t],"_bias.corr_",bias.correct), recursive=TRUE)
-  # }#next t
-  # 
-  # time.2 <- date()
-  # 
-  # print(paste('### START:', time.1))
-  # print(paste('### END:', time.2))
+  setwd(working.dir)
+  t <- 1
+  for(t in 1:n.trial.knots) {
+    unlink(paste0(working.dir,"/",trial.knots[t],"_bias.corr_",bias.correct), recursive=TRUE)
+  }#next t
+
+  time.2 <- date()
+
+  print(paste('### START:', time.1))
+  print(paste('### END:', time.2))
   
 }else {
-  load(paste0(output.dir,"/vast_est.output.RData"))
+  vast_est.output <- vector('list', length=(n.trial.knots * n.trial.rho))
+  # vast_est.output <- array('list', dim=c(n.trial.knots,n.trial.rho))
+  counter <- 1
+  t <- 1
+  for(t in 1:n.trial.knots) {
+    r <- 1
+    for(r in 1:n.trial.rho) {
+      vast_est.output[[counter]] <- readRDS(file=paste0(output.dir,"/VAST_output_",counter,".rds"))
+      counter <- counter + 1
+    }#next r
+  }#next t
+  # load(paste0(output.dir,"/vast_est.output.RData"))
+}
+
+#Plot the output
+#  First example is using not fully specified output
+
+
+# plot.dat <- vast_est.output[[3]] #500 RW
+# plot.dat <- vast_est.output[[4]] #500 AR
+# plot.dat <- vast_est.output[[1]] #100 RW
+#Determine years
+
+
+#Loop through species
+s <- 1
+for(s in 1:n.species) {
+  yrs <- sort(unique(plot.dat[[s]]$vast_est$Year))
+  n.yrs <- length(yrs)
+
+  indices <- c('Western','Central','Eastern')
+  n.indices <- length(indices)
+
+  temp.species <- species.list$name[s]
+
+  #Random Effects Model
+  temp.re <- plot.dat[[s]]$biomA
+  prop.re <- temp.re
+  y <- 1
+  for(y in 1:n.yrs) {
+    prop.re[y,] <- prop.re[y,]/sum(temp.re[y,])
+  }
+  dimnames(prop.re) <- list(yrs, indices)
+
+  #VAST
+  dat.vast <- plot.dat[[s]]$vast_est
+  #Convert to a matrix
+  temp.vast <- matrix(nrow=n.yrs, ncol=n.indices, dimnames=list(yrs, indices))
+  i <- 1
+  for(i in 1:n.indices) {
+    temp.vast[,i] <- dat.vast$Estimate_metric_tons[dat.vast$Fleet==i]
+  }
+  prop.vast <- temp.vast
+  y <- 1
+  for(y in 1:n.yrs) {
+    prop.vast[y,] <- prop.vast[y,]/sum(temp.vast[y,])
+  }
+
+  #Create the grand list
+  list.re <- melt(prop.re)
+  model <- 'ADMB-RE'
+  list.re <- cbind(list.re,model,temp.species)
+
+  list.vast <- melt(prop.vast)
+  model <- 'VAST'
+  list.vast <- cbind(list.vast,model,temp.species)
+  #Combine
+  if(s==1) {
+    list.all <- rbind(list.re, list.vast)
+  }else {
+    list.all <- rbind(list.all, list.re, list.vast)
+  }
+}
+
+names(list.all) <- c('Year','Region','value','Model','Species')
+
+
+
+#===========================================================
+#Plotting Rockfish
+plot.rockfish <- FALSE
+if(plot.rockfish==TRUE) {
+#plot
+rockfish <- c('Northern rockfish','Pacific ocean perch','Harlequin rockfish')
+n.rockfish <- length(rockfish)
+list.rf <- list.all[list.all$Species %in% rockfish,]
+
+
+
+r <- 1
+for(r in 1:n.rockfish) {
+
+  g <- ggplot(list.rf[list.rf$Species==rockfish[r],], aes(x=Year, y=value, fill=Region)) +
+                    theme_gray() +
+                    geom_area(position='stack', alpha=0.75) +
+                    facet_wrap(~Model, ncol=1) +
+                    ggtitle(paste('Gulf of Alaska:',rockfish[r]))
+  ggsave(paste0(output.dir,"/",rockfish[r],".png"), height=5, width=6, dpi=500, units='in')
+}
+
+#Together
+
+g2 <- ggplot(list.rf, aes(x=Year, y=value, fill=Region)) +
+        theme_gray() +
+        geom_area(position='stack', alpha=0.75) +
+        facet_grid(Model~Species)
+
+ggsave(paste0(output.dir,"/Rockfish Apport.png"), plot=g2, height=5, width=8, dpi=500, units='in')
+
 }
 
 
+#===========================================================
+#Plotting GOA Pollock
+plot.GOA.pollock <- TRUE
+if(plot.GOA.pollock==TRUE) {
+  #plot
+  specs <- c('Walleye pollock')
+  temp.list <- list.all[list.all$Species %in% specs,]
+  
+  
+  
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    g <- ggplot(temp.list, aes(x=Year, y=value, fill=Region)) +
+           theme_gray() +
+           geom_area(position='stack', alpha=0.75) +
+           facet_wrap(~Model, ncol=1) +
+           ggtitle(paste('Gulf of Alaska:',specs[1]))
+    ggsave(paste0(output.dir,"/",specs[1],"_100_RW.png"), height=5, width=6, dpi=500, units='in')
+  # }
+  
+  #Together
+  
+  # g2 <- ggplot(list.rf, aes(x=Year, y=value, fill=Region)) +
+  #   theme_gray() +
+  #   geom_area(position='stack', alpha=0.75) +
+  #   facet_grid(Model~Species)
+  # 
+  # ggsave(paste0(output.dir,"/Rockfish Apport.png"), plot=g2, height=5, width=8, dpi=500, units='in')
+  
+}
 
 
 
