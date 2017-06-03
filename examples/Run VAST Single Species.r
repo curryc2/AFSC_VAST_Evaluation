@@ -21,9 +21,9 @@ require(TMB)
 
 #=======================================================================
 ##### SETUP INPUT DATA #####
-
+working.dir <- getwd()
 #Generate a dataset
-species.codes <- 21740#30420#21740#10110 #21740# 21740 #c(30420) #Rockfish
+species.codes <- 30420#30420#21740#10110 #21740# 21740 #c(30420) #Rockfish
 lat_lon.def <- "start"
 
 survey <- "GOA"
@@ -33,7 +33,7 @@ survey <- "GOA"
 #SPATIAL SETTINGS
 Method <- c("Grid", "Mesh", "Spherical_mesh")[2]
 grid_size_km <- 25
-n_x <- c(100, 250, 500, 1000, 2000)[3] # Number of stations
+n_x <- c(100, 250, 500, 1000, 2000)[2] # Number of stations
 Kmeans_Config <- list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )
 
 
@@ -48,12 +48,15 @@ Version <-  "VAST_v2_4_0"
 trial.file <- paste0(getwd(),"/examples/VAST_output/")
 dir.create(trial.file)
 
-DateFile <- paste0(trial.file,survey,"_",species.codes,"/")
+
 
 #MODEL SETTINGS
 FieldConfig = c(Omega1 = 1, Epsilon1 = 1, Omega2 = 1, Epsilon2 = 1)
-RhoConfig = c(Beta1 = 2, Beta2 = 2, Epsilon1 = 0, Epsilon2 = 4)
+RhoConfig = c(Beta1 = 2, Beta2 = 2, Epsilon1 = 4, Epsilon2 = 4)
 OverdispersionConfig = c(Delta1 = 0, Delta2 = 0)
+
+DateFile <- paste0(trial.file,survey,"_",species.codes," n_x_",n_x," Rho_",
+                   RhoConfig[1],RhoConfig[2],RhoConfig[3],RhoConfig[4],"/")
 
 ObsModel = c(1, 0) #Lognormal
 # ObsModel = c(2, 0) #Gamma
@@ -65,7 +68,7 @@ Options = c(SD_site_density = 0, SD_site_logdensity = 0,
             Calculate_Cov_SE = 0, Calculate_Synchrony = 0,
             Calculate_Coherence = 0)
 
-bias.correct <- TRUE
+bias.correct <- FALSE
 
 #=======================================================================
 ##### READ IN DATA AND BUILD vAST INPUT #####
@@ -229,3 +232,5 @@ cleanup_VAST_file(DateFile, Version=Version)
 # SpatialDeltaGLMM::Plot_range_shifts(Report = Report,
 #                                     TmbData = TmbData, Sdreport = Opt[["SD"]], Znames = colnames(TmbData$Z_xm),
 #                                     PlotDir = DateFile, Year_Set = Year_Set)
+
+setwd(working.dir)

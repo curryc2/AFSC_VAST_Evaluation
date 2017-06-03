@@ -249,13 +249,16 @@ wrapper_fxn <- function(s, n_x, RhoConfig, n_PE, PE_vec) {
 } 
 
 
+
 #=======================================================================
 ##### Loop Through Trial Knots  #####
+vast_est.output <- vector('list', length=(n.trial.knots * n.trial.rho))
+vast_knots <- vector(length=(n.trial.knots * n.trial.rho))
+vast_rho.int <- vector(length=(n.trial.knots * n.trial.rho))
+vast_rho.stRE <- vector(length=(n.trial.knots * n.trial.rho))
+  
 if(do.estim==TRUE) {
-  vast_est.output <- vector('list', length=(n.trial.knots * n.trial.rho))
-  vast_knots <- vector(length=(n.trial.knots * n.trial.rho))
-  vast_rho.int <- vector(length=(n.trial.knots * n.trial.rho))
-  vast_rho.stRE <- vector(length=(n.trial.knots * n.trial.rho))
+
   
   time.1 <- date()
   
@@ -341,18 +344,20 @@ if(do.estim==TRUE) {
   print(paste('### END:', time.2))
   
 }else {
-  vast_est.output <- vector('list', length=(n.trial.knots * n.trial.rho))
-  # vast_est.output <- array('list', dim=c(n.trial.knots,n.trial.rho))
-  counter <- 1
-  t <- 1
-  for(t in 1:n.trial.knots) {
-    r <- 1
-    for(r in 1:n.trial.rho) {
-      vast_est.output[[counter]] <- readRDS(file=paste0(output.dir,"/VAST_output_",counter,".rds"))
-      counter <- counter + 1
-    }#next r
-  }#next t
+  #Old
   # load(paste0(output.dir,"/vast_est.output.RData"))
+  
+  #New
+  specs <- read.csv(paste0(output.dir,"/vast_specs.csv"), header=TRUE, stringsAsFactors=FALSE)
+  n.specs <- nrow(specs)
+  
+  for(i in 1:n.specs) {
+    print(i)
+    vast_est.output[[i]] <- readRDS(file=paste0(output.dir, "/VAST_output_",i,".rds"))
+    vast_knots[i] <- specs$vast_knots[i]
+    vast_rho.int[i] <- specs$vast_rho.int[i]
+    vast_rho.stRE[i] <- specs$vast_rho.stRE[i]
+  }#next i
 }
 
 #Plot the output
@@ -366,6 +371,8 @@ if(do.estim==TRUE) {
 
 
 #Loop through species
+i <- 1
+for(i in 1:n.specs)
 s <- 1
 for(s in 1:n.species) {
   yrs <- sort(unique(plot.dat[[s]]$vast_est$Year))
