@@ -67,10 +67,10 @@ PE_vec <- c(1:3)
 n.cores <- detectCores()-1
 
 #Boolean for running estimation models
-do.estim <- FALSE
+do.estim <- TRUE
 
 #Trial Knot Numbers
-trial.knots <- c(100,500,1000)
+trial.knots <- c(100,500)
 n.trial.knots <- length(trial.knots)
 
 #Trial AUTOREGRESSIVE specifications
@@ -82,8 +82,10 @@ rho.stRE.types <- c('IaY',NA,'RW',NA,'AR')
 
 #Read in Autoregressive Input
 # trial.rho <- t(read.csv('Data/Test-Autoregressive-Input.csv', header=TRUE, stringsAsFactors=FALSE)[,-c(1:2)])
-trial.rho <- matrix(c(2,2,0,0,
-                      4,4,0,0),ncol=4, nrow=2, byrow=TRUE)
+trial.rho <- matrix(c(0,0,0,0,
+                      2,2,0,0,
+                      4,4,0,0,
+                      2,2,4,4),ncol=4, nrow=4, byrow=TRUE)
 n.trial.rho <- nrow(trial.rho)
 
 # #Intercept
@@ -135,7 +137,7 @@ dir.create(output.dir)
 #=======================================================================
 ##### WRAPPER FUNCTION FOR RUNNING IN PARALLEL #####
 
-s <- 9 #Spiny dogfish
+s <- 1 #Spiny dogfish
 # for(s in 1:n.species) {
 wrapper_fxn <- function(s, n_x, RhoConfig, n_PE, PE_vec) {
   
