@@ -315,6 +315,216 @@ if(do.estim==TRUE) {
   }#next i
 }
 
+
+#=====================================================
+# Gather Data
+vast.list <- NULL
+aic.list <- NULL
+aic.vect <- vector(length=0)
+converge.vect <- vector(length=0)
+
+#Load dataset to determine which years to include
+goa.yrs <- sort(unique(load_RACE_data(species.codes=30420, survey='GOA')$Year))
+ai.yrs <- sort(unique(load_RACE_data(species.codes=30420, survey='GOA')$Year))
+
+
+i <- 1
+for(i in 1:n.specs) {
+  s <- 1
+  for(s in 1:n.species) {
+    #Species Information
+    temp.species <- species.list$name[s]
+    temp.survey <- species.list$survey[s]
+    temp.name <- paste0(temp.survey,": ",temp.species)
+    
+    #Determine Survey years (Currently only GOA and AI)
+    if(temp.survey=='GOA') {
+      temp.yrs <- goa.yrs
+    }else {
+      temp.yrs <- ai.yrs
+    }
+    
+    #Get VAST model index
+    temp.list <- vast_est.output[[i]][[s]]$vast_est[c(1,4,6)]
+    
+    #Calculate CV
+    CV <- temp.list$SD_mt/temp.list$Estimate_metric_tons
+    
+    #Determine which are survey years
+    survey.year <- temp.list$Year %in% temp.yrs
+    
+    #Bind it
+    temp.list <- cbind(temp.list, CV, temp.survey, temp.species, temp.name, 'VAST', vast_knots[i], vast_rho.int[i], vast_rho.stRE[i], survey.year)
+    
+    
+    #AIC and convergence
+    #Get AIC and convergence
+    temp.aic <- cbind(temp.survey, temp.species, temp.name, 'VAST', vast_knots[i], vast_rho.int[i], vast_rho.stRE[i])
+
+    aic.vect <- append(aic.vect, vast_est.output[[i]][[s]]$Opt$AIC)
+    converge.vect <- append(converge.vect, vast_est.output[[i]][[s]]$Opt$converge)
+    
+    #Combine to larger lists
+    vast.list <- rbind(vast.list, temp.list)
+    aic.list <- rbind(aic.list, temp.aic) 
+    
+    
+  }#Next species
+  
+}#next model configuration i
+
+
+
+#Add names
+vast.df <- data.frame(vast.list)
+names(vast.df) <- c('Year','Biomass','SD','CV','Survey','Species', 'Name','Model','Knots','Rho_Intercept','Rho_stRE','SurveyYear')
+
+head(vast.df)
+
+aic.df <- data.frame(aic.list, aic.vect, converge.vect)
+names(aic.df) <- c('Survey','Species','Name','Model','Knots','Rho_Intercept','Rho_stRE','AIC','Converge')
+aic.df$Converge <- as.factor(aic.df$Converge)
+
+
+#=====================================================
+#PLOT IT OUT
+g <- ggplot(aic.df, aes(x=Rho_Intercept, y=AIC, colour=Knots, shape=Converge)) +
+       theme_gray() +
+       geom_point(size=5, alpha=0.5) +
+       facet_wrap(Survey~Species, scales='free')
+g
+
+# ggsave(paste0(output.dir,'/AIC Compare.png'), plot=g, height=7, width=9, units='in', dpi=500)
+
+g <- ggplot(aic.df[aic.df$Survey=='GOA',], aes(x=Rho_Intercept, y=AIC, colour=Knots)) +
+       theme_gray() +
+       geom_point(size=5, alpha=0.5) +
+       facet_wrap(~Species, scales='free') +
+       ggtitle('Gulf of Alaska RACE Survey') +
+       theme(axis.text.x=element_text(angle=90, hjust=1))
+g
+ggsave(paste0(output.dir,'/AIC Compare_GOA.png'), plot=g, height=7, width=9, units='in', dpi=500)
+
+g <- ggplot(aic.df[aic.df$Survey=='AI',], aes(x=Rho_Intercept, y=AIC, colour=Knots)) +
+       theme_gray() +
+       geom_point(size=5, alpha=0.5) +
+       facet_wrap(~Species, scales='free') +
+       ggtitle('Aleutian Islands RACE Survey') +
+       theme(axis.text.x=element_text(angle=90, hjust=1))
+g
+ggsave(paste0(output.dir,'/AIC Compare_AI.png'), plot=g, height=7, width=9, units='in', dpi=500)
+
+
+#===================================
+#Plotting Index Values
+
+g <- ggplot(aic.df, aes(x=Knots, y=AIC, colour=Rho_Intercept)) +
+  theme_gray() +
+  # geom_point(size=5, alpha=0.5) +
+  facet_wrap(Survey~Species, scales='free') +
+  geom_jitter()
+# g
+
+g <- ggplot(aic.df, aes(x=Rho_Intercept, y=AIC, colour=Knots)) +
+  theme_gray() +
+  # geom_point(size=5, alpha=0.5) +
+  geom_jitter()
+  facet_grid(Species~Survey, scales='free')
+# g
+
+
+#Plot some trends
+
+#Determine which years to include
+
+vast.df$Knots <- as.factor(vast.df$Knots)
+
+#species x knots
+g <- ggplot(vast.df[vast.df$Survey=='GOA' & vast.df$SurveyYear==TRUE,],
+            aes(x=Year, y=Biomass/1e6, group=Rho_Intercept, colour=Rho_Intercept)) +
+  theme_gray() +
+  geom_line() +
+  geom_point() +
+  facet_grid(Species~Knots, scales='free') +
+  ggtitle('Gulf of Alaska RACE Survey') +
+  ylab('Index (millions)')
+  
+g
+
+#Break it down by species groups
+goa.species <- as.vector(unique(vast.df$Species[vast.df$Survey=='GOA' & vast.df$SurveyYear==TRUE]))
+
+goa.rockfish <- c('Pacific ocean perch', 'Northern rockfish', 'Harlequin rockfish')
+goa.others <- goa.species[-which(goa.species %in% goa.rockfish)]
+
+#Plot rockfish
+g <- ggplot(vast.df[vast.df$Survey=='GOA' & vast.df$SurveyYear==TRUE & vast.df$Species%in%goa.rockfish,],
+            aes(x=Year, y=Biomass/1e6, group=Rho_Intercept, colour=Rho_Intercept)) +
+  theme_gray() +
+  geom_line(alpha=0.5) +
+  geom_point(alpha=0.5) +
+  facet_grid(Species~Knots, scales='free') +
+  ggtitle('Gulf of Alaska RACE Survey') +
+  ylab('Index (millions)')
+
+g
+
+#Plot others
+g <- ggplot(vast.df[vast.df$Survey=='GOA' & vast.df$SurveyYear==TRUE & vast.df$Species%in%goa.others,],
+            aes(x=Year, y=Biomass/1e6, group=Rho_Intercept, colour=Rho_Intercept)) +
+  theme_gray() +
+  geom_line(alpha=0.5) +
+  geom_point(alpha=0.5) +
+  facet_grid(Species~Knots, scales='free') +
+  ggtitle('Gulf of Alaska RACE Survey') +
+  ylab('Index (millions)')
+
+g
+
+
+#================
+g <- ggplot(vast.df[vast.df$Survey=='AI' & vast.df$SurveyYear==TRUE,],
+            aes(x=Year, y=Biomass/1e6, group=Rho_Intercept, colour=Rho_Intercept)) +
+  theme_gray() +
+  geom_line() +
+  geom_point() +
+  facet_grid(Species~Knots, scales='free') +
+  ggtitle('Aleutian Islands RACE Survey') +
+  ylab('Index (millions)')
+
+g
+
+
+g <- ggplot(vast.df[vast.df$Survey=='AI' & vast.df$SurveyYear==TRUE & vast.df$Species=='Pacific ocean perch',],
+            aes(x=Year, y=Biomass/1e6, group=Rho_Intercept, colour=Rho_Intercept)) +
+        theme_gray() +
+        geom_line() +
+        geom_point() +
+        facet_grid(Species~Knots, scales='free') +
+        ggtitle('Aleutian Islands RACE Survey') +
+        ylab('Index (millions)')
+
+g
+
+
+
+g <- ggplot(vast.list[vast.list$Survey=='GOA',],
+            aes(x=Knots, y=Biomass, group=Rho_Intercept, fill=Rho_Intercept)) +
+  theme_gray() +
+  geom_boxplot() +
+  facet_wrap(~Species, scales='free')
+g
+
+g <- ggplot(vast.list[vast.list$Survey=='GOA' & vast.list$Rho_Intercept!='RW-FE',],
+            aes(x=Year, y=Biomass/1e6,  colour=Rho_Intercept)) +
+  theme_gray() +
+  geom_line() +
+  facet_grid(Species~Knots, scales='free')
+g
+
+
+
+
 #Figures to include
 #  1) AIC comparison across rho specs
 #  2) CV Bodplots

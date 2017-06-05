@@ -372,7 +372,7 @@ if(do.estim==TRUE) {
 
 #Loop through species
 i <- 1
-for(i in 1:n.specs)
+for(i in 1:n.specs) { 
 s <- 1
 for(s in 1:n.species) {
   yrs <- sort(unique(plot.dat[[s]]$vast_est$Year))
@@ -462,7 +462,7 @@ ggsave(paste0(output.dir,"/Rockfish Apport.png"), plot=g2, height=5, width=8, dp
 
 #===========================================================
 #Plotting GOA Pollock
-plot.GOA.pollock <- TRUE
+plot.GOA.pollock <- FALSE
 if(plot.GOA.pollock==TRUE) {
   #plot
   specs <- c('Walleye pollock')
