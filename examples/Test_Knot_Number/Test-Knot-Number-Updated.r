@@ -58,14 +58,14 @@ species.series <- c(1:n.species)
 n.cores <- detectCores()-1
 
 #Boolean for running estimation models
-do.estim <- TRUE
+do.estim <- FALSE
 
 #Trial Knot Numbers
 trial.knots <- c(100,200,300,400,500,750,1000)#seq(100, 1000, by=100)
 n.trial.knots <- length(trial.knots)
 
 #Boolean for bias correction
-bias.correct <- TRUE
+bias.correct <- FALSE
 
 #Update if
 if(bias.correct==TRUE) {
@@ -350,7 +350,7 @@ g <- ggplot(plot.list, aes(x=Year, y=Biomass, color=Knots, lty=Model)) +
        # scale_color_brewer(type='seq', palette=1)
    # g    
 
-
+ 
 
 # g
 ggsave(paste0(output.dir,"/", survey," VAST Index Compare v DB.png"), g, height=6, width=9, units='in', dpi=dpi)

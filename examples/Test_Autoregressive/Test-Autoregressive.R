@@ -325,7 +325,7 @@ converge.vect <- vector(length=0)
 
 #Load dataset to determine which years to include
 goa.yrs <- sort(unique(load_RACE_data(species.codes=30420, survey='GOA')$Year))
-ai.yrs <- sort(unique(load_RACE_data(species.codes=30420, survey='GOA')$Year))
+ai.yrs <- sort(unique(load_RACE_data(species.codes=30420, survey='AI')$Year))
 
 
 i <- 1
@@ -447,7 +447,7 @@ g <- ggplot(vast.df[vast.df$Survey=='GOA' & vast.df$SurveyYear==TRUE,],
   geom_point() +
   facet_grid(Species~Knots, scales='free') +
   ggtitle('Gulf of Alaska RACE Survey') +
-  ylab('Index (millions)')
+  ylab('Biomass (millions of metric tonnes)')
   
 g
 
@@ -465,9 +465,13 @@ g <- ggplot(vast.df[vast.df$Survey=='GOA' & vast.df$SurveyYear==TRUE & vast.df$S
   geom_point(alpha=0.5) +
   facet_grid(Species~Knots, scales='free') +
   ggtitle('Gulf of Alaska RACE Survey') +
-  ylab('Index (millions)')
+  ylab('Biomass (millions of metric tonnes)')
 
 g
+
+ggsave(paste0(output.dir,'/Rockfish Trend Compare_GOA.png'), plot=g, height=7, width=9, units='in', dpi=500)
+
+
 
 #Plot others
 g <- ggplot(vast.df[vast.df$Survey=='GOA' & vast.df$SurveyYear==TRUE & vast.df$Species%in%goa.others,],
@@ -477,34 +481,25 @@ g <- ggplot(vast.df[vast.df$Survey=='GOA' & vast.df$SurveyYear==TRUE & vast.df$S
   geom_point(alpha=0.5) +
   facet_grid(Species~Knots, scales='free') +
   ggtitle('Gulf of Alaska RACE Survey') +
-  ylab('Index (millions)')
+  ylab('Biomass (millions of metric tonnes)')
 
 g
 
+ggsave(paste0(output.dir,'/Others Trend Compare_GOA.png'), plot=g, height=7, width=9, units='in', dpi=500)
 
 #================
 g <- ggplot(vast.df[vast.df$Survey=='AI' & vast.df$SurveyYear==TRUE,],
             aes(x=Year, y=Biomass/1e6, group=Rho_Intercept, colour=Rho_Intercept)) +
   theme_gray() +
-  geom_line() +
-  geom_point() +
+  geom_line(alpha=0.5) +
+  geom_point(alpha=0.5) +
   facet_grid(Species~Knots, scales='free') +
   ggtitle('Aleutian Islands RACE Survey') +
-  ylab('Index (millions)')
+  ylab('Biomass (millions of metric tonnes)')
 
 g
+ggsave(paste0(output.dir,'/Trend Compare_AI.png'), plot=g, height=7, width=9, units='in', dpi=500)
 
-
-g <- ggplot(vast.df[vast.df$Survey=='AI' & vast.df$SurveyYear==TRUE & vast.df$Species=='Pacific ocean perch',],
-            aes(x=Year, y=Biomass/1e6, group=Rho_Intercept, colour=Rho_Intercept)) +
-        theme_gray() +
-        geom_line() +
-        geom_point() +
-        facet_grid(Species~Knots, scales='free') +
-        ggtitle('Aleutian Islands RACE Survey') +
-        ylab('Index (millions)')
-
-g
 
 
 
@@ -521,146 +516,4 @@ g <- ggplot(vast.list[vast.list$Survey=='GOA' & vast.list$Rho_Intercept!='RW-FE'
   geom_line() +
   facet_grid(Species~Knots, scales='free')
 g
-
-
-
-
-#Figures to include
-#  1) AIC comparison across rho specs
-#  2) CV Bodplots
-#  3) Index values
-
-rockfish.dir <- paste0(output.dir,"/Rockfish Figs")
-dir.create(rockfish.dir)
-
-#Determine location of rockfish in species list
-
-loc.rf <- which(species.list$name %in% c("Pacific ocean perch","Northern rockfish","Harlequin rockfish"))
-n.loc.rf <- length(loc.rf)
-
-#==========================================
-#Extract data
-vast.list <- NULL
-aic.list <- NULL
-AIC <- vector(length=0)
-
-s <- 1
-for(s in loc.rf) {
-  counter <- 1
-  
-  temp.species <- species.list$name[s]
-  temp.survey <- species.list$survey[s]
-  temp.name <- paste0(temp.survey,": ",temp.species)
-  
-  t <- 1
-  for(t in 1:n.trial.knots) {
-    r <- 1
-    for(r in 1:n.trial.rho) {
-      
-      #Rho Values
-      rho.int <- paste0(rho.int.types[trial.rho[r,1]+1], "-", rho.int.types[trial.rho[r,2]+1])
-      
-      AIC <- append(AIC,vast_est.output[[counter]][[s]]$Opt$AIC)
-      
-      temp.aic <-  c(temp.survey, temp.species, temp.name,
-                       'VAST', trial.knots[t], rho.int) 
-      
-      #Get VAST model index
-      temp.list <- vast_est.output[[counter]][[s]]$vast_est[c(1,4,6)]
-      
-      
-      #Calculate CV
-      CV <- temp.list$SD_mt/temp.list$Estimate_metric_tons
-      temp.species <- species.list$name[s]
-      temp.survey <- species.list$survey[s]
-      temp.name <- paste0(temp.survey,": ",temp.species)
-      #Bind it
-      temp.list <- cbind(temp.list, CV, temp.survey, temp.species, temp.name, 'VAST', trial.knots[t], rho.int)
-      
-      
-      #Add it
-      vast.list <- rbind(vast.list, temp.list)
-      aic.list <- rbind(aic.list, temp.aic)     
-      
-    
-      vast_est.output[[counter]][[s]]$vast_est
-    
-      counter <- counter+1
-    }#next r
-  }#next t
-}#next species
-
-#Combine pieces of AIC df
-aic.list <- data.frame(AIC,aic.list)
-names(aic.list) <- c('AIC','Survey','Species','Name','Model','Knots','Rho_Intercept')
-
-#Calculate dcesign based estimates
-#Add Design-based estimates
-db.list <- NULL
-for(s in loc.rf) {
-  #Get design-based estimate
-  db_est <- calc_design_based_index(species.codes=species.list$species.code[s], survey=species.list$survey[s])
-  temp.species <- species.list$name[s]
-  temp.survey <- species.list$survey[s]
-  temp.name <- paste0(temp.survey,": ",temp.species)
-  temp.list <- cbind(db_est[,c(1,2,4,5)], temp.survey, temp.species, temp.name, "Design-based", "Design-based","Design-based")
-  #Add it
-  db.list <- rbind(db.list, temp.list)
-}#next s
-
-
-
-names(db.list) <- c('Year','Biomass','SD','CV','Survey','Species', 'Name','Model','Knots','Rho_Intercept')
-names(vast.list) <- c('Year','Biomass','SD','CV','Survey','Species', 'Name','Model','Knots','Rho_Intercept')
-all.list <- rbind(data.frame(db.list), data.frame(vast.list))
-
-#Plot the AIC first
-aic.list <- data.frame(aic.list)
-aic.list$AIC <- as.numeric(aic.list$AIC)
-
-g <- ggplot(aic.list, aes(x=Rho_Intercept, y=AIC, colour=Knots)) +
-       theme_gray() +
-       geom_point(size=5, alpha=0.5) +
-       facet_wrap(Survey~Species, scales='free')
-g
-ggsave(paste0(output.dir,'/AIC Compare.png'), plot=g, height=7, width=9, units='in', dpi=500)
-
-
-g <- ggplot(aic.list, aes(x=Knots, y=AIC, colour=Rho_Intercept)) +
-  theme_gray() +
-  geom_point(size=5, alpha=0.5) +
-  facet_wrap(Survey~Species, scales='free')
-g
-
-g <- ggplot(aic.list, aes(x=Rho_Intercept, y=AIC, colour=Knots)) +
-       theme_gray() +
-       geom_point(size=5, alpha=0.5) +
-       facet_grid(Species~Survey, scales='free')
-g
-
-
-#Plot some trends
-vast.list$Knots <- as.factor(vast.list$Knots)
-g <- ggplot(vast.list[vast.list$Survey=='GOA',],
-              aes(x=Year, y=Biomass, group=Rho_Intercept, colour=Rho_Intercept)) +
-       theme_gray() +
-       geom_line() +
-       facet_grid(Species~Knots, scales='free')
-g
-facet
-
-g <- ggplot(vast.list[vast.list$Survey=='GOA',],
-              aes(x=Knots, y=Biomass, group=Rho_Intercept, fill=Rho_Intercept)) +
-       theme_gray() +
-       geom_boxplot() +
-       facet_wrap(~Species, scales='free')
-g
-
-g <- ggplot(vast.list[vast.list$Survey=='GOA' & vast.list$Rho_Intercept!='RW-FE',],
-              aes(x=Year, y=Biomass/1e6,  colour=Rho_Intercept)) +
-              theme_gray() +
-              geom_line() +
-              facet_grid(Species~Knots, scales='free')
-g
-
 
