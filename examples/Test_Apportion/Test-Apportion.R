@@ -64,10 +64,10 @@ PE_vec <- c(1:3)
 #####
 
 #Number of cores to use
-n.cores <- detectCores()-1
+n.cores <- detectCores()
 
 #Boolean for running estimation models
-do.estim <- TRUE
+do.estim <- FALSE
 
 #Trial Knot Numbers
 trial.knots <- c(100,500)
@@ -150,8 +150,6 @@ wrapper_fxn <- function(s, n_x, RhoConfig, n_PE, PE_vec) {
   species.codes <- species.list$species.code[s]
   survey <- species.list$survey[s]
   
-  
-  
   #=======================================================================
   ##### READ IN DATA AND BUILD VAST INPUT #####
   #  NOTE: this will create the DateFile
@@ -175,9 +173,6 @@ wrapper_fxn <- function(s, n_x, RhoConfig, n_PE, PE_vec) {
   
   #=======================================================================
   ##### RUN VAST #####
-  
-  
-  
   #Build TMB Object
   #  Compilation may take some time
   TmbList <- VAST::Build_TMB_Fn(TmbData = TmbData, RunDir = DateFile,
@@ -373,138 +368,167 @@ if(do.estim==TRUE) {
 
 
 #Loop through species
-i <- 1
-for(i in 1:n.specs) { 
+#
+re.list <- NULL
+vast.list <- NULL
+aic.list <- NULL
+aic.vect <- vector(length=0)
+converge.vect <- vector(length=0)
+maxGrad.vect <- vector(length=0)
+
+#Determine true survey years for flag
+goa.yrs <- sort(unique(load_RACE_data(species.codes=30420, survey='GOA')$Year))
+
+
 s <- 1
 for(s in 1:n.species) {
-  yrs <- sort(unique(plot.dat[[s]]$vast_est$Year))
-  n.yrs <- length(yrs)
-
-  indices <- c('Western','Central','Eastern')
-  n.indices <- length(indices)
-
+  #Species Information
   temp.species <- species.list$name[s]
+  temp.survey <- species.list$survey[s]
+  temp.name <- paste0(temp.survey,": ",temp.species)
 
+  #VAST
+  i <- 1
+  for(i in 1:n.specs) { 
+    
+    #Update Convergence and AIC estimates
+    aic.vect <- append(aic.vect, vast_est.output[[i]][[s]]$Opt$AIC)
+    converge.vect <- append(converge.vect, vast_est.output[[i]][[s]]$Opt$converge)
+    maxGrad.vect <- append(maxGrad.vect, max(abs(vast_est.output[[i]][[s]]$Opt$diagnostics$final_gradient)))
+    
+    yrs <- sort(unique(vast_est.output[[i]][[s]]$vast_est$Year))
+    n.yrs <- length(yrs)
+    
+    survey.year <- vast_est.output[[i]][[s]]$vast_est$Year %in% goa.yrs
+    
+    indices <- c('Western','Central','Eastern')
+    n.indices <- length(indices)
+
+    #VAST
+    dat.vast <- vast_est.output[[i]][[s]]$vast_est
+    #Convert to a matrix
+    temp.vast <- matrix(nrow=n.yrs, ncol=n.indices, dimnames=list(yrs, indices))
+    j <- 1
+    for(j in 1:n.indices) {
+      temp.vast[,j] <- dat.vast$Estimate_metric_tons[dat.vast$Fleet==j]
+    }
+    prop.vast <- temp.vast
+    y <- 1
+    for(y in 1:n.yrs) {
+      prop.vast[y,] <- prop.vast[y,]/sum(temp.vast[y,])
+    }
+    
+    temp.RhoConfig <- paste(vast_rho.int[i], "+",vast_rho.stRE[i])
+    
+    #Create the grand list
+    temp.vast <- melt(prop.vast)
+    model <- 'VAST'
+    temp.vast <- cbind(temp.vast, model, temp.survey, temp.species, temp.name, vast_knots[i], vast_rho.int[i], vast_rho.stRE[i], temp.RhoConfig, survey.year)
+
+    #Skeleton in AIC/convergence data frame
+    temp.aic <- cbind(temp.survey, temp.species, temp.name, 'VAST', vast_knots[i], vast_rho.int[i], vast_rho.stRE[i], temp.RhoConfig)
+    
+    #Combine to larger lists
+    #VAST list
+    vast.list <- rbind(vast.list, temp.vast)
+    #AIC
+    aic.list <- rbind(aic.list, temp.aic) 
+    
+  }#next i
+  
+  #ADMB-RE
   #Random Effects Model
-  temp.re <- plot.dat[[s]]$biomA
+  temp.re <- vast_est.output[[i]][[s]]$biomA
   prop.re <- temp.re
   y <- 1
   for(y in 1:n.yrs) {
     prop.re[y,] <- prop.re[y,]/sum(temp.re[y,])
   }
   dimnames(prop.re) <- list(yrs, indices)
-
-  #VAST
-  dat.vast <- plot.dat[[s]]$vast_est
-  #Convert to a matrix
-  temp.vast <- matrix(nrow=n.yrs, ncol=n.indices, dimnames=list(yrs, indices))
-  i <- 1
-  for(i in 1:n.indices) {
-    temp.vast[,i] <- dat.vast$Estimate_metric_tons[dat.vast$Fleet==i]
-  }
-  prop.vast <- temp.vast
-  y <- 1
-  for(y in 1:n.yrs) {
-    prop.vast[y,] <- prop.vast[y,]/sum(temp.vast[y,])
-  }
-
-  #Create the grand list
-  list.re <- melt(prop.re)
+  
+  #Create larger list
+  temp.re <- melt(prop.re)
   model <- 'ADMB-RE'
-  list.re <- cbind(list.re,model,temp.species)
+  temp.re <- cbind(temp.re, model, temp.survey, temp.species, temp.name, FALSE, FALSE, FALSE, "ADMB-RE", survey.year)
+  #Randome-effects list
+  re.list <- rbind(re.list, temp.re)
+  
+}#next s
 
-  list.vast <- melt(prop.vast)
-  model <- 'VAST'
-  list.vast <- cbind(list.vast,model,temp.species)
-  #Combine
-  if(s==1) {
-    list.all <- rbind(list.re, list.vast)
-  }else {
-    list.all <- rbind(list.all, list.re, list.vast)
-  }
-}
+#Add names
+re.df <- data.frame(re.list)
+names(re.df) <- c('Year','Region','value','Model','Survey','Species', 'Name','Knots','Rho_Intercept','Rho_stRE','RhoConfig','SurveyYear')
 
-names(list.all) <- c('Year','Region','value','Model','Species')
+vast.df <- data.frame(vast.list)
+names(vast.df) <- c('Year','Region','value','Model','Survey','Species', 'Name','Knots','Rho_Intercept','Rho_stRE','RhoConfig','SurveyYear')
+
+#Bind Together
+output.df <- rbind(re.df, vast.df)
+
+aic.df <- data.frame(aic.list, aic.vect, converge.vect, maxGrad.vect)
+names(aic.df) <- c('Survey','Species','Name','Model','Knots','Rho_Intercept','Rho_stRE','RhoConfig','AIC','Converge','maxGradient')
+aic.df$Converge <- as.factor(aic.df$Converge)
 
 
+#===========================================================
+#Plot the Max Gradients
+g <- ggplot(aic.df, aes(x=RhoConfig, y=maxGradient, color=Knots)) +
+       theme_gray() +
+       geom_point(alpha=0.5) +
+       facet_wrap(~Species, scales='free') +
+       theme(axis.text.x=element_text(angle=90, hjust=1))
+g
 
 #===========================================================
 #Plotting Rockfish
-plot.rockfish <- FALSE
-if(plot.rockfish==TRUE) {
-#plot
+  
 rockfish <- c('Northern rockfish','Pacific ocean perch','Harlequin rockfish')
 n.rockfish <- length(rockfish)
-list.rf <- list.all[list.all$Species %in% rockfish,]
+temp.df <- output.df[output.df$Species %in% rockfish,]
+    
+temp.knots <- 100
+g <- ggplot(temp.df[temp.df$Knots==temp.knots | temp.df$Knots==FALSE,], aes(x=Year, y=value, fill=Region)) +
+       theme_gray() +
+       geom_area(position='stack', alpha=0.75) +
+       facet_grid(Species~RhoConfig) +
+       ggtitle(paste('Gulf of Alaska: Rockfish'), subtitle=paste('Knots:',temp.knots))
 
+g
+ggsave(paste0(output.dir,'/Rockfish ', temp.knots,'kt.png'), plot=g, height=7, width=10, units='in', dpi=500)
 
+temp.knots <- 500
+g <- ggplot(temp.df[temp.df$Knots==temp.knots | temp.df$Knots==FALSE,], aes(x=Year, y=value, fill=Region)) +
+  theme_gray() +
+  geom_area(position='stack', alpha=0.75) +
+  facet_grid(Species~RhoConfig) +
+  ggtitle(paste('Gulf of Alaska: Rockfish'), subtitle=paste('Knots:',temp.knots))
 
-r <- 1
-for(r in 1:n.rockfish) {
-
-  g <- ggplot(list.rf[list.rf$Species==rockfish[r],], aes(x=Year, y=value, fill=Region)) +
-                    theme_gray() +
-                    geom_area(position='stack', alpha=0.75) +
-                    facet_wrap(~Model, ncol=1) +
-                    ggtitle(paste('Gulf of Alaska:',rockfish[r]))
-  ggsave(paste0(output.dir,"/",rockfish[r],".png"), height=5, width=6, dpi=500, units='in')
-}
-
-#Together
-
-g2 <- ggplot(list.rf, aes(x=Year, y=value, fill=Region)) +
-        theme_gray() +
-        geom_area(position='stack', alpha=0.75) +
-        facet_grid(Model~Species)
-
-ggsave(paste0(output.dir,"/Rockfish Apport.png"), plot=g2, height=5, width=8, dpi=500, units='in')
-
-}
-
-
+g
+ggsave(paste0(output.dir,'/Rockfish ', temp.knots,'kt.png'), plot=g, height=7, width=10, units='in', dpi=500)
 #===========================================================
-#Plotting GOA Pollock
-plot.GOA.pollock <- FALSE
-if(plot.GOA.pollock==TRUE) {
-  #plot
-  specs <- c('Walleye pollock')
-  temp.list <- list.all[list.all$Species %in% specs,]
-  
-  
-  
+#Plotting Others
 
-    g <- ggplot(temp.list, aes(x=Year, y=value, fill=Region)) +
-           theme_gray() +
-           geom_area(position='stack', alpha=0.75) +
-           facet_wrap(~Model, ncol=1) +
-           ggtitle(paste('Gulf of Alaska:',specs[1]))
-    ggsave(paste0(output.dir,"/",specs[1],"_100_RW.png"), height=5, width=6, dpi=500, units='in')
-  # }
-  
-  #Together
-  
-  # g2 <- ggplot(list.rf, aes(x=Year, y=value, fill=Region)) +
-  #   theme_gray() +
-  #   geom_area(position='stack', alpha=0.75) +
-  #   facet_grid(Model~Species)
-  # 
-  # ggsave(paste0(output.dir,"/Rockfish Apport.png"), plot=g2, height=5, width=8, dpi=500, units='in')
-  
-}
+temp.df <- output.df[-which(output.df$Species %in% rockfish),]
+
+temp.knots <- 100
+g <- ggplot(temp.df[temp.df$Knots==temp.knots | temp.df$Knots==FALSE,], aes(x=Year, y=value, fill=Region)) +
+  theme_gray() +
+  geom_area(position='stack', alpha=0.75) +
+  facet_grid(Species~RhoConfig) +
+  ggtitle(paste('Gulf of Alaska: Other Species'), subtitle=paste('Knots:',temp.knots))
+
+g
+ggsave(paste0(output.dir,'/Others ', temp.knots,'kt.png'), plot=g, height=7, width=10, units='in', dpi=500)
 
 
+temp.knots <- 500
+g <- ggplot(temp.df[temp.df$Knots==temp.knots | temp.df$Knots==FALSE,], aes(x=Year, y=value, fill=Region)) +
+  theme_gray() +
+  geom_area(position='stack', alpha=0.75) +
+  facet_grid(Species~RhoConfig) +
+  ggtitle(paste('Gulf of Alaska: Other Species'), subtitle=paste('Knots:',temp.knots))
 
-
-
-
-
-
-
-
-
-
-
-
-
+g
+ggsave(paste0(output.dir,'/Others ', temp.knots,'kt.png'), plot=g, height=7, width=10, units='in', dpi=500)
 
 

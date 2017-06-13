@@ -2,8 +2,8 @@ run_RE_model <- function(input.yrs, input.idx, input.cv, DateFile, home.dir, n_P
   require(R2admb)
   require(PBSmodelling)
   ### TESTING ###
-  # n_PE <- 3#1
-  # PE_vec <- 1:3#c(1,1,1)
+  n_PE <- 3#1
+  PE_vec <- 1:3#c(1,1,1)
   ###############
   
   setwd(DateFile)
