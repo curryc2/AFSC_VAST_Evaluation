@@ -78,6 +78,7 @@ GLOBALS_SECTION
   #define write_R(object) mysum << #object "\n" << object << endl;
   ofstream mysum("rwout.rep");
   adstring sppname;
+  ofstream report_biomA("biomA.out"); //Curry's addition
 
 FINAL_SECTION
   dvar_vector srv_est_TOT = rowsum(srv_est);
@@ -106,5 +107,9 @@ FINAL_SECTION
   write_R(UCI);
   write_R(biomsd);
   write_R(biomsd.sd);
+
+  //Curry's Addition
+  report_biomA<<"$biomA"<<endl;
+  report_biomA<<biomA<<endl;
 
   mysum.close();
