@@ -1,0 +1,473 @@
+#==================================================================================================
+#Project Name: VAST spatial delta-GLMM (Thorson) Evaluation: Compare Bias Correction Effect
+#Creator: Curry James Cunningham, NOAA/NMFS, ABL
+#Date: 6.14.17
+#
+#Purpose: To explore influence of bias correction on model-based index values across knot specifications.
+#
+#
+#
+#==================================================================================================
+#NOTES:
+#
+
+#==================================================================================================
+#TIMING:
+
+#==================================================================================================
+
+require(VAST)
+require(TMB)
+require(parallel)
+require(snowfall)
+require(ggplot2)
+require(cowplot)
+
+
+source("R/calc-design-based-index.r")
+source("R/create-VAST-input.r")
+source("R/create-Data-Geostat.r")
+source("R/load-RACE-data.r")
+
+source("R/cleanup-VAST-file.r")
+source("R/get-VAST-index.r")
+
+
+home.dir <- getwd()
+#Create working directory
+working.dir <- paste0(home.dir, "/examples/Test_Bias_Correct")
+
+#Determine species list
+species.list <- read.csv("data/eval_species_list.csv", stringsAsFactors=FALSE)
+
+#Limit species included
+species.list <- species.list[species.list$include=='Y' & -which(species.list$survey=='EBS_SHELF'),]
+n.species <- nrow(species.list)
+
+#Create
+species.series <- c(1:n.species)
+
+#Create vector of species x survey names
+temp.names <- paste0(species.list$survey,": ",species.list$name)
+
+#=======================================================================
+##### CONTROL SECTION #####
+#Number of cores to use
+# n.cores <- detectCores()-1
+
+#Boolean for running estimation models
+do.estim <- TRUE
+
+#Trial Knot Numbers
+trial.knots <- c(100,250,500)
+n.trial.knots <- length(trial.knots)
+
+#Boolean for bias correction
+trial.bias <- c(FALSE,TRUE)
+n.trial.bias <- length(trial.bias)
+#=======================================================================
+##### Run VAST model  #####
+Version <- "VAST_v2_4_0"
+lat_lon.def <- "start"
+
+#SPATIAL SETTINGS
+Method = c("Grid", "Mesh", "Spherical_mesh")[2]
+grid_size_km = 25
+# n_x = c(100, 250, 500, 1000, 2000)[2] # Number of stations
+Kmeans_Config = list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )
+
+
+#SET SRATIFICATOIN
+#Basic - Single Area
+strata.limits <- data.frame(STRATA = c("All_areas"))
+
+#MODEL SETTINGS
+FieldConfig = c(Omega1 = 1, Epsilon1 = 1, Omega2 = 1, Epsilon2 = 1)
+RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0)
+OverdispersionConfig = c(Delta1 = 0, Delta2 = 0)
+
+ObsModel = c(1, 0) #Lognormal
+
+#SPECIFY OUTPUTS
+Options = c(SD_site_density = 0, SD_site_logdensity = 0,
+            Calculate_Range = 1, Calculate_evenness = 0, Calculate_effective_area =1,
+            Calculate_Cov_SE = 0, Calculate_Synchrony = 0,
+            Calculate_Coherence = 0)
+
+
+
+
+
+#=======================================================================
+##### WRAPPER FUNCTION FOR RUNNING IN PARALLEL #####
+
+
+s <- 1
+# for(s in 1:n.species) {
+species_wrapper_fxn <- function(s, n_x, bias.correct) {
+  
+  #Define file for analyses
+  DateFile <- paste0(trial.dir,"/",species.list$survey[s],"_",species.list$name[s],"/")
+  
+  dir.create(DateFile)
+  
+  #Define species.codes
+  species.codes <- species.list$species.code[s]
+  survey <- species.list$survey[s]
+  
+  #=======================================================================
+  ##### READ IN DATA AND BUILD VAST INPUT #####
+  #  NOTE: this will create the DateFile
+  
+  VAST_input <- create_VAST_input(species.codes=species.codes, lat_lon.def=lat_lon.def, save.Record=FALSE,
+                                  Method=Method, grid_size_km=grid_size_km, n_x=n_x,
+                                  Kmeans_Config=Kmeans_Config,
+                                  strata.limits=strata.limits, survey=survey,
+                                  DateFile=DateFile,
+                                  FieldConfig, RhoConfig, OverdispersionConfig,
+                                  ObsModel, Options)
+  
+  
+  
+  #Unpack
+  TmbData <- VAST_input$TmbData
+  Data_Geostat <- VAST_input$Data_Geostat
+  Spatial_List <- VAST_input$Spatial_List
+  Extrapolation_List <- VAST_input$Extrapolation_List
+  
+  
+  #=======================================================================
+  ##### RUN VAST #####
+  
+  
+  
+  #Build TMB Object
+  #  Compilation may take some time
+  TmbList <- VAST::Build_TMB_Fn(TmbData = TmbData, RunDir = DateFile,
+                                Version = Version, RhoConfig = RhoConfig, loc_x = Spatial_List$loc_x,
+                                Method = Method)
+  Obj <- TmbList[["Obj"]]
+  
+  
+  Opt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
+                             upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
+                             bias.correct = bias.correct)
+  #Save output
+  # Report = Obj$report()
+  # Save = list("Opt"=Opt, "Report"=Report, "ParHat"=Obj$env$parList(Opt$par), "TmbData"=TmbData)
+  # save(Save, file=paste0(DateFile,"Save.RData"))
+  
+  #Calculate index values
+  # TmbData = TmbData, Sdreport = Opt[["SD"]]
+  vast_est <- get_VAST_index(TmbData=TmbData, Sdreport=Opt[["SD"]], bias.correct=bias.correct, Data_Geostat=Data_Geostat)
+  #========================================================================
+  ##### DIAGNOSTIC AND PREDICTION PLOTS #####
+  # plot_VAST_output(Opt, Report, DateFile, survey, TmbData, Data_Geostat, Extrapolation_List, Spatial_List)
+  
+  #========================================================================
+  ##### CLEANUP VAST OUTPUT #####
+  # cleanup_VAST_file(DateFile=DateFile, Version=Version) #No longer necessary as we are deleting everything at the end
+  
+  rm("VAST_input", "TmbData", "Data_Geostat", "Spatial_List", "Extrapolation_List",
+     "TmbList", "Obj")#, "Opt", "Report", "Save")
+  
+  #========================================================================
+  setwd(home.dir)
+  ##### RETURN SECTION #####
+  out <- NULL
+  out$vast_est <- vast_est
+  out$Opt <- Opt
+  return(out)
+} 
+
+
+#=======================================================================
+##### Loop Through Trial Knots  #####
+# if(do.estim==TRUE) {
+  vast_est.output <- array('list', dim=c(n.trial.bias, n.trial.knots, n.species),
+                             dimnames=list(trial.bias, trial.knots, temp.names))
+
+  time.1 <- date()
+  
+  b <- 1
+  for(b in 1:n.trial.bias) {
+    bias.correct <- trial.bias[b]
+    
+    #Output Directory Name
+    output.dir <- paste0(working.dir,"/bias.correct_",bias.correct)
+    dir.create(output.dir)
+    
+    t <- 1
+    for(t in 1:n.trial.knots) {
+      print(paste('## Trial Knot Number',t,'of',n.trial.knots))
+      print(paste('# Trial Knots:',trial.knots[t]))
+      #Specify trial observation model
+    
+      #Specify knots
+      n_x <- trial.knots[t]
+    
+      #Setup File
+      trial.dir <- paste0(output.dir,"/",n_x)
+      dir.create(trial.dir)
+    
+    
+      #=======================================================================
+      ##### SNOWFALL CODE FOR PARALLEL #####
+      # sfInit(parallel=TRUE, cpus=n.cores, type='SOCK')
+      # sfExportAll() #Exportas all global variables to cores
+      # sfLibrary(TMB)  #Loads a package on all nodes
+      # sfLibrary(VAST)
+      # output <- sfLapply(species.series, fun=species_wrapper_fxn_knots, n_x=n_x)
+      # # sfRemove(Save)
+      # # sfRemover(VAST_input)
+      # sfStop()
+    
+      #=======================================================================
+      ##### RUN IN SERIES DUE TO MEMORY REQUIREMENTS OF BIAS CORRECTION #####
+      s <- 1
+      for(s in species.series) {
+        vast_est.output[[b]][[t]][[s]] <- species_wrapper_fxn(s=s, n_x=n_x, bias.correct=bias.correct)
+      }#next s
+            
+    vast_est.output[[t]] <- output
+    
+    }# next t
+  }#next b
+  #Dimensions for vast_est.output are 1) Trial knots, 2) Species
+  # vast_est.output[[1:n.trial.knots]][[1:n.species]]
+  
+  #Create output directory
+  dir.create(output.dir)
+  save(vast_est.output, file=paste0(output.dir,"/vast_est.output.RData"))
+  
+  #=======================================================================
+  ##### DELETE UNNECESSARY FILE STRUCTURE #####
+  #Must reset working directory
+  setwd(working.dir)
+  t <- 1
+  for(t in 1:n.trial.knots) {
+    # s <- 1
+    # for(s in 1:n.species) {
+      # temp.DateFile <- paste0(working.dir,"/",trial.knots[t],"_bias.corr_",bias.correct,"/",species.list$name[s],"/")
+      #Remove manually
+      # file.remove(paste0(temp.DateFile,"parameter_estimates.Rdata"))
+      # file.remove(paste0(temp.DateFile,"parameter_estimates.txt"))
+      
+      # #REMOVE EVERYTHING...
+      # # file.remove(paste0(working.dir,"/",trial.knots[t],"_bias.corr_",bias.correct,"/"), force=TRUE)
+      # print(unlink(paste0(working.dir,"/",trial.knots[t],"_bias.corr_",bias.correct,"/"), recursive=TRUE))
+      
+      
+      # unlink(paste0(working.dir,"/",trial.knots[t],"_bias.corr_",bias.correct,"/",species.list$name[s]), recursive=TRUE)
+    # }#next s
+    
+    unlink(paste0(working.dir,"/",trial.knots[t],"_bias.corr_",bias.correct), recursive=TRUE)
+  }#next t
+  
+  time.2 <- date()
+  
+  print(paste('### START:', time.1))
+  print(paste('### END:', time.2))
+  
+}else {
+  load(paste0(output.dir,"/vast_est.output.RData"))
+}
+#=======================================================================
+##### Create Output Lists #####
+
+#Create large list
+vast.list  <- NULL
+#Year, Biomass, SD, CV, Species, Model, Knots
+
+t <- 1
+for(t in 1:n.trial.knots) {
+  s <- 1
+  for(s in 1:n.species) {
+    
+    temp.list <- vast_est.output[[t]][[s]][c(1,4,6)]
+    #Calculate CV
+    CV <- temp.list$SD_mt/temp.list$Estimate_metric_tons
+    temp.species <- species.list$name[s]
+    temp.survey <- species.list$survey[s]
+    temp.name <- paste0(temp.survey,": ",temp.species)
+    #Bind it
+    temp.list <- cbind(temp.list, CV, temp.survey, temp.species, temp.name, 'VAST', trial.knots[t])
+    #Add it
+    vast.list <- rbind(vast.list, temp.list)
+  }#next s
+}#next t
+names(vast.list) <- c('Year','Biomass','SD','CV','Survey','Species','Name','Model','Knots')
+
+
+#Add Design-based estimates
+db.list <- NULL
+s <- 1
+for(s in 1:n.species ) {
+  #Get design-based estimate
+  db_est <- calc_design_based_index(species.codes=species.list$species.code[s], survey=species.list$survey[s])
+  temp.species <- species.list$name[s]
+  temp.survey <- species.list$survey[s]
+  temp.name <- paste0(temp.survey,": ",temp.species)
+  temp.list <- cbind(db_est[,c(1,2,4,5)], temp.survey, temp.species, temp.name, "Design-based", 'Design-based')
+  #Add it
+  db.list <- rbind(db.list, temp.list)
+}#next s
+names(db.list) <- c('Year','Biomass','SD','CV','Survey','Species', 'Name','Model','Knots')
+
+#Combine the lists
+survey.list <- rbind(vast.list,db.list)
+
+
+#=======================================================================
+##### Plot Comparison of Results #####
+scale.hues <- c(5,250)
+dpi <- 500
+#Find years survey was conducted
+
+surveys <- unique(survey.list$Survey)
+n.surveys <- length(surveys)
+
+survey.list$Knots <- factor(survey.list$Knots, levels=c(trial.knots,'Design-based'))
+
+#========================================
+#Plot All Species Across Surveys
+s <- 1
+for(s in 1:n.surveys) {
+#GOA
+survey <- surveys[s]
+#Limit data set
+plot.list <- survey.list[survey.list$Survey==survey,]
+yrs.surv <- sort(unique(plot.list$Year[plot.list$Model=='Design-based']))
+plot.list <- plot.list[plot.list$Year %in% yrs.surv,]
+
+#Remove 2001 from design-based results because of incomplete sampling
+if(survey=='GOA') { plot.list <- plot.list[-which(plot.list$Year==2001 & plot.list$Model=='Design-based'),] }
+plot.list$Biomass <- plot.list$Biomass/1e6
+
+#PLOT Indices
+g <- ggplot(plot.list, aes(x=Year, y=Biomass, color=Knots, lty=Model)) +
+       theme_gray() +
+       geom_line() +
+       facet_wrap(~Species, scales='free') +
+       labs(list(y='Biomass (millions of metric tonnes)')) +
+       # ggtitle('Survey:', subtitle='Gulf of Alaska') +
+       ggtitle(paste(survey, 'Survey')) +
+       scale_color_hue(h=scale.hues)
+       # scale_color_brewer(type='seq', palette=1)
+   # g    
+
+ 
+
+# g
+ggsave(paste0(output.dir,"/", survey," VAST Index Compare v DB.png"), g, height=6, width=9, units='in', dpi=dpi)
+
+#Vast Models only
+g2 <- ggplot(plot.list[plot.list$Model=='VAST',], aes(x=Year, y=Biomass, color=Knots)) +
+        theme_gray() +
+        geom_line() +
+        facet_wrap(~Species, scales='free') +
+        labs(list(y='Biomass (millions of metric tonnes)')) +
+        # ggtitle('Survey:', subtitle='Gulf of Alaska') +
+        ggtitle(paste(survey, 'Survey')) +
+        scale_color_hue(h=scale.hues)
+
+# g2
+ggsave(paste0(output.dir,"/", survey," VAST Index Compare.png"), g2, height=6, width=9, units='in', dpi=dpi)
+
+#Plot Survey Variance Measures
+
+g3 <- ggplot(plot.list, aes(x=Species, y=CV, fill=Knots)) +
+        theme_gray() +
+        geom_boxplot(aes(lty=Model)) +
+        labs(list(y=paste('Annual Survey CV'))) +
+        theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, debug=FALSE)) +
+        scale_fill_hue(h=scale.hues) +
+        ggtitle(paste(survey, 'Survey'))
+        
+
+ggsave(paste0(output.dir,"/", survey," CV Compare.png"), g3, height=6, width=8, units='in', dpi=dpi)
+
+
+# png(paste0(output.dir,'/', survey, ' Figures.png'), height=7, width=8, units='in', res=500)
+# dev.off()
+}
+
+
+#========================================
+#Plot GOA Pollock
+survey <- 'Gulf of Alaska'
+plot.list <- survey.list[survey.list$Survey=='GOA' & survey.list$Species=='Walleye pollock',]
+yrs.surv <- sort(unique(plot.list$Year[plot.list$Model=='Design-based']))
+plot.list <- plot.list[plot.list$Year %in% yrs.surv,]
+
+#Remove 2001 from design-based results because of incomplete sampling
+if(survey=='GOA') { plot.list <- plot.list[-which(plot.list$Year==2001 & plot.list$Model=='Design-based'),] }
+plot.list$Biomass <- plot.list$Biomass/1e6
+
+#PLOT Indices
+g.idx <- ggplot(plot.list, aes(x=Year, y=Biomass, color=Knots, lty=Model)) +
+           theme_gray() +
+           geom_line() +
+           facet_wrap(~Species, scales='free') +
+           labs(list(y='Biomass (millions of metric tonnes)')) +
+           # ggtitle('Survey:', subtitle='Gulf of Alaska') +
+           # ggtitle(paste(survey, 'Survey')) +
+           scale_color_hue(h=scale.hues)
+g.idx
+ggsave(paste0(output.dir,"/GOA Pollock Idx.png"), g.idx, height=6, width=8, units='in', dpi=dpi)
+
+g.cv <- ggplot(plot.list, aes(x=Knots, y=CV, fill=Knots)) +
+  theme_gray() +
+  # geom_boxplot(aes(lty=Model)) +
+  geom_boxplot() +
+  facet_wrap(~Species, scales='free') +
+  labs(list(y=paste('Annual Survey CV'))) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, debug=FALSE)) +
+  scale_fill_hue(h=scale.hues) +
+  # ggtitle(paste(survey, 'Survey')) +
+  
+  theme(legend.position='none')
+  
+# g.cv
+
+
+#Combine plots with gridExtra
+g.both <- plot_grid(g.idx, g.cv, nrow=1, ncol=2, rel_widths=c(3.5,1))
+g.both
+
+ggsave(paste0(output.dir,"/GOA Pollock Idx and CV.png"), g.both, height=5, width=8, units='in', dpi=dpi)
+
+
+
+
+
+#Facet
+# g.multi <- vector('list', length=n.species)
+# 
+# s <- 1
+# for(s in 1:n.species) {
+#   g.multi[[s]] <- ggplot(plot.list[plot.list$Species=='Big skate',], aes(x=Species, y=CV, fill=Knots)) +
+#     theme_gray() +
+#     geom_boxplot() +
+#     labs(list(y='Annual Survey CV')) +
+#     facet_wrap(~Species, ncol=5, drop=TRUE)
+#     
+#     if(s > 1) { +  }
+#     + theme(legend.position="none")
+# }
+# 
+# 
+# require(gridExtra)
+# 
+# do.call("grid.arrange", c(g.multi, ncol=5))
+
+# 
+# ggsave(paste0(output.dir, "/VAST Index Compare.png"), g2, height=6, width=9, units='in')
+# 
+
+
+
+
+
+
+
