@@ -336,50 +336,54 @@ plot.list <- plot.list[plot.list$Year %in% yrs.surv,]
 
 #Remove 2001 from design-based results because of incomplete sampling
 if(survey=='GOA') { plot.list <- plot.list[-which(plot.list$Year==2001 & plot.list$Model=='Design-based'),] }
-plot.list$Biomass <- plot.list$Biomass/1e6
+plot.list$Biomass <- plot.list$Biomass/1e3
 
 #PLOT Indices
 g <- ggplot(plot.list, aes(x=Year, y=Biomass, color=Knots, lty=Model)) +
        theme_gray() +
+       # theme_economist() +
+       theme(legend.position='right') +
        geom_line() +
-       facet_wrap(~Species, scales='free') +
-       labs(list(y='Biomass (millions of metric tonnes)')) +
+       facet_wrap(~Species, scales='free', ncol=2) +
+       labs(list(y='Biomass (thousands of metric tonnes)')) +
        # ggtitle('Survey:', subtitle='Gulf of Alaska') +
        ggtitle(paste(survey, 'Survey')) +
        scale_color_hue(h=scale.hues)
        # scale_color_brewer(type='seq', palette=1)
-   # g    
+g
 
  
 
 # g
-ggsave(paste0(output.dir,"/", survey," VAST Index Compare v DB.png"), g, height=6, width=9, units='in', dpi=dpi)
+ggsave(paste0(output.dir,"/", survey," VAST Index Compare v DB.png"), g, height=9, width=8, units='in', dpi=dpi)
 
 #Vast Models only
 g2 <- ggplot(plot.list[plot.list$Model=='VAST',], aes(x=Year, y=Biomass, color=Knots)) +
         theme_gray() +
         geom_line() +
-        facet_wrap(~Species, scales='free') +
-        labs(list(y='Biomass (millions of metric tonnes)')) +
+        theme(legend.position='right') +
+        facet_wrap(~Species, scales='free', ncol=2) +
+        labs(list(y='Biomass (thousands of metric tonnes)')) +
         # ggtitle('Survey:', subtitle='Gulf of Alaska') +
         ggtitle(paste(survey, 'Survey')) +
         scale_color_hue(h=scale.hues)
 
 # g2
-ggsave(paste0(output.dir,"/", survey," VAST Index Compare.png"), g2, height=6, width=9, units='in', dpi=dpi)
+ggsave(paste0(output.dir,"/", survey," VAST Index Compare.png"), g2, height=9, width=8, units='in', dpi=dpi)
 
 #Plot Survey Variance Measures
 
 g3 <- ggplot(plot.list, aes(x=Species, y=CV, fill=Knots)) +
         theme_gray() +
+        theme(legend.position='right') +
         geom_boxplot(aes(lty=Model)) +
         labs(list(y=paste('Annual Survey CV'))) +
         theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, debug=FALSE)) +
         scale_fill_hue(h=scale.hues) +
         ggtitle(paste(survey, 'Survey'))
         
-
-ggsave(paste0(output.dir,"/", survey," CV Compare.png"), g3, height=6, width=8, units='in', dpi=dpi)
+g3
+ggsave(paste0(output.dir,"/", survey," CV Compare.png"), g3, height=6, width=7, units='in', dpi=dpi)
 
 
 # png(paste0(output.dir,'/', survey, ' Figures.png'), height=7, width=8, units='in', res=500)
@@ -396,14 +400,15 @@ plot.list <- plot.list[plot.list$Year %in% yrs.surv,]
 
 #Remove 2001 from design-based results because of incomplete sampling
 if(survey=='GOA') { plot.list <- plot.list[-which(plot.list$Year==2001 & plot.list$Model=='Design-based'),] }
-plot.list$Biomass <- plot.list$Biomass/1e6
+plot.list$Biomass <- plot.list$Biomass/1e3
 
 #PLOT Indices
 g.idx <- ggplot(plot.list, aes(x=Year, y=Biomass, color=Knots, lty=Model)) +
            theme_gray() +
+            # theme(legend.position='bottom') +
            geom_line() +
            facet_wrap(~Species, scales='free') +
-           labs(list(y='Biomass (millions of metric tonnes)')) +
+           labs(list(y='Biomass (thousands of metric tonnes)')) +
            # ggtitle('Survey:', subtitle='Gulf of Alaska') +
            # ggtitle(paste(survey, 'Survey')) +
            scale_color_hue(h=scale.hues)
