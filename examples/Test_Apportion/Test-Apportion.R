@@ -26,6 +26,7 @@ require(ggplot2)
 require(R2admb)
 require(reshape2)
 require(gridExtra)
+require(ggthemes)
 
 
 source("R/calc-design-based-index.r")
@@ -42,6 +43,7 @@ home.dir <- getwd()
 #Create working directory
 working.dir <- paste0(home.dir, "/examples/Test_Apportion")
 
+alpha <- 1
 
 #Determine species list
 species.list <- read.csv("data/eval_species_list.csv", stringsAsFactors=FALSE)
@@ -64,13 +66,13 @@ PE_vec <- c(1:3)
 #####
 
 #Number of cores to use
-n.cores <- detectCores()
+n.cores <- detectCores()-1
 
 #Boolean for running estimation models
-do.estim <- FALSE
+do.estim <- TRUE
 
 #Trial Knot Numbers
-trial.knots <- c(100,500)
+trial.knots <- c(250)
 n.trial.knots <- length(trial.knots)
 
 #Trial AUTOREGRESSIVE specifications
@@ -82,10 +84,11 @@ rho.stRE.types <- c('IaY',NA,'RW',NA,'AR')
 
 #Read in Autoregressive Input
 # trial.rho <- t(read.csv('Data/Test-Autoregressive-Input.csv', header=TRUE, stringsAsFactors=FALSE)[,-c(1:2)])
-trial.rho <- matrix(c(0,0,0,0,
+trial.rho <- matrix(c(1,1,0,0,
                       2,2,0,0,
                       4,4,0,0,
-                      2,2,4,4),ncol=4, nrow=4, byrow=TRUE)
+                      1,1,4,4,
+                      2,2,4,4),ncol=4, nrow=5, byrow=TRUE)
 n.trial.rho <- nrow(trial.rho)
 
 # #Intercept
@@ -469,6 +472,12 @@ aic.df <- data.frame(aic.list, aic.vect, converge.vect, maxGrad.vect)
 names(aic.df) <- c('Survey','Species','Name','Model','Knots','Rho_Intercept','Rho_stRE','RhoConfig','AIC','Converge','maxGradient')
 aic.df$Converge <- as.factor(aic.df$Converge)
 
+#===========================================================
+#Remove the FE + IaY Model
+#Unobserved estimates are unreliable
+output.df <- output.df[output.df$RhoConfig!='FE + IaY',]
+aic.df <- aic.df[aic.df$RhoConfig!='FE + IaY',]
+
 
 #===========================================================
 #Plot the Max Gradients
@@ -476,59 +485,123 @@ g <- ggplot(aic.df, aes(x=RhoConfig, y=maxGradient, color=Knots)) +
        theme_gray() +
        geom_point(alpha=0.5) +
        facet_wrap(~Species, scales='free') +
-       theme(axis.text.x=element_text(angle=90, hjust=1))
+       theme(axis.text.x=element_text(angle=45, hjust=1))
 g
 
 #===========================================================
 #Plotting Rockfish
-  
+    
 rockfish <- c('Northern rockfish','Pacific ocean perch','Harlequin rockfish')
 n.rockfish <- length(rockfish)
 temp.df <- output.df[output.df$Species %in% rockfish,]
     
 temp.knots <- 100
-g <- ggplot(temp.df[temp.df$Knots==temp.knots | temp.df$Knots==FALSE,], aes(x=Year, y=value, fill=Region)) +
-       theme_gray() +
-       geom_area(position='stack', alpha=0.75) +
+g <- ggplot(temp.df[temp.df$Knots==temp.knots | temp.df$Knots==FALSE,], 
+              aes(x=Year, y=value, fill=Region)) +
+       # theme_gray() +
+       # theme_fivethirtyeight()+
+       # theme_solarized()+
+       # theme_economist() +
+       theme_dark()+
+       theme(legend.position='top') +
+       # theme_tufte() +
+       scale_fill_colorblind() +
+       geom_area(position='stack', alpha=alpha) +
        facet_grid(Species~RhoConfig) +
-       ggtitle(paste('Gulf of Alaska: Rockfish'), subtitle=paste('Knots:',temp.knots))
+       # facet_grid(RhoConfig~Species) +
+       ggtitle(paste('Gulf of Alaska: Rockfish'), subtitle=paste('Knots:',temp.knots)) +
+       ylab('Proportion')
 
 g
-ggsave(paste0(output.dir,'/Rockfish ', temp.knots,'kt.png'), plot=g, height=7, width=10, units='in', dpi=500)
+ggsave(paste0(output.dir,'/Rockfish ', temp.knots,'kt.png'), plot=g, height=8, width=8, units='in', dpi=500)
 
 temp.knots <- 500
-g <- ggplot(temp.df[temp.df$Knots==temp.knots | temp.df$Knots==FALSE,], aes(x=Year, y=value, fill=Region)) +
-  theme_gray() +
-  geom_area(position='stack', alpha=0.75) +
+g <- ggplot(temp.df[temp.df$Knots==temp.knots | temp.df$Knots==FALSE,],
+              aes(x=Year, y=value, fill=Region)) +
+  theme_dark() +
+  theme(legend.position='top') +
+  scale_fill_colorblind() +
+  ylab('Proportion') +
+  geom_area(position='stack', alpha=alpha) +
   facet_grid(Species~RhoConfig) +
   ggtitle(paste('Gulf of Alaska: Rockfish'), subtitle=paste('Knots:',temp.knots))
 
 g
-ggsave(paste0(output.dir,'/Rockfish ', temp.knots,'kt.png'), plot=g, height=7, width=10, units='in', dpi=500)
-#===========================================================
-#Plotting Others
+ggsave(paste0(output.dir,'/Rockfish ', temp.knots,'kt.png'), plot=g, height=8, width=8, units='in', dpi=500)
 
-temp.df <- output.df[-which(output.df$Species %in% rockfish),]
+#===========================================================
+#Plotting Pollock and Pcod
+temp.df <- output.df[which(output.df$Species %in% c('Walleye pollock','Pacific cod')),]
 
 temp.knots <- 100
-g <- ggplot(temp.df[temp.df$Knots==temp.knots | temp.df$Knots==FALSE,], aes(x=Year, y=value, fill=Region)) +
-  theme_gray() +
-  geom_area(position='stack', alpha=0.75) +
+g <- ggplot(temp.df[temp.df$Knots==temp.knots | temp.df$Knots==FALSE,],
+              aes(x=Year, y=value, fill=Region)) +
+  theme_dark() +
+  theme(legend.position='top') +
+  scale_fill_colorblind() +
+  ylab('Proportion') +
+  geom_area(position='stack', alpha=alpha) +
   facet_grid(Species~RhoConfig) +
-  ggtitle(paste('Gulf of Alaska: Other Species'), subtitle=paste('Knots:',temp.knots))
+  ggtitle(paste('Gulf of Alaska: Pollock and Cod'), subtitle=paste('Knots:',temp.knots))
 
 g
-ggsave(paste0(output.dir,'/Others ', temp.knots,'kt.png'), plot=g, height=7, width=10, units='in', dpi=500)
+ggsave(paste0(output.dir,'/Pollock Cod ', temp.knots,'kt.png'), plot=g, height=8, width=8, units='in', dpi=500)
 
 
 temp.knots <- 500
 g <- ggplot(temp.df[temp.df$Knots==temp.knots | temp.df$Knots==FALSE,], aes(x=Year, y=value, fill=Region)) +
-  theme_gray() +
-  geom_area(position='stack', alpha=0.75) +
+  theme_dark() +
+  theme(legend.position='top') +
+  scale_fill_colorblind() +
+  ylab('Proportion') +
+  geom_area(position='stack', alpha=alpha) +
+  facet_grid(Species~RhoConfig) +
+  ggtitle(paste('Gulf of Alaska: Pollock and Cod'), subtitle=paste('Knots:',temp.knots))
+
+g
+ggsave(paste0(output.dir,'/Pollock Cod ', temp.knots,'kt.png'), plot=g, height=8, width=8, units='in', dpi=500)
+
+#===========================================================
+#Plotting Pollock and Pcod
+
+temp.df <- output.df[-which(output.df$Species %in% c('Walleye pollock','Pacific cod',rockfish)),]
+
+temp.knots <- 100
+g <- ggplot(temp.df[temp.df$Knots==temp.knots | temp.df$Knots==FALSE,],
+            aes(x=Year, y=value, fill=Region)) +
+  theme_dark() +
+  theme(legend.position='top') +
+  scale_fill_colorblind() +
+  ylab('Proportion') +
+  geom_area(position='stack', alpha=alpha) +
   facet_grid(Species~RhoConfig) +
   ggtitle(paste('Gulf of Alaska: Other Species'), subtitle=paste('Knots:',temp.knots))
 
 g
-ggsave(paste0(output.dir,'/Others ', temp.knots,'kt.png'), plot=g, height=7, width=10, units='in', dpi=500)
+ggsave(paste0(output.dir,'/Other Species ', temp.knots,'kt.png'), plot=g, height=8, width=8, units='in', dpi=500)
+
+
+temp.knots <- 500
+g <- ggplot(temp.df[temp.df$Knots==temp.knots | temp.df$Knots==FALSE,], aes(x=Year, y=value, fill=Region)) +
+  theme_dark() +
+  theme(legend.position='top') +
+  scale_fill_colorblind() +
+  ylab('Proportion') +
+  geom_area(position='stack', alpha=alpha) +
+  facet_grid(Species~RhoConfig) +
+  ggtitle(paste('Gulf of Alaska: Other Species'), subtitle=paste('Knots:',temp.knots))
+
+g
+ggsave(paste0(output.dir,'/Other Species ', temp.knots,'kt.png'), plot=g, height=8, width=8, units='in', dpi=500)
+
+
+# cbind(vast_est.output[[1]][[7]]$vast_est$Estimate_metric_tons,
+#       vast_est.output[[2]][[7]]$vast_est$Estimate_metric_tons,
+#       vast_est.output[[3]][[7]]$vast_est$Estimate_metric_tons,
+#       vast_est.output[[4]][[7]]$vast_est$Estimate_metric_tons,
+#       vast_est.output[[5]][[7]]$vast_est$Estimate_metric_tons,
+#       vast_est.output[[6]][[7]]$vast_est$Estimate_metric_tons,
+#       vast_est.output[[7]][[7]]$vast_est$Estimate_metric_tons,
+#       vast_est.output[[8]][[7]]$vast_est$Estimate_metric_tons)
 
 
