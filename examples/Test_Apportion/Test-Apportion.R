@@ -69,10 +69,10 @@ PE_vec <- c(1:3)
 n.cores <- detectCores()-1
 
 #Boolean for running estimation models
-do.estim <- TRUE
+do.estim <- FALSE
 
 #Trial Knot Numbers
-trial.knots <- c(250)
+trial.knots <- c(100)
 n.trial.knots <- length(trial.knots)
 
 #Trial AUTOREGRESSIVE specifications
@@ -102,7 +102,7 @@ n.trial.rho <- nrow(trial.rho)
 bias.correct <- FALSE
 #=======================================================================
 ##### Run VAST model  #####
-Version <- "VAST_v2_4_0"
+Version <- "VAST_v2_5_0"
 lat_lon.def <- "start"
 
 #SPATIAL SETTINGS

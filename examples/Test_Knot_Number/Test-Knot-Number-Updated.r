@@ -266,6 +266,7 @@ if(do.estim==TRUE) {
 }else {
   load(paste0(output.dir,"/vast_est.output.RData"))
 }
+
 #=======================================================================
 ##### Create Output Lists #####
 
