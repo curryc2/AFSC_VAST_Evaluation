@@ -13,7 +13,7 @@
 #==================================================================================================
 #NOTES:
 #  a) Spiny Dogfish removed from evaluation because design based index is 0 for Western GOA in 2013
-#  
+#  b) Non-convergence with intercepts estimted as IaY i.e. ==1, independent of spatio-temporal RE specs.
 #==================================================================================================
 #TIMING:
 ##==================================================================================================
@@ -69,7 +69,7 @@ PE_vec <- c(1:3)
 n.cores <- detectCores()-1
 
 #Boolean for running estimation models
-do.estim <- FALSE
+do.estim <- TRUE
 
 #Trial Knot Numbers
 trial.knots <- c(100)
@@ -84,13 +84,23 @@ rho.stRE.types <- c('IaY',NA,'RW',NA,'AR')
 
 #Read in Autoregressive Input
 # trial.rho <- t(read.csv('Data/Test-Autoregressive-Input.csv', header=TRUE, stringsAsFactors=FALSE)[,-c(1:2)])
-trial.rho <- matrix(c(1,1,0,0,
-                      2,2,0,0,
+# trial.rho <- matrix(c(1,1,0,0,
+#                       2,2,0,0,
+#                       4,4,0,0,
+#                       1,1,4,4,
+#                       1,1,2,2,
+#                       2,2,4,4),ncol=4, nrow=6, byrow=TRUE)
+
+trial.rho <- matrix(c(2,2,0,0,
                       4,4,0,0,
-                      1,1,4,4,
-                      2,2,4,4),ncol=4, nrow=5, byrow=TRUE)
+                      2,2,4,4,
+                      4,4,2,2),ncol=4, nrow=4, byrow=TRUE)
+
 n.trial.rho <- nrow(trial.rho)
 
+
+flag.spatial <- c(TRUE,FALSE)
+n.flag.spatial <- length(flag.spatial)
 # #Intercept
 # rho.inter.ep <- c(0) #Encounter Probability Component 
 # rho.inter.pcr <- c(0) #Positive Catch Rate Component
@@ -102,7 +112,7 @@ n.trial.rho <- nrow(trial.rho)
 bias.correct <- FALSE
 #=======================================================================
 ##### Run VAST model  #####
-Version <- "VAST_v2_5_0"
+Version <- "VAST_v2_4_0"
 lat_lon.def <- "start"
 
 #SPATIAL SETTINGS
@@ -120,7 +130,7 @@ strata.limits <- data.frame(STRATA = c("Western","Central",'Eastern'),
 
 
 #MODEL SETTINGS
-FieldConfig = c(Omega1 = 1, Epsilon1 = 1, Omega2 = 1, Epsilon2 = 1)
+# FieldConfig = c(Omega1 = 1, Epsilon1 = 1, Omega2 = 1, Epsilon2 = 1)
 # RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0)
 OverdispersionConfig = c(Delta1 = 0, Delta2 = 0)
 
@@ -142,7 +152,7 @@ dir.create(output.dir)
 
 s <- 1 #Spiny dogfish
 # for(s in 1:n.species) {
-wrapper_fxn <- function(s, n_x, RhoConfig, n_PE, PE_vec) {
+wrapper_fxn <- function(s, n_x, RhoConfig, n_PE, PE_vec, FieldConfig) {
   
   #Define file for analyses
   DateFile <- paste0(trial.dir,"/",species.list$survey[s],"_",species.list$name[s],"/")
@@ -164,6 +174,7 @@ wrapper_fxn <- function(s, n_x, RhoConfig, n_PE, PE_vec) {
                                   DateFile=DateFile,
                                   FieldConfig, RhoConfig, OverdispersionConfig,
                                   ObsModel, Options)
+  
   
   
   
@@ -251,11 +262,12 @@ wrapper_fxn <- function(s, n_x, RhoConfig, n_PE, PE_vec) {
 
 
 #=======================================================================
-##### Loop Through Trial Knots  #####
-vast_est.output <- vector('list', length=(n.trial.knots * n.trial.rho))
-vast_knots <- vector(length=(n.trial.knots * n.trial.rho))
-vast_rho.int <- vector(length=(n.trial.knots * n.trial.rho))
-vast_rho.stRE <- vector(length=(n.trial.knots * n.trial.rho))
+##### Loop Through Trial Knots  ##### 
+vast_est.output <- vector('list', length=(n.trial.knots * n.trial.rho * n.flag.spatial))
+vast_knots <- vector(length=(n.trial.knots * n.trial.rho * n.flag.spatial))
+vast_rho.int <- vector(length=(n.trial.knots * n.trial.rho * n.flag.spatial))
+vast_rho.stRE <- vector(length=(n.trial.knots * n.trial.rho * n.flag.spatial))
+vast_do.spatial <-  vector(length=(n.trial.knots * n.trial.rho * n.flag.spatial))
   
 if(do.estim==TRUE) {
 
@@ -280,42 +292,64 @@ if(do.estim==TRUE) {
       RhoConfig <- trial.rho[r,]
       names(RhoConfig) <- c('Beta1','Beta2','Epsilon1','Epsilon2')
       
-      #Record
-      if(RhoConfig[1]==RhoConfig[2]) {#IF intercept specs are the same
-        vast_rho.int[counter] <- rho.int.types[RhoConfig[1]+1]
-      }else {#IF different
+      f <- 1
+      for(f in n.flag.spatial) {
+        do.spatial <- flag.spatial[f]
+        
+        #Turn ON/OFF spatial components
+        if(do.spatial==TRUE) {
+          #ON
+          FieldConfig = c(Omega1 = 1, Epsilon1 = 1, Omega2 = 1, Epsilon2 = 1)
+        }else {
+          #OFF
+          FieldConfig = c(Omega1 = 0, Epsilon1 = 1, Omega2 = 0, Epsilon2 = 1)
+        }
+        vast_do.spatial[counter] <- do.spatial
+        
+        #Record
+        if(RhoConfig[1]==RhoConfig[2]) {#IF intercept specs are the same
+          vast_rho.int[counter] <- rho.int.types[RhoConfig[1]+1]
+        }else {#IF different
         vast_rho.int[counter] <- paste0(rho.int.types[RhoConfig[1]+1], "-", rho.int.types[RhoConfig[2]+1])
-      }
-      if(RhoConfig[3]==RhoConfig[4]) {
-        vast_rho.stRE[counter] <- rho.stRE.types[RhoConfig[3]+1]
-      }else {
-        vast_rho.stRE[counter] <- paste0(rho.stRE.types[RhoConfig[3]+1], "-", rho.stRE.types[RhoConfig[4]+1])
-      }
-      #Update Knot List
-      vast_knots[counter] <- n_x
+        }
+        if(RhoConfig[3]==RhoConfig[4]) {
+          vast_rho.stRE[counter] <- rho.stRE.types[RhoConfig[3]+1]
+        }else {
+          vast_rho.stRE[counter] <- paste0(rho.stRE.types[RhoConfig[3]+1], "-", rho.stRE.types[RhoConfig[4]+1])
+        }
+        #Update Knot List
+        vast_knots[counter] <- n_x
       
-      #Setup File
-      trial.dir <- paste0(working.dir,"/",n_x,"_bias.corr_",bias.correct)
-      dir.create(trial.dir)
-      trial.dir <- paste0(trial.dir, "/int_",vast_rho.int[counter], " stRE_",vast_rho.stRE[counter])
-      dir.create(trial.dir)
+        #Setup File
+        trial.dir <- paste0(working.dir,"/",n_x,"_bias.corr_",bias.correct)
+        dir.create(trial.dir)
+        trial.dir <- paste0(trial.dir, "/int_",vast_rho.int[counter], 
+                              " stRE_",vast_rho.stRE[counter], 
+                              " do.spatial_",vast_do.spatial[counter])
+        dir.create(trial.dir)
       
       
-      #=======================================================================
-      ##### SNOWFALL CODE FOR PARALLEL #####
-      sfInit(parallel=TRUE, cpus=n.cores, type='SOCK')
-      sfExportAll() #Exportas all global variables to cores
-      sfLibrary(TMB)  #Loads a package on all nodes
-      sfLibrary(VAST)
-      output <- sfLapply(species.series, fun=wrapper_fxn, n_x=n_x, RhoConfig=RhoConfig, n_PE=n_PE, PE_vec=PE_vec)
-      sfStop()
+        #=======================================================================
+        ##### SNOWFALL CODE FOR PARALLEL #####
+        sfInit(parallel=TRUE, cpus=n.cores, type='SOCK')
+        sfExportAll() #Exportas all global variables to cores
+        sfLibrary(TMB)  #Loads a package on all nodes
+        sfLibrary(VAST)
+        output <- sfLapply(species.series, fun=wrapper_fxn, n_x=n_x, RhoConfig=RhoConfig,
+                             n_PE=n_PE, PE_vec=PE_vec, FieldConfig=FieldConfig)
+        # 
+        # temp.out <- wrapper_fxn(s=2, n_x=n_x, RhoConfig=RhoConfig,
+        #                         n_PE=n_PE, PE_vec=PE_vec, FieldConfig=FieldConfig)
+        
+        sfStop()
       
-      #Add to list
-      vast_est.output[[counter]] <- output
-      #Save Object for storage
-      saveRDS(output, file=paste0(output.dir,"/VAST_output_",counter,".rds"))
-      #Update Counter
-      counter <- counter + 1
+        #Add to list
+        vast_est.output[[counter]] <- output
+        #Save Object for storage
+        saveRDS(output, file=paste0(output.dir,"/VAST_output_",counter,".rds"))
+        #Update Counter
+        counter <- counter + 1
+      }#next f
     }#next r
   }#next t
   
@@ -326,7 +360,7 @@ if(do.estim==TRUE) {
   # dir.create(output.dir)
   # save(vast_est.output, file=paste0(output.dir,"/vast_est.output.RData"))
   #Also save specifications
-  vast_specs <- data.frame(vast_knots, vast_rho.int, vast_rho.stRE)
+  vast_specs <- data.frame(vast_knots, vast_rho.int, vast_rho.stRE, vast_do.spatial)
   write.csv(vast_specs, file=paste0(output.dir,"/vast_specs.csv"))
   
   #=======================================================================
@@ -357,6 +391,7 @@ if(do.estim==TRUE) {
     vast_knots[i] <- specs$vast_knots[i]
     vast_rho.int[i] <- specs$vast_rho.int[i]
     vast_rho.stRE[i] <- specs$vast_rho.stRE[i]
+    vast_do.spatial[i] <- specs$vast_do.spatial[i]
   }#next i
 }
 
@@ -486,8 +521,8 @@ g <- ggplot(aic.df, aes(x=RhoConfig, y=maxGradient, color=Knots)) +
        geom_point(alpha=0.5) +
        facet_wrap(~Species, scales='free') +
        theme(axis.text.x=element_text(angle=45, hjust=1))
-g
-
+# g
+ggsave(paste0(output.dir,'/Convergence.png'), plot=g, height=8, width=8, units='in', dpi=500)
 #===========================================================
 #Plotting Rockfish
     
@@ -495,7 +530,9 @@ rockfish <- c('Northern rockfish','Pacific ocean perch','Harlequin rockfish')
 n.rockfish <- length(rockfish)
 temp.df <- output.df[output.df$Species %in% rockfish,]
     
-temp.knots <- 100
+t <- 1
+for(t in 1:n.trial.knots) {
+temp.knots <- trial.knots[t]
 g <- ggplot(temp.df[temp.df$Knots==temp.knots | temp.df$Knots==FALSE,], 
               aes(x=Year, y=value, fill=Region)) +
        # theme_gray() +
@@ -514,26 +551,28 @@ g <- ggplot(temp.df[temp.df$Knots==temp.knots | temp.df$Knots==FALSE,],
 
 g
 ggsave(paste0(output.dir,'/Rockfish ', temp.knots,'kt.png'), plot=g, height=8, width=8, units='in', dpi=500)
-
-temp.knots <- 500
-g <- ggplot(temp.df[temp.df$Knots==temp.knots | temp.df$Knots==FALSE,],
-              aes(x=Year, y=value, fill=Region)) +
-  theme_dark() +
-  theme(legend.position='top') +
-  scale_fill_colorblind() +
-  ylab('Proportion') +
-  geom_area(position='stack', alpha=alpha) +
-  facet_grid(Species~RhoConfig) +
-  ggtitle(paste('Gulf of Alaska: Rockfish'), subtitle=paste('Knots:',temp.knots))
-
-g
-ggsave(paste0(output.dir,'/Rockfish ', temp.knots,'kt.png'), plot=g, height=8, width=8, units='in', dpi=500)
+}#next t
+# temp.knots <- 500
+# g <- ggplot(temp.df[temp.df$Knots==temp.knots | temp.df$Knots==FALSE,],
+#               aes(x=Year, y=value, fill=Region)) +
+#   theme_dark() +
+#   theme(legend.position='top') +
+#   scale_fill_colorblind() +
+#   ylab('Proportion') +
+#   geom_area(position='stack', alpha=alpha) +
+#   facet_grid(Species~RhoConfig) +
+#   ggtitle(paste('Gulf of Alaska: Rockfish'), subtitle=paste('Knots:',temp.knots))
+# 
+# g
+# ggsave(paste0(output.dir,'/Rockfish ', temp.knots,'kt.png'), plot=g, height=8, width=8, units='in', dpi=500)
 
 #===========================================================
 #Plotting Pollock and Pcod
 temp.df <- output.df[which(output.df$Species %in% c('Walleye pollock','Pacific cod')),]
 
-temp.knots <- 100
+t <- 1
+for(t in 1:n.trial.knots) {
+temp.knots <- trial.knots[t]
 g <- ggplot(temp.df[temp.df$Knots==temp.knots | temp.df$Knots==FALSE,],
               aes(x=Year, y=value, fill=Region)) +
   theme_dark() +
@@ -546,27 +585,29 @@ g <- ggplot(temp.df[temp.df$Knots==temp.knots | temp.df$Knots==FALSE,],
 
 g
 ggsave(paste0(output.dir,'/Pollock Cod ', temp.knots,'kt.png'), plot=g, height=8, width=8, units='in', dpi=500)
+}#next t
 
-
-temp.knots <- 500
-g <- ggplot(temp.df[temp.df$Knots==temp.knots | temp.df$Knots==FALSE,], aes(x=Year, y=value, fill=Region)) +
-  theme_dark() +
-  theme(legend.position='top') +
-  scale_fill_colorblind() +
-  ylab('Proportion') +
-  geom_area(position='stack', alpha=alpha) +
-  facet_grid(Species~RhoConfig) +
-  ggtitle(paste('Gulf of Alaska: Pollock and Cod'), subtitle=paste('Knots:',temp.knots))
-
-g
-ggsave(paste0(output.dir,'/Pollock Cod ', temp.knots,'kt.png'), plot=g, height=8, width=8, units='in', dpi=500)
+# temp.knots <- 500
+# g <- ggplot(temp.df[temp.df$Knots==temp.knots | temp.df$Knots==FALSE,], aes(x=Year, y=value, fill=Region)) +
+#   theme_dark() +
+#   theme(legend.position='top') +
+#   scale_fill_colorblind() +
+#   ylab('Proportion') +
+#   geom_area(position='stack', alpha=alpha) +
+#   facet_grid(Species~RhoConfig) +
+#   ggtitle(paste('Gulf of Alaska: Pollock and Cod'), subtitle=paste('Knots:',temp.knots))
+# 
+# g
+# ggsave(paste0(output.dir,'/Pollock Cod ', temp.knots,'kt.png'), plot=g, height=8, width=8, units='in', dpi=500)
 
 #===========================================================
 #Plotting Pollock and Pcod
 
 temp.df <- output.df[-which(output.df$Species %in% c('Walleye pollock','Pacific cod',rockfish)),]
 
-temp.knots <- 100
+t <- 1
+for(t in 1:n.trial.knots) {
+temp.knots <- trial.knots[t]
 g <- ggplot(temp.df[temp.df$Knots==temp.knots | temp.df$Knots==FALSE,],
             aes(x=Year, y=value, fill=Region)) +
   theme_dark() +
@@ -579,20 +620,20 @@ g <- ggplot(temp.df[temp.df$Knots==temp.knots | temp.df$Knots==FALSE,],
 
 g
 ggsave(paste0(output.dir,'/Other Species ', temp.knots,'kt.png'), plot=g, height=8, width=8, units='in', dpi=500)
+}#next t
 
-
-temp.knots <- 500
-g <- ggplot(temp.df[temp.df$Knots==temp.knots | temp.df$Knots==FALSE,], aes(x=Year, y=value, fill=Region)) +
-  theme_dark() +
-  theme(legend.position='top') +
-  scale_fill_colorblind() +
-  ylab('Proportion') +
-  geom_area(position='stack', alpha=alpha) +
-  facet_grid(Species~RhoConfig) +
-  ggtitle(paste('Gulf of Alaska: Other Species'), subtitle=paste('Knots:',temp.knots))
-
-g
-ggsave(paste0(output.dir,'/Other Species ', temp.knots,'kt.png'), plot=g, height=8, width=8, units='in', dpi=500)
+# temp.knots <- 500
+# g <- ggplot(temp.df[temp.df$Knots==temp.knots | temp.df$Knots==FALSE,], aes(x=Year, y=value, fill=Region)) +
+#   theme_dark() +
+#   theme(legend.position='top') +
+#   scale_fill_colorblind() +
+#   ylab('Proportion') +
+#   geom_area(position='stack', alpha=alpha) +
+#   facet_grid(Species~RhoConfig) +
+#   ggtitle(paste('Gulf of Alaska: Other Species'), subtitle=paste('Knots:',temp.knots))
+# 
+# g
+# ggsave(paste0(output.dir,'/Other Species ', temp.knots,'kt.png'), plot=g, height=8, width=8, units='in', dpi=500)
 
 
 # cbind(vast_est.output[[1]][[7]]$vast_est$Estimate_metric_tons,
