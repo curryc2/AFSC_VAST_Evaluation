@@ -16,6 +16,8 @@
 #  b) Non-convergence with intercepts estimted as IaY i.e. ==1, independent of spatio-temporal RE specs.
 #==================================================================================================
 #TIMING:
+# [1] "### START: Tue Jul 18 15:32:25 2017"
+# [1] "### END: Wed Jul 19 01:35:23 2017"
 ##==================================================================================================
 
 require(VAST)
@@ -38,6 +40,7 @@ source("R/cleanup-VAST-file.r")
 source("R/get-VAST-index.r")
 
 source("R/run-RE-model.r")
+
 
 home.dir <- getwd()
 #Create working directory
@@ -69,10 +72,10 @@ PE_vec <- c(1:3)
 n.cores <- detectCores()-1
 
 #Boolean for running estimation models
-do.estim <- TRUE
+do.estim <- FALSE
 
 #Trial Knot Numbers
-trial.knots <- c(100)
+trial.knots <- c(250)
 n.trial.knots <- length(trial.knots)
 
 #Trial AUTOREGRESSIVE specifications
@@ -215,7 +218,7 @@ wrapper_fxn <- function(s, n_x, RhoConfig, n_PE, PE_vec, FieldConfig) {
   # cleanup_VAST_file(DateFile=DateFile, Version=Version) #No longer necessary as we are deleting everything at the end
   
   rm("VAST_input", "TmbData", "Data_Geostat", "Spatial_List", "Extrapolation_List",
-     "TmbList", "Obj")#, "Save")#, "Opt", "Report")
+     "TmbList", "Obj","Save","Report")#, "Save")#, "Opt", "Report")
   #========================================================================
   setwd(home.dir)
   #========================================================================
@@ -293,9 +296,9 @@ if(do.estim==TRUE) {
       names(RhoConfig) <- c('Beta1','Beta2','Epsilon1','Epsilon2')
       
       f <- 1
-      for(f in n.flag.spatial) {
+      for(f in 1:n.flag.spatial) {
         do.spatial <- flag.spatial[f]
-        
+        # print(paste('f',f))
         #Turn ON/OFF spatial components
         if(do.spatial==TRUE) {
           #ON
@@ -337,17 +340,18 @@ if(do.estim==TRUE) {
         sfLibrary(VAST)
         output <- sfLapply(species.series, fun=wrapper_fxn, n_x=n_x, RhoConfig=RhoConfig,
                              n_PE=n_PE, PE_vec=PE_vec, FieldConfig=FieldConfig)
-        # 
-        # temp.out <- wrapper_fxn(s=2, n_x=n_x, RhoConfig=RhoConfig,
+        #
+        # temp.out <- wrapper_fxn(s=1, n_x=n_x, RhoConfig=RhoConfig,
         #                         n_PE=n_PE, PE_vec=PE_vec, FieldConfig=FieldConfig)
-        
+
         sfStop()
-      
+
         #Add to list
         vast_est.output[[counter]] <- output
         #Save Object for storage
         saveRDS(output, file=paste0(output.dir,"/VAST_output_",counter,".rds"))
         #Update Counter
+        # print(counter)
         counter <- counter + 1
       }#next f
     }#next r
