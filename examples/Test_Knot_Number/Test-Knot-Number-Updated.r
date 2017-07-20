@@ -391,8 +391,77 @@ ggsave(paste0(output.dir,"/", survey," CV Compare.png"), g3, height=6, width=7, 
 # dev.off()
 }
 
+#==================================================================================
+#GENERATE TABLES OF % DIFFERENCE IN CV'S BETWEEN METHODS
 
-#========================================
+#Gulf of Alaska
+temp.survey <- 'GOA'
+temp.db <- db.list[db.list$Survey==temp.survey,]
+temp.vast <- vast.list[vast.list$Survey==temp.survey,]
+
+temp.species <- unique(temp.db$Species)
+n.temp.species <- length(temp.species)
+
+temp.years <- sort(unique(temp.db$Year))
+n.temp.years <- length(temp.years)
+
+pct.diff.cv.goa <- array(dim=c(n.temp.species,n.trial.knots,n.temp.years), dimnames=list(temp.species,trial.knots,temp.years))
+pct.diff.bio.goa <- array(dim=c(n.temp.species,n.trial.knots,n.temp.years), dimnames=list(temp.species,trial.knots,temp.years))
+s <- 1
+for(s in 1:n.temp.species) {
+  t <- 1
+  for(t in 1:n.trial.knots) {
+    y <- 1
+    for(y in 1:n.temp.years) {
+      #CV
+      pct.diff.cv.goa[s,t,y] <- (temp.vast$CV[temp.vast$Species==temp.species[s] & temp.vast$Knots==trial.knots[t] & temp.vast$Year==temp.years[y]] - 
+                                   temp.db$CV[temp.db$Species==temp.species[s] & temp.db$Year==temp.years[y]])/
+                                   temp.db$CV[temp.db$Species==temp.species[s] & temp.db$Year==temp.years[y]]*100
+      #Biomass Estimate
+      pct.diff.bio.goa[s,t,y] <- (temp.vast$Biomass[temp.vast$Species==temp.species[s] & temp.vast$Knots==trial.knots[t] & temp.vast$Year==temp.years[y]] - 
+                                    temp.db$Biomass[temp.db$Species==temp.species[s] & temp.db$Year==temp.years[y]])/
+                                    temp.db$Biomass[temp.db$Species==temp.species[s] & temp.db$Year==temp.years[y]]*100
+    }#next y
+  }#next t
+}#next s
+
+#Gulf of Alaska
+temp.survey <- 'AI'
+temp.db <- db.list[db.list$Survey==temp.survey,]
+temp.vast <- vast.list[vast.list$Survey==temp.survey,]
+
+temp.species <- unique(temp.db$Species)
+n.temp.species <- length(temp.species)
+
+temp.years <- sort(unique(temp.db$Year))
+n.temp.years <- length(temp.years)
+
+pct.diff.cv.ai <- array(dim=c(n.temp.species,n.trial.knots,n.temp.years), dimnames=list(temp.species,trial.knots,temp.years))
+pct.diff.bio.ai <- array(dim=c(n.temp.species,n.trial.knots,n.temp.years), dimnames=list(temp.species,trial.knots,temp.years))
+s <- 1
+for(s in 1:n.temp.species) {
+  t <- 1
+  for(t in 1:n.trial.knots) {
+    y <- 1
+    for(y in 1:n.temp.years) {
+      #CV
+      pct.diff.cv.ai[s,t,y] <- (temp.vast$CV[temp.vast$Species==temp.species[s] & temp.vast$Knots==trial.knots[t] & temp.vast$Year==temp.years[y]] - 
+                                  temp.db$CV[temp.db$Species==temp.species[s] & temp.db$Year==temp.years[y]])/
+                                  temp.db$CV[temp.db$Species==temp.species[s] & temp.db$Year==temp.years[y]]*100
+      #Biomass Estimate
+      pct.diff.bio.ai[s,t,y] <- (temp.vast$Biomass[temp.vast$Species==temp.species[s] & temp.vast$Knots==trial.knots[t] & temp.vast$Year==temp.years[y]] - 
+                                   temp.db$Biomass[temp.db$Species==temp.species[s] & temp.db$Year==temp.years[y]])/
+                                   temp.db$Biomass[temp.db$Species==temp.species[s] & temp.db$Year==temp.years[y]]*100
+    }#next y
+  }#next t
+}#next s
+
+#PRINT TABLE
+
+write.csv(apply(pct.diff.cv.goa, c(1,2), mean), file=paste0(output.dir, "/GOA Mean Pct Diff CV.csv"))
+write.csv(apply(pct.diff.cv.ai, c(1,2), mean), file=paste0(output.dir, "/AI Mean Pct Diff CV.csv"))
+
+#==================================================================================
 #Plot GOA Pollock
 survey <- 'Gulf of Alaska'
 plot.list <- survey.list[survey.list$Survey=='GOA' & survey.list$Species=='Walleye pollock',]
