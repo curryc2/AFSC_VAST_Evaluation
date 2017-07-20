@@ -29,6 +29,7 @@ require(R2admb)
 require(reshape2)
 require(gridExtra)
 require(ggthemes)
+require(cowplot)
 
 
 source("R/calc-design-based-index.r")
@@ -465,10 +466,14 @@ for(s in 1:n.species) {
     #Create the grand list
     temp.vast <- melt(prop.vast)
     model <- 'VAST'
-    temp.vast <- cbind(temp.vast, model, temp.survey, temp.species, temp.name, vast_knots[i], vast_rho.int[i], vast_rho.stRE[i], temp.RhoConfig, survey.year)
+    temp.vast <- cbind(temp.vast, model, temp.survey, temp.species, temp.name, vast_knots[i], 
+                         vast_rho.int[i], vast_rho.stRE[i], temp.RhoConfig, survey.year,
+                         vast_do.spatial[i])
 
     #Skeleton in AIC/convergence data frame
-    temp.aic <- cbind(temp.survey, temp.species, temp.name, 'VAST', vast_knots[i], vast_rho.int[i], vast_rho.stRE[i], temp.RhoConfig)
+    temp.aic <- cbind(temp.survey, temp.species, temp.name, 'VAST', vast_knots[i], 
+                        vast_rho.int[i], vast_rho.stRE[i], temp.RhoConfig,
+                        vast_do.spatial[i])
     
     #Combine to larger lists
     #VAST list
@@ -491,7 +496,8 @@ for(s in 1:n.species) {
   #Create larger list
   temp.re <- melt(prop.re)
   model <- 'ADMB-RE'
-  temp.re <- cbind(temp.re, model, temp.survey, temp.species, temp.name, FALSE, FALSE, FALSE, "ADMB-RE", survey.year)
+  temp.re <- cbind(temp.re, model, temp.survey, temp.species, temp.name, FALSE, FALSE, FALSE, "ADMB-RE", 
+                     survey.year, NA)
   #Randome-effects list
   re.list <- rbind(re.list, temp.re)
   
@@ -499,16 +505,21 @@ for(s in 1:n.species) {
 
 #Add names
 re.df <- data.frame(re.list)
-names(re.df) <- c('Year','Region','value','Model','Survey','Species', 'Name','Knots','Rho_Intercept','Rho_stRE','RhoConfig','SurveyYear')
+names(re.df) <- c('Year','Region','value','Model','Survey','Species', 'Name','Knots',
+                    'Rho_Intercept','Rho_stRE','RhoConfig','SurveyYear','Est_Spatial_RE')
 
 vast.df <- data.frame(vast.list)
-names(vast.df) <- c('Year','Region','value','Model','Survey','Species', 'Name','Knots','Rho_Intercept','Rho_stRE','RhoConfig','SurveyYear')
+names(vast.df) <- c('Year','Region','value','Model','Survey','Species', 'Name','Knots',
+                      'Rho_Intercept','Rho_stRE','RhoConfig','SurveyYear','Est_Spatial_RE')
 
 #Bind Together
 output.df <- rbind(re.df, vast.df)
 
 aic.df <- data.frame(aic.list, aic.vect, converge.vect, maxGrad.vect)
-names(aic.df) <- c('Survey','Species','Name','Model','Knots','Rho_Intercept','Rho_stRE','RhoConfig','AIC','Converge','maxGradient')
+
+names(aic.df) <- c('Survey','Species','Name','Model','Knots',
+                     'Rho_Intercept','Rho_stRE','RhoConfig','Est_Spatial_RE',
+                     'AIC','Converge','maxGradient')
 aic.df$Converge <- as.factor(aic.df$Converge)
 
 #===========================================================
@@ -523,130 +534,201 @@ aic.df <- aic.df[aic.df$RhoConfig!='FE + IaY',]
 g <- ggplot(aic.df, aes(x=RhoConfig, y=maxGradient, color=Knots)) +
        theme_gray() +
        geom_point(alpha=0.5) +
-       facet_wrap(~Species, scales='free') +
+       facet_grid(Est_Spatial_RE~Species, scales='free') +
        theme(axis.text.x=element_text(angle=45, hjust=1))
-# g
+g
 ggsave(paste0(output.dir,'/Convergence.png'), plot=g, height=8, width=8, units='in', dpi=500)
+
+g <- ggplot(aic.df, aes(x=RhoConfig, y=Converge, color=Knots)) +
+  theme_gray() +
+  geom_point(alpha=0.5) +
+  facet_grid(Est_Spatial_RE~Species, scales='free') +
+  theme(axis.text.x=element_text(angle=45, hjust=1))
+g
+
 #===========================================================
 #Plotting Rockfish
-    
-rockfish <- c('Northern rockfish','Pacific ocean perch','Harlequin rockfish')
-n.rockfish <- length(rockfish)
-temp.df <- output.df[output.df$Species %in% rockfish,]
-    
+
+heights <- 9
+widths <- 7
+
+rockfish <- c('Pacific ocean perch','Northern rockfish','Harlequin rockfish')
+
 t <- 1
 for(t in 1:n.trial.knots) {
-temp.knots <- trial.knots[t]
-g <- ggplot(temp.df[temp.df$Knots==temp.knots | temp.df$Knots==FALSE,], 
-              aes(x=Year, y=value, fill=Region)) +
-       # theme_gray() +
-       # theme_fivethirtyeight()+
-       # theme_solarized()+
-       # theme_economist() +
-       theme_dark()+
-       theme(legend.position='top') +
-       # theme_tufte() +
-       scale_fill_colorblind() +
-       geom_area(position='stack', alpha=alpha) +
-       facet_grid(Species~RhoConfig) +
-       # facet_grid(RhoConfig~Species) +
-       ggtitle(paste('Gulf of Alaska: Rockfish'), subtitle=paste('Knots:',temp.knots)) +
-       ylab('Proportion')
-
-g
-ggsave(paste0(output.dir,'/Rockfish ', temp.knots,'kt.png'), plot=g, height=8, width=8, units='in', dpi=500)
+  temp.knots <- trial.knots[t]
+  
+  #Estimate Spatial RE
+  do.spatial <- TRUE
+  temp.df <- output.df[which(output.df$Species %in% rockfish),]
+  temp.df <- temp.df[temp.df$Est_Spatial_RE==do.spatial | is.na(temp.df$Est_Spatial_RE),]
+  temp.df$Species <- gsub(" ", "\n", temp.df$Species)
+  
+  g <- ggplot(temp.df, aes(x=Year, y=value, fill=Region)) +
+         theme_dark()+
+         theme(legend.position='top') +
+         scale_fill_colorblind() +
+         geom_area(position='stack', alpha=alpha) +
+         facet_grid(Species~RhoConfig) +
+         ggtitle(paste('Estimate Spatial RE:', do.spatial)) +#, 
+                 # subtitle=paste('Knots:',temp.knots)) +
+         ylab('Proportion') +
+         theme(axis.text.x=element_text(angle=45, hjust=1))
+  # g
+  
+  #Don't Estimate Spatial RE
+  do.spatial <- FALSE
+  temp.df <- output.df[which(output.df$Species %in% rockfish),]
+  temp.df <- temp.df[temp.df$Est_Spatial_RE==do.spatial | is.na(temp.df$Est_Spatial_RE),]
+  temp.df$Species <- gsub(" ", "\n", temp.df$Species)
+  
+  g2 <- ggplot(temp.df, aes(x=Year, y=value, fill=Region)) +
+          theme_dark()+
+          theme(legend.position='top') +
+          scale_fill_colorblind() +
+          geom_area(position='stack', alpha=alpha) +
+          facet_grid(Species~RhoConfig) +
+          ggtitle(paste('Estimate Spatial RE:', do.spatial)) +#, 
+            # subtitle=paste('Knots:',temp.knots)) +
+          ylab('Proportion') +
+          theme(axis.text.x=element_text(angle=45, hjust=1))
+  # g2
+  
+  #Bring the figures together
+  g12 <- plot_grid(g, g2, nrow=2, ncol=1, align='v')
+  # g12
+  ggsave(paste0(output.dir,'/Rockfish ', temp.knots,'kt.png'), plot=g12, 
+           height=heights, width=widths, units='in', dpi=500)
 }#next t
-# temp.knots <- 500
-# g <- ggplot(temp.df[temp.df$Knots==temp.knots | temp.df$Knots==FALSE,],
-#               aes(x=Year, y=value, fill=Region)) +
-#   theme_dark() +
-#   theme(legend.position='top') +
-#   scale_fill_colorblind() +
-#   ylab('Proportion') +
-#   geom_area(position='stack', alpha=alpha) +
-#   facet_grid(Species~RhoConfig) +
-#   ggtitle(paste('Gulf of Alaska: Rockfish'), subtitle=paste('Knots:',temp.knots))
-# 
-# g
-# ggsave(paste0(output.dir,'/Rockfish ', temp.knots,'kt.png'), plot=g, height=8, width=8, units='in', dpi=500)
 
 #===========================================================
 #Plotting Pollock and Pcod
-temp.df <- output.df[which(output.df$Species %in% c('Walleye pollock','Pacific cod')),]
-
 t <- 1
 for(t in 1:n.trial.knots) {
-temp.knots <- trial.knots[t]
-g <- ggplot(temp.df[temp.df$Knots==temp.knots | temp.df$Knots==FALSE,],
-              aes(x=Year, y=value, fill=Region)) +
-  theme_dark() +
-  theme(legend.position='top') +
-  scale_fill_colorblind() +
-  ylab('Proportion') +
-  geom_area(position='stack', alpha=alpha) +
-  facet_grid(Species~RhoConfig) +
-  ggtitle(paste('Gulf of Alaska: Pollock and Cod'), subtitle=paste('Knots:',temp.knots))
-
-g
-ggsave(paste0(output.dir,'/Pollock Cod ', temp.knots,'kt.png'), plot=g, height=8, width=8, units='in', dpi=500)
+  temp.knots <- trial.knots[t]
+  
+  #Estimate Spatial RE
+  do.spatial <- TRUE
+  temp.df <- output.df[which(output.df$Species %in% c('Walleye pollock','Pacific cod')),]
+  temp.df <- temp.df[temp.df$Est_Spatial_RE==do.spatial | is.na(temp.df$Est_Spatial_RE),]
+  temp.df$Species <- gsub(" ", "\n", temp.df$Species)
+  
+  g <- ggplot(temp.df, aes(x=Year, y=value, fill=Region)) +
+    theme_dark()+
+    theme(legend.position='top') +
+    scale_fill_colorblind() +
+    geom_area(position='stack', alpha=alpha) +
+    facet_grid(Species~RhoConfig) +
+    ggtitle(paste('Estimate Spatial RE:', do.spatial)) +#, 
+    # subtitle=paste('Knots:',temp.knots)) +
+    ylab('Proportion') +
+    theme(axis.text.x=element_text(angle=45, hjust=1))
+  # g
+  
+  #Don't Estimate Spatial RE
+  do.spatial <- FALSE
+  temp.df <- output.df[which(output.df$Species %in% c('Walleye pollock','Pacific cod')),]
+  temp.df <- temp.df[temp.df$Est_Spatial_RE==do.spatial | is.na(temp.df$Est_Spatial_RE),]
+  temp.df$Species <- gsub(" ", "\n", temp.df$Species)
+  
+  g2 <- ggplot(temp.df, aes(x=Year, y=value, fill=Region)) +
+    theme_dark()+
+    theme(legend.position='top') +
+    scale_fill_colorblind() +
+    geom_area(position='stack', alpha=alpha) +
+    facet_grid(Species~RhoConfig) +
+    ggtitle(paste('Estimate Spatial RE:', do.spatial)) +#, 
+    # subtitle=paste('Knots:',temp.knots)) +
+    ylab('Proportion') +
+    theme(axis.text.x=element_text(angle=45, hjust=1))
+  # g2
+  
+  #Bring the figures together
+  g12 <- plot_grid(g, g2, nrow=2, ncol=1, align='v')
+  # g12
+  ggsave(paste0(output.dir,'/Pollock_Cod ', temp.knots,'kt.png'), plot=g12, 
+         height=heights, width=widths, units='in', dpi=500)
 }#next t
 
-# temp.knots <- 500
-# g <- ggplot(temp.df[temp.df$Knots==temp.knots | temp.df$Knots==FALSE,], aes(x=Year, y=value, fill=Region)) +
-#   theme_dark() +
-#   theme(legend.position='top') +
-#   scale_fill_colorblind() +
-#   ylab('Proportion') +
-#   geom_area(position='stack', alpha=alpha) +
-#   facet_grid(Species~RhoConfig) +
-#   ggtitle(paste('Gulf of Alaska: Pollock and Cod'), subtitle=paste('Knots:',temp.knots))
-# 
-# g
-# ggsave(paste0(output.dir,'/Pollock Cod ', temp.knots,'kt.png'), plot=g, height=8, width=8, units='in', dpi=500)
 
 #===========================================================
-#Plotting Pollock and Pcod
-
-temp.df <- output.df[-which(output.df$Species %in% c('Walleye pollock','Pacific cod',rockfish)),]
-
+#Plotting Other Species
 t <- 1
 for(t in 1:n.trial.knots) {
-temp.knots <- trial.knots[t]
-g <- ggplot(temp.df[temp.df$Knots==temp.knots | temp.df$Knots==FALSE,],
-            aes(x=Year, y=value, fill=Region)) +
-  theme_dark() +
-  theme(legend.position='top') +
-  scale_fill_colorblind() +
-  ylab('Proportion') +
-  geom_area(position='stack', alpha=alpha) +
-  facet_grid(Species~RhoConfig) +
-  ggtitle(paste('Gulf of Alaska: Other Species'), subtitle=paste('Knots:',temp.knots))
-
-g
-ggsave(paste0(output.dir,'/Other Species ', temp.knots,'kt.png'), plot=g, height=8, width=8, units='in', dpi=500)
+  temp.knots <- trial.knots[t]
+  
+  #Estimate Spatial RE
+  do.spatial <- TRUE
+  temp.df <- output.df[-which(output.df$Species %in% c('Walleye pollock','Pacific cod',rockfish)),]
+  temp.df <- temp.df[temp.df$Est_Spatial_RE==do.spatial | is.na(temp.df$Est_Spatial_RE),]
+  temp.df$Species <- gsub(" ", "\n", temp.df$Species)
+  
+  g <- ggplot(temp.df, aes(x=Year, y=value, fill=Region)) +
+    theme_dark()+
+    theme(legend.position='top') +
+    scale_fill_colorblind() +
+    geom_area(position='stack', alpha=alpha) +
+    facet_grid(Species~RhoConfig) +
+    ggtitle(paste('Estimate Spatial RE:', do.spatial)) +#, 
+    # subtitle=paste('Knots:',temp.knots)) +
+    ylab('Proportion') +
+    theme(axis.text.x=element_text(angle=45, hjust=1))
+  # g
+  
+  #Don't Estimate Spatial RE
+  do.spatial <- FALSE
+  temp.df <- output.df[-which(output.df$Species %in% c('Walleye pollock','Pacific cod',rockfish)),]
+  temp.df <- temp.df[temp.df$Est_Spatial_RE==do.spatial | is.na(temp.df$Est_Spatial_RE),]
+  temp.df$Species <- gsub(" ", "\n", temp.df$Species)
+  
+  g2 <- ggplot(temp.df, aes(x=Year, y=value, fill=Region)) +
+    theme_dark()+
+    theme(legend.position='top') +
+    scale_fill_colorblind() +
+    geom_area(position='stack', alpha=alpha) +
+    facet_grid(Species~RhoConfig) +
+    ggtitle(paste('Estimate Spatial RE:', do.spatial)) +#, 
+    # subtitle=paste('Knots:',temp.knots)) +
+    ylab('Proportion') +
+    theme(axis.text.x=element_text(angle=45, hjust=1))
+  # g2
+  
+  #Bring the figures together
+  g12 <- plot_grid(g, g2, nrow=2, ncol=1, align='v')
+  # g12
+  ggsave(paste0(output.dir,'/Others ', temp.knots,'kt.png'), plot=g12, 
+         height=heights, width=widths, units='in', dpi=500)
 }#next t
 
-# temp.knots <- 500
-# g <- ggplot(temp.df[temp.df$Knots==temp.knots | temp.df$Knots==FALSE,], aes(x=Year, y=value, fill=Region)) +
-#   theme_dark() +
-#   theme(legend.position='top') +
-#   scale_fill_colorblind() +
-#   ylab('Proportion') +
-#   geom_area(position='stack', alpha=alpha) +
-#   facet_grid(Species~RhoConfig) +
-#   ggtitle(paste('Gulf of Alaska: Other Species'), subtitle=paste('Knots:',temp.knots))
+#===========================================================
+#Plotting All Species separately
+
+
+#===========================================================
+#Plotting All Species separately
+
+# spec.surv <- unique(output.df$Name)
+# n.spec.surv <- length(spec.surv)
 # 
-# g
-# ggsave(paste0(output.dir,'/Other Species ', temp.knots,'kt.png'), plot=g, height=8, width=8, units='in', dpi=500)
-
-
-# cbind(vast_est.output[[1]][[7]]$vast_est$Estimate_metric_tons,
-#       vast_est.output[[2]][[7]]$vast_est$Estimate_metric_tons,
-#       vast_est.output[[3]][[7]]$vast_est$Estimate_metric_tons,
-#       vast_est.output[[4]][[7]]$vast_est$Estimate_metric_tons,
-#       vast_est.output[[5]][[7]]$vast_est$Estimate_metric_tons,
-#       vast_est.output[[6]][[7]]$vast_est$Estimate_metric_tons,
-#       vast_est.output[[7]][[7]]$vast_est$Estimate_metric_tons,
-#       vast_est.output[[8]][[7]]$vast_est$Estimate_metric_tons)
-
+# s <- 1
+# for(s in 1:n.spec.surv) {
+#   temp.name <- spec.surv[s]
+#   
+#   temp.df <- output.df[output.df$Name==temp.name,]
+#   
+#   t <- 1
+#   for(t in 1:n.trial.knots) {
+#     temp.knots <- trial.knots[t]
+#     g <- ggplot(temp.df[temp.df$Knots==temp.knots | temp.df$Knots==FALSE,],
+#                   aes(x=Year, y=value, fill=Region)) +
+#            theme_dark() +
+#            theme(legend.position='top') +
+#            scale_fill_colorblind() +
+#            ylab('Proportion') +
+#            geom_area(position='stack', alpha=alpha) +
+#            facet_grid(Est_Spatial_RE~RhoConfig) +
+#            ggtitle(temp.name, subtitle=paste('Knots:',temp.knots)) 
+#     g
+#   }#next t
+# }#next s
 
