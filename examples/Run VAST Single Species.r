@@ -33,7 +33,7 @@ survey <- "GOA"
 #SPATIAL SETTINGS
 Method <- c("Grid", "Mesh", "Spherical_mesh")[2]
 grid_size_km <- 25
-n_x <- c(100, 250, 500, 1000, 2000)[1] # Number of stations
+n_x <- c(100, 250, 500, 1000, 2000)[2] # Number of stations
 Kmeans_Config <- list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )
 
 
@@ -43,7 +43,7 @@ strata.limits <- data.frame(STRATA = c("All_areas"))
 
 
 #DERIVED OBJECTS
-Version <-  "VAST_v2_6_0"
+Version <-  "VAST_v2_5_0"
 ###########################
 trial.file <- paste0(getwd(),"/examples/VAST_output/")
 dir.create(trial.file)
@@ -52,7 +52,7 @@ dir.create(trial.file)
 
 #MODEL SETTINGS
 FieldConfig = c(Omega1 = 1, Epsilon1 = 1, Omega2 = 1, Epsilon2 = 1)
-RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0)
+RhoConfig = c(Beta1 = 4, Beta2 = 4, Epsilon1 = 4, Epsilon2 = 4)
 OverdispersionConfig = c(Delta1 = 0, Delta2 = 0)
 
 DateFile <- paste0(trial.file,survey,"_",species.codes," n_x_",n_x," Rho_",

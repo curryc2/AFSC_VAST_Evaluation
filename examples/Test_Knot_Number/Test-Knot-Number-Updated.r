@@ -416,11 +416,11 @@ for(s in 1:n.temp.species) {
       #CV
       pct.diff.cv.goa[s,t,y] <- (temp.vast$CV[temp.vast$Species==temp.species[s] & temp.vast$Knots==trial.knots[t] & temp.vast$Year==temp.years[y]] - 
                                    temp.db$CV[temp.db$Species==temp.species[s] & temp.db$Year==temp.years[y]])/
-                                   temp.db$CV[temp.db$Species==temp.species[s] & temp.db$Year==temp.years[y]]*100
+                                   temp.db$CV[temp.db$Species==temp.species[s] & temp.db$Year==temp.years[y]]
       #Biomass Estimate
       pct.diff.bio.goa[s,t,y] <- (temp.vast$Biomass[temp.vast$Species==temp.species[s] & temp.vast$Knots==trial.knots[t] & temp.vast$Year==temp.years[y]] - 
                                     temp.db$Biomass[temp.db$Species==temp.species[s] & temp.db$Year==temp.years[y]])/
-                                    temp.db$Biomass[temp.db$Species==temp.species[s] & temp.db$Year==temp.years[y]]*100
+                                    temp.db$Biomass[temp.db$Species==temp.species[s] & temp.db$Year==temp.years[y]]
     }#next y
   }#next t
 }#next s
@@ -447,11 +447,11 @@ for(s in 1:n.temp.species) {
       #CV
       pct.diff.cv.ai[s,t,y] <- (temp.vast$CV[temp.vast$Species==temp.species[s] & temp.vast$Knots==trial.knots[t] & temp.vast$Year==temp.years[y]] - 
                                   temp.db$CV[temp.db$Species==temp.species[s] & temp.db$Year==temp.years[y]])/
-                                  temp.db$CV[temp.db$Species==temp.species[s] & temp.db$Year==temp.years[y]]*100
+                                  temp.db$CV[temp.db$Species==temp.species[s] & temp.db$Year==temp.years[y]]
       #Biomass Estimate
       pct.diff.bio.ai[s,t,y] <- (temp.vast$Biomass[temp.vast$Species==temp.species[s] & temp.vast$Knots==trial.knots[t] & temp.vast$Year==temp.years[y]] - 
                                    temp.db$Biomass[temp.db$Species==temp.species[s] & temp.db$Year==temp.years[y]])/
-                                   temp.db$Biomass[temp.db$Species==temp.species[s] & temp.db$Year==temp.years[y]]*100
+                                   temp.db$Biomass[temp.db$Species==temp.species[s] & temp.db$Year==temp.years[y]]
     }#next y
   }#next t
 }#next s
