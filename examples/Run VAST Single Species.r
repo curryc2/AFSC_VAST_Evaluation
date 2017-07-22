@@ -23,7 +23,7 @@ require(TMB)
 ##### SETUP INPUT DATA #####
 working.dir <- getwd()
 #Generate a dataset
-species.codes <- 30420#30420#21740#10110 #21740# 21740 #c(30420) #Rockfish
+species.codes <- 30060#30420#21740#10110 #21740# 21740 #c(30420) #Rockfish
 lat_lon.def <- "start"
 
 survey <- "GOA"
@@ -43,7 +43,7 @@ strata.limits <- data.frame(STRATA = c("All_areas"))
 
 
 #DERIVED OBJECTS
-Version <-  "VAST_v2_5_0"
+Version <-  "VAST_v2_4_0"
 ###########################
 trial.file <- paste0(getwd(),"/examples/VAST_output/")
 dir.create(trial.file)
@@ -52,7 +52,7 @@ dir.create(trial.file)
 
 #MODEL SETTINGS
 FieldConfig = c(Omega1 = 1, Epsilon1 = 1, Omega2 = 1, Epsilon2 = 1)
-RhoConfig = c(Beta1 = 4, Beta2 = 4, Epsilon1 = 4, Epsilon2 = 4)
+RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0)
 OverdispersionConfig = c(Delta1 = 0, Delta2 = 0)
 
 DateFile <- paste0(trial.file,survey,"_",species.codes," n_x_",n_x," Rho_",
@@ -68,7 +68,7 @@ Options = c(SD_site_density = 0, SD_site_logdensity = 0,
             Calculate_Cov_SE = 0, Calculate_Synchrony = 0,
             Calculate_Coherence = 0)
 
-bias.correct <- FALSE
+bias.correct <- TRUE
 
 #=======================================================================
 ##### READ IN DATA AND BUILD vAST INPUT #####
@@ -121,7 +121,7 @@ plot_VAST_output(Opt, Report, DateFile, survey, TmbData, Data_Geostat, Extrapola
 
 #========================================================================
 ##### CLEAN UP MODEL FILES #####
-cleanup_VAST_file(DateFile, Version=Version)
+# cleanup_VAST_file(DateFile, Version=Version)
 
 # 
 # 

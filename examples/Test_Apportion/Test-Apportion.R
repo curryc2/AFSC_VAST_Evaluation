@@ -701,8 +701,8 @@ for(t in 1:n.trial.knots) {
 }#next t
 
 #===========================================================
-#Plotting All Species separately
-
+#Printing GOA POP Table
+# write.csv(vast_est.output[[7]][[which(species.list$name %in% 'Pacific ocean perch')]]$vast_est, file=paste0(output.dir,'/POP AR+RW spat_TRUE.csv'))
 
 #===========================================================
 #Plotting All Species separately

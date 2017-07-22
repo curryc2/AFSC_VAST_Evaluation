@@ -27,6 +27,7 @@ require(parallel)
 require(snowfall)
 require(ggplot2)
 require(cowplot)
+require(xlsx)
 
 
 source("R/calc-design-based-index.r")
@@ -384,7 +385,7 @@ g3 <- ggplot(plot.list, aes(x=Species, y=CV, fill=Knots)) +
         ggtitle(paste(survey, 'Survey'))
         
 g3
-ggsave(paste0(output.dir,"/", survey," CV Compare.png"), g3, height=6, width=7, units='in', dpi=dpi)
+ggsave(paste0(output.dir,"/", survey," CV Compare.png"), g3, height=5, width=7, units='in', dpi=dpi)
 
 
 # png(paste0(output.dir,'/', survey, ' Figures.png'), height=7, width=8, units='in', res=500)
@@ -507,8 +508,55 @@ g.both
 ggsave(paste0(output.dir,"/GOA Pollock Idx and CV.png"), g.both, height=5, width=8, units='in', dpi=dpi)
 
 
+#==================================================================================
+#Plot GOA POP
+survey <- 'Gulf of Alaska'
+plot.list <- survey.list[survey.list$Survey=='GOA' & survey.list$Species=='Pacific ocean perch',]
+yrs.surv <- sort(unique(plot.list$Year[plot.list$Model=='Design-based']))
+plot.list <- plot.list[plot.list$Year %in% yrs.surv,]
+
+#Remove 2001 from design-based results because of incomplete sampling
+if(survey=='GOA') { plot.list <- plot.list[-which(plot.list$Year==2001 & plot.list$Model=='Design-based'),] }
+plot.list$Biomass <- plot.list$Biomass/1e3
+
+#PLOT Indices
+g.idx <- ggplot(plot.list, aes(x=Year, y=Biomass, color=Knots, lty=Model)) +
+  theme_gray() +
+  # theme(legend.position='bottom') +
+  geom_line() +
+  facet_wrap(~Species, scales='free') +
+  labs(list(y='Biomass (thousands of metric tonnes)')) +
+  # ggtitle('Survey:', subtitle='Gulf of Alaska') +
+  # ggtitle(paste(survey, 'Survey')) +
+  scale_color_hue(h=scale.hues)
+g.idx
+ggsave(paste0(output.dir,"/GOA POP Idx.png"), g.idx, height=6, width=8, units='in', dpi=dpi)
+
+g.cv <- ggplot(plot.list, aes(x=Knots, y=CV, fill=Knots)) +
+  theme_gray() +
+  # geom_boxplot(aes(lty=Model)) +
+  geom_boxplot() +
+  facet_wrap(~Species, scales='free') +
+  labs(list(y=paste('Annual Survey CV'))) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, debug=FALSE)) +
+  scale_fill_hue(h=scale.hues) +
+  # ggtitle(paste(survey, 'Survey')) +
+  
+  theme(legend.position='none')
+
+# g.cv
 
 
+#Combine plots with gridExtra
+g.both <- plot_grid(g.idx, g.cv, nrow=1, ncol=2, rel_widths=c(3.5,1))
+g.both
+
+ggsave(paste0(output.dir,"/GOA POP Idx and CV.png"), g.both, height=5, width=8, units='in', dpi=dpi)
+
+#GENERATE WORKSHEET FOR WITH ALL OF THE GOA POP INDICES
+write.xlsx(survey.list[survey.list$Survey=='GOA' & survey.list$Species=='Pacific ocean perch' &
+                         survey.list$Year %in% yrs.surv,],
+             file=paste0(output.dir,'/GOA POP Indices.xlsx'), sheetName='plot.list')
 
 #Facet
 # g.multi <- vector('list', length=n.species)
