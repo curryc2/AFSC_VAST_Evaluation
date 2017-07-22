@@ -378,14 +378,39 @@ ggsave(paste0(output.dir,"/", survey," VAST Index Compare.png"), g2, height=9, w
 g3 <- ggplot(plot.list, aes(x=Species, y=CV, fill=Knots)) +
         theme_gray() +
         theme(legend.position='right') +
-        geom_boxplot(aes(lty=Model)) +
+        # geom_boxplot(aes(lty=Model)) +
+        geom_boxplot(aes(color=Model)) +
+        scale_color_colorblind() +
+        # scale_color_hue() +
         labs(list(y=paste('Annual Survey CV'))) +
         theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, debug=FALSE)) +
         scale_fill_hue(h=scale.hues) +
         ggtitle(paste(survey, 'Survey'))
+  
         
 g3
 ggsave(paste0(output.dir,"/", survey," CV Compare.png"), g3, height=5, width=7, units='in', dpi=dpi)
+
+#Separate boxes
+g4 <- ggplot(plot.list, aes(x=Species, y=CV, fill=Knots)) +
+  theme_gray() +
+  theme(legend.position='bottom') +
+  # geom_boxplot(aes(lty=Model)) +
+  geom_boxplot(aes(color=Model)) +
+  scale_color_colorblind() +
+  # scale_color_hue() +
+  labs(list(y=paste('Annual Survey CV'))) +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) +
+  scale_fill_hue(h=scale.hues) +
+  ggtitle(paste(survey, 'Survey')) +
+  facet_wrap(~Species, scales='free', nrow=2)
+  
+
+
+g4
+ggsave(paste0(output.dir,"/", survey," CV Compare_2.png"), g4, height=6, width=8, units='in', dpi=dpi)
 
 
 # png(paste0(output.dir,'/', survey, ' Figures.png'), height=7, width=8, units='in', res=500)
