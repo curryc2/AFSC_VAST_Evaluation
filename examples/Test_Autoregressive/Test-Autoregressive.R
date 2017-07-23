@@ -26,6 +26,7 @@ require(TMB)
 require(parallel)
 require(snowfall)
 require(ggplot2)
+require(ggthemes)
 
 
 source("R/calc-design-based-index.r")
@@ -400,7 +401,7 @@ g <- ggplot(aic.df[aic.df$Survey=='GOA',], aes(x=Rho_Intercept, y=AIC, colour=Kn
        theme_gray() +
        geom_point(size=5, alpha=0.5) +
        facet_wrap(~Species, scales='free') +
-       ggtitle('Gulf of Alaska RACE Survey') +
+       ggtitle('Gulf of Alaska Survey') +
        theme(axis.text.x=element_text(angle=90, hjust=1))
 g
 ggsave(paste0(output.dir,'/AIC Compare_GOA.png'), plot=g, height=7, width=9, units='in', dpi=500)
@@ -409,7 +410,7 @@ g <- ggplot(aic.df[aic.df$Survey=='AI',], aes(x=Rho_Intercept, y=AIC, colour=Kno
        theme_gray() +
        geom_point(size=5, alpha=0.5) +
        facet_wrap(~Species, scales='free') +
-       ggtitle('Aleutian Islands RACE Survey') +
+       ggtitle('Aleutian Islands Survey') +
        theme(axis.text.x=element_text(angle=90, hjust=1))
 g
 ggsave(paste0(output.dir,'/AIC Compare_AI.png'), plot=g, height=7, width=9, units='in', dpi=500)
@@ -441,13 +442,13 @@ vast.df$Knots <- as.factor(vast.df$Knots)
 
 #species x knots
 g <- ggplot(vast.df[vast.df$Survey=='GOA' & vast.df$SurveyYear==TRUE,],
-            aes(x=Year, y=Biomass/1e6, group=Rho_Intercept, colour=Rho_Intercept)) +
+            aes(x=Year, y=Biomass/1e3, group=Rho_Intercept, colour=Rho_Intercept)) +
   theme_gray() +
   geom_line() +
   geom_point() +
   facet_grid(Species~Knots, scales='free') +
-  ggtitle('Gulf of Alaska RACE Survey') +
-  ylab('Biomass (millions of metric tonnes)')
+  ggtitle('Gulf of Alaska Survey') +
+  ylab('Biomass (thousands of metric tonnes)')
   
 g
 
@@ -459,46 +460,50 @@ goa.others <- goa.species[-which(goa.species %in% goa.rockfish)]
 
 #Plot rockfish
 g <- ggplot(vast.df[vast.df$Survey=='GOA' & vast.df$SurveyYear==TRUE & vast.df$Species%in%goa.rockfish,],
-            aes(x=Year, y=Biomass/1e6, group=Rho_Intercept, colour=Rho_Intercept)) +
+            aes(x=Year, y=Biomass/1e3, group=Rho_Intercept, colour=Rho_Intercept)) +
   theme_gray() +
   geom_line(alpha=0.5) +
   geom_point(alpha=0.5) +
+  # theme_fivethirtyeight() +
+  # scale_color_colorblind() +
   facet_grid(Species~Knots, scales='free') +
-  ggtitle('Gulf of Alaska RACE Survey') +
-  ylab('Biomass (millions of metric tonnes)')
+  ggtitle('Gulf of Alaska Survey') +
+  ylab('Biomass (thousands of metric tonnes)')
 
 g
 
-ggsave(paste0(output.dir,'/Rockfish Trend Compare_GOA.png'), plot=g, height=7, width=9, units='in', dpi=500)
+ggsave(paste0(output.dir,'/Rockfish Trend Compare_GOA.png'), plot=g, height=9, width=8, units='in', dpi=500)
 
 
 
 #Plot others
 g <- ggplot(vast.df[vast.df$Survey=='GOA' & vast.df$SurveyYear==TRUE & vast.df$Species%in%goa.others,],
-            aes(x=Year, y=Biomass/1e6, group=Rho_Intercept, colour=Rho_Intercept)) +
+            aes(x=Year, y=Biomass/1e3, group=Rho_Intercept, colour=Rho_Intercept)) +
   theme_gray() +
   geom_line(alpha=0.5) +
   geom_point(alpha=0.5) +
+  # scale_color_solarized() +
   facet_grid(Species~Knots, scales='free') +
-  ggtitle('Gulf of Alaska RACE Survey') +
-  ylab('Biomass (millions of metric tonnes)')
+  ggtitle('Gulf of Alaska Survey') +
+  ylab('Biomass (thousands of metric tonnes)')
+  # theme(legend.position='bottom')
 
 g
 
-ggsave(paste0(output.dir,'/Others Trend Compare_GOA.png'), plot=g, height=7, width=9, units='in', dpi=500)
+ggsave(paste0(output.dir,'/Others Trend Compare_GOA.png'), plot=g, height=9, width=8, units='in', dpi=500)
 
 #================
 g <- ggplot(vast.df[vast.df$Survey=='AI' & vast.df$SurveyYear==TRUE,],
-            aes(x=Year, y=Biomass/1e6, group=Rho_Intercept, colour=Rho_Intercept)) +
+            aes(x=Year, y=Biomass/1e3, group=Rho_Intercept, colour=Rho_Intercept)) +
   theme_gray() +
   geom_line(alpha=0.5) +
   geom_point(alpha=0.5) +
   facet_grid(Species~Knots, scales='free') +
-  ggtitle('Aleutian Islands RACE Survey') +
-  ylab('Biomass (millions of metric tonnes)')
+  ggtitle('Aleutian Islands Survey') +
+  ylab('Biomass (thousands of metric tonnes)')
 
 g
-ggsave(paste0(output.dir,'/Trend Compare_AI.png'), plot=g, height=7, width=9, units='in', dpi=500)
+ggsave(paste0(output.dir,'/Trend Compare_AI.png'), plot=g, height=9, width=8, units='in', dpi=500)
 
 
 
@@ -511,7 +516,7 @@ g <- ggplot(vast.list[vast.list$Survey=='GOA',],
 g
 
 g <- ggplot(vast.list[vast.list$Survey=='GOA' & vast.list$Rho_Intercept!='RW-FE',],
-            aes(x=Year, y=Biomass/1e6,  colour=Rho_Intercept)) +
+            aes(x=Year, y=Biomass/1e3,  colour=Rho_Intercept)) +
   theme_gray() +
   geom_line() +
   facet_grid(Species~Knots, scales='free')

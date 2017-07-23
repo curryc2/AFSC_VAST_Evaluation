@@ -566,7 +566,7 @@ for(t in 1:n.trial.knots) {
   
   g <- ggplot(temp.df, aes(x=Year, y=value, fill=Region)) +
          theme_dark()+
-         theme(legend.position='top') +
+         # theme(legend.position='top') +
          scale_fill_colorblind() +
          geom_area(position='stack', alpha=alpha) +
          facet_grid(Species~RhoConfig) +
@@ -584,7 +584,7 @@ for(t in 1:n.trial.knots) {
   
   g2 <- ggplot(temp.df, aes(x=Year, y=value, fill=Region)) +
           theme_dark()+
-          theme(legend.position='top') +
+          # theme(legend.position='top') +
           scale_fill_colorblind() +
           geom_area(position='stack', alpha=alpha) +
           facet_grid(Species~RhoConfig) +
