@@ -3,7 +3,7 @@
 #' @param Opt list output from Template Model Builder (TMB) fitting of VAST model
 #' @param Report list of TMB specifications for VAST model
 #' @param DateFile path for directory housing VAST model and output figures and objects
-#' @param Region string indicating region of evaluation, one of: Gulf_of_Alaska, Eastern_Bering_Sea, or Aleutian_Islands
+#' @param survey string indicating the survey for which data are being extracted: GOA, AI, EBS_SHELF, EBS_SLOPE
 #' @param TmbData list of TMB inputs for VAST model
 #' @param Data_Geostat dataframe containing RACE bottom trawl survey data
 #' @param Extrapolation_List list object containing definition of for which density extrapolation is conducted when calculating indices
@@ -11,7 +11,17 @@
 #'
 #' @return A series of output figures exploring model diagnostics, density predictions, and indices.
 #' @export
-plot_VAST_output <- function(Opt, Report, DateFile, Region, TmbData, Data_Geostat, Extrapolation_List, Spatial_List) {
+plot_VAST_output <- function(Opt, Report, DateFile, survey, TmbData, Data_Geostat, Extrapolation_List, Spatial_List) {
+  
+  #Determine Correct area to allign with RACE survey
+  if(survey %in% c("GOA","AI","EBS_SHELF",'EBS_SLOPE')) { 
+    if(survey=="GOA") { Region <- "Gulf_of_Alaska"; area <- "GOA" }
+    if(survey=="AI") { Region <- "Aleutian_Islands"; area <- "AI" }
+    if(survey=="EBS_SHELF" | survey=="EBS_SLOPE") { Region <- "Eastern_Bering_Sea"; area <- "BS" }
+    
+  }else {
+    stop(paste("survey is:",survey,", should be one of: GOA, AI, EBS_SHELF, EBS_SLOPE"))
+  }
   
   #========================================================================
   ##### DIAGNOSTIC PLOTS #####

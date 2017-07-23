@@ -1,0 +1,9 @@
+"","vast_knots","vast_rho.int","vast_rho.stRE","vast_do.spatial"
+"1",250,"RW","IaY",TRUE
+"2",250,"RW","IaY",FALSE
+"3",250,"AR","IaY",TRUE
+"4",250,"AR","IaY",FALSE
+"5",250,"RW","AR",TRUE
+"6",250,"RW","AR",FALSE
+"7",250,"AR","RW",TRUE
+"8",250,"AR","RW",FALSE
