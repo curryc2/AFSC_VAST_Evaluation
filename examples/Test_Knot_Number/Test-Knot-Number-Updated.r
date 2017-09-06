@@ -411,7 +411,7 @@ g4 <- ggplot(plot.list, aes(x=Species, y=CV, fill=Knots)) +
 
 g4
 ggsave(paste0(output.dir,"/", survey," CV Compare_2.png"), g4, height=6, width=8, units='in', dpi=dpi)
-
+ggsave(paste0(getwd(),"/Figs for Sept_2017 GPT/", survey, "CV Compare_2.png"), g4, height=6, width=8, units='in', dpi=dpi)
 
 # png(paste0(output.dir,'/', survey, ' Figures.png'), height=7, width=8, units='in', res=500)
 # dev.off()
