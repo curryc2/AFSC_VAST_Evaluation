@@ -462,6 +462,7 @@ goa.others <- goa.species[-which(goa.species %in% goa.rockfish)]
 g <- ggplot(vast.df[vast.df$Survey=='GOA' & vast.df$SurveyYear==TRUE & vast.df$Species%in%goa.rockfish,],
             aes(x=Year, y=Biomass/1e3, group=Rho_Intercept, colour=Rho_Intercept)) +
   theme_gray() +
+  # scale_color_colorblind() +
   geom_line(alpha=0.5) +
   geom_point(alpha=0.5) +
   # theme_fivethirtyeight() +
@@ -473,13 +474,14 @@ g <- ggplot(vast.df[vast.df$Survey=='GOA' & vast.df$SurveyYear==TRUE & vast.df$S
 g
 
 ggsave(paste0(output.dir,'/Rockfish Trend Compare_GOA.png'), plot=g, height=9, width=8, units='in', dpi=500)
-
+ggsave(paste0(getwd(),"/Output/Figs for Sept_2017 GPT/Rockfish Trend Compare_GOA.png"), plot=g, height=7, width=10, units='in', dpi=1e3)
 
 
 #Plot others
 g <- ggplot(vast.df[vast.df$Survey=='GOA' & vast.df$SurveyYear==TRUE & vast.df$Species%in%goa.others,],
             aes(x=Year, y=Biomass/1e3, group=Rho_Intercept, colour=Rho_Intercept)) +
   theme_gray() +
+  # scale_color_colorblind()+
   geom_line(alpha=0.5) +
   geom_point(alpha=0.5) +
   # scale_color_solarized() +
@@ -491,6 +493,7 @@ g <- ggplot(vast.df[vast.df$Survey=='GOA' & vast.df$SurveyYear==TRUE & vast.df$S
 g
 
 ggsave(paste0(output.dir,'/Others Trend Compare_GOA.png'), plot=g, height=9, width=8, units='in', dpi=500)
+ggsave(paste0(getwd(),"/Output/Figs for Sept_2017 GPT/Others Trend Compare_GOA.png"), plot=g, height=7.75, width=11, units='in', dpi=1e3)
 
 #================
 g <- ggplot(vast.df[vast.df$Survey=='AI' & vast.df$SurveyYear==TRUE,],
@@ -504,21 +507,209 @@ g <- ggplot(vast.df[vast.df$Survey=='AI' & vast.df$SurveyYear==TRUE,],
 
 g
 ggsave(paste0(output.dir,'/Trend Compare_AI.png'), plot=g, height=9, width=8, units='in', dpi=500)
+ggsave(paste0(getwd(),"/Output/Figs for Sept_2017 GPT/Trend Compare_AI.png"), plot=g, height=7, width=10, units='in', dpi=1e3)
 
 
-
-
-g <- ggplot(vast.list[vast.list$Survey=='GOA',],
-            aes(x=Knots, y=Biomass, group=Rho_Intercept, fill=Rho_Intercept)) +
+#=================================================
+g <- ggplot(vast.df[vast.df$Survey=='GOA' & vast.df$Species%in%goa.rockfish & vast.df$Knots==100 &
+            vast.df$Rho_Intercept!='AR-FE' & vast.df$Rho_Intercept!='RW-FE' &
+            vast.df$Rho_Intercept!='FE-AR' & vast.df$Rho_Intercept!='FE-RW',],
+            aes(x=Year, y=Biomass/1e3, group=Rho_Intercept, colour=Rho_Intercept)) +
   theme_gray() +
-  geom_boxplot() +
-  facet_wrap(~Species, scales='free')
+  # scale_color_colorblind() +
+  geom_line(alpha=0.5) +
+  geom_point(alpha=0.5) +
+  # theme_fivethirtyeight() +
+  # scale_color_colorblind() +
+  facet_grid(Species~SurveyYear, scales='free') +
+  ggtitle('Gulf of Alaska Survey') +
+  ylab('Biomass (thousands of metric tonnes)')
+
+g
+ggsave(paste0(getwd(),"/Output/Figs for Sept_2017 GPT/Survey_non Compare Rockfish_GOA.png"), plot=g, height=7, width=10, units='in', dpi=1e3)
+
+g <- ggplot(vast.df[vast.df$Survey=='GOA' & vast.df$Species%in%goa.others & vast.df$Knots==100 &
+                      vast.df$Rho_Intercept!='AR-FE' & vast.df$Rho_Intercept!='RW-FE' &
+                      vast.df$Rho_Intercept!='FE-AR' & vast.df$Rho_Intercept!='FE-RW',],
+            aes(x=Year, y=Biomass/1e3, group=Rho_Intercept, colour=Rho_Intercept)) +
+  theme_gray() +
+  # scale_color_colorblind() +
+  geom_line(alpha=0.5) +
+  geom_point(alpha=0.5) +
+  # theme_fivethirtyeight() +
+  # scale_color_colorblind() +
+  facet_grid(Species~SurveyYear, scales='free') +
+  ggtitle('Gulf of Alaska Survey') +
+  ylab('Biomass (thousands of metric tonnes)')
+
+g
+ggsave(paste0(getwd(),"/Output/Figs for Sept_2017 GPT/Survey_non Compare others_GOA.png"), plot=g, height=7.75, width=11, units='in', dpi=1e3)
+#=================================================
+
+
+
+
+g <- ggplot(vast.df[vast.df$Survey=='GOA' & vast.df$Species%in%goa.rockfish & vast.df$Knots==100,],
+            aes(x=Year, y=Biomass/1e3, group=Rho_Intercept, colour=Rho_Intercept, ymin=0)) +
+  theme_gray() +
+  # scale_color_colorblind() +
+  geom_line(alpha=0.5) +
+  geom_point(alpha=0.5) +
+  # theme_fivethirtyeight() +
+  # scale_color_colorblind() +
+  facet_grid(Species~SurveyYear, scales='free') +
+  ggtitle('Gulf of Alaska Survey') +
+  ylab('Biomass (thousands of metric tonnes)')
+
 g
 
-g <- ggplot(vast.list[vast.list$Survey=='GOA' & vast.list$Rho_Intercept!='RW-FE',],
-            aes(x=Year, y=Biomass/1e3,  colour=Rho_Intercept)) +
+
+
+
+
+
+g <- ggplot(vast.df[vast.df$Survey=='GOA' & vast.df$Species%in%goa.rockfish & vast.df$Knots==100,],
+            aes(x=Year, y=Biomass/1e3, group=Rho_Intercept, colour=Rho_Intercept, ymin=0)) +
   theme_gray() +
-  geom_line() +
-  facet_grid(Species~Knots, scales='free')
+  # scale_color_colorblind() +
+  geom_line(alpha=0.5) +
+  geom_point(alpha=0.5) +
+  # theme_fivethirtyeight() +
+  # scale_color_colorblind() +
+  facet_grid(Species~SurveyYear, scales='free') +
+  ggtitle('Gulf of Alaska Survey') +
+  ylab('Biomass (thousands of metric tonnes)')
+
 g
+
+
+g <- ggplot(vast.df[vast.df$Survey=='GOA' & vast.df$Species%in%goa.rockfish & vast.df$Knots==500 &
+                      vast.df$Rho_Intercept!='AR-FE' & vast.df$Rho_Intercept!='RW-FE',],
+            aes(x=Year, y=Biomass/1e3, group=Rho_Intercept, colour=Rho_Intercept, ymin=0)) +
+  theme_gray() +
+  # scale_color_colorblind() +
+  geom_line(alpha=0.5) +
+  geom_point(alpha=0.5) +
+  # theme_fivethirtyeight() +
+  # scale_color_colorblind() +
+  facet_grid(Species~SurveyYear, scales='free') +
+  ggtitle('Gulf of Alaska Survey') +
+  ylab('Biomass (thousands of metric tonnes)')
+
+g
+
+g <- ggplot(vast.df[vast.df$Survey=='GOA' & vast.df$Species%in%goa.rockfish & vast.df$SurveyYear==TRUE,],
+            aes(x=Year, y=Biomass/1e3, group=Rho_Intercept, colour=Knots, ymin=0)) +
+  theme_gray() +
+  # scale_color_colorblind() +
+  geom_line(alpha=0.5) +
+  geom_point(alpha=0.5) +
+  # theme_fivethirtyeight() +
+  # scale_color_colorblind() +
+  facet_wrap(Species~Rho_Intercept, scales='free', nrow=length(goa.rockfish)) +
+  ggtitle('Gulf of Alaska Survey') +
+  ylab('Biomass (thousands of metric tonnes)')
+
+g
+
+
+#=====================================================================================================
+g <- ggplot(vast.df[vast.df$Survey=='GOA' & vast.df$Species%in%goa.rockfish & vast.df$Knots==100,],# &
+                      # vast.df$Rho_Intercept!='AR-FE' & vast.df$Rho_Intercept!='RW-FE' &
+                      # vast.df$Rho_Intercept!='FE-AR' & vast.df$Rho_Intercept!='FE-RW',],
+            aes(x=Year, y=Biomass/1e3, group=Rho_Intercept, colour=Rho_Intercept, ymin=0)) +
+  theme_gray() +
+  # scale_color_colorblind() +
+  geom_line(alpha=0.5) +
+  geom_point(alpha=0.5) +
+  # theme_fivethirtyeight() +
+  # scale_color_colorblind() +
+  facet_grid(Species~SurveyYear, scales='free') +
+  ggtitle('Gulf of Alaska Survey') +
+  ylab('Biomass (thousands of metric tonnes)')
+
+g
+
+g <- ggplot(vast.df[vast.df$Survey=='GOA' & vast.df$Species%in%goa.others & vast.df$Knots==100 &
+                      vast.df$Rho_Intercept!='AR-FE' & vast.df$Rho_Intercept!='RW-FE' &
+                      vast.df$Rho_Intercept!='FE-AR' & vast.df$Rho_Intercept!='FE-RW',],
+            aes(x=Year, y=Biomass/1e3, group=Rho_Intercept, colour=Rho_Intercept, ymin=0)) +
+  theme_gray() +
+  # scale_color_colorblind() +
+  geom_line(alpha=0.5) +
+  geom_point(alpha=0.5) +
+  # theme_fivethirtyeight() +
+  # scale_color_colorblind() +
+  facet_grid(Species~SurveyYear, scales='free') +
+  ggtitle('Gulf of Alaska Survey') +
+  ylab('Biomass (thousands of metric tonnes)')
+
+g
+
+
+g <- ggplot(vast.df[vast.df$Survey=='AI' & vast.df$Knots==100 &
+                      vast.df$Rho_Intercept!='AR-FE' & vast.df$Rho_Intercept!='RW-FE' &
+                      vast.df$Rho_Intercept!='FE-AR' & vast.df$Rho_Intercept!='FE-RW',],
+            aes(x=Year, y=Biomass/1e3, group=Rho_Intercept, colour=Rho_Intercept, ymin=0)) +
+  theme_gray() +
+  # scale_color_colorblind() +
+  geom_line(alpha=0.5) +
+  geom_point(alpha=0.5) +
+  # theme_fivethirtyeight() +
+  # scale_color_colorblind() +
+  facet_grid(Species~SurveyYear, scales='free') +
+  ggtitle('Aleutian Islands Survey') +
+  ylab('Biomass (thousands of metric tonnes)')
+
+g
+
+g <- ggplot(vast.df[vast.df$Survey=='AI' &
+                      vast.df$Rho_Intercept!='AR-FE' & vast.df$Rho_Intercept!='RW-FE' &
+                      vast.df$Rho_Intercept!='FE-AR' & vast.df$Rho_Intercept!='FE-RW',],
+            aes(x=Year, y=Biomass/1e3, group=Rho_Intercept, colour=Rho_Intercept, ymin=0)) +
+  theme_gray() +
+  # scale_color_colorblind() +
+  geom_line(alpha=0.5) +
+  geom_point(alpha=0.5) +
+  # theme_fivethirtyeight() +
+  # scale_color_colorblind() +
+  facet_grid(Species~Knots, scales='free') +
+  ggtitle('Aleutian Islands Survey') +
+  ylab('Biomass (thousands of metric tonnes)')
+
+g
+
+
+g <- ggplot(vast.df[vast.df$Survey=='GOA' & vast.df$Knots==100 &
+                      vast.df$Rho_Intercept!='AR-FE' & vast.df$Rho_Intercept!='RW-FE' &
+                      vast.df$Rho_Intercept!='FE-AR' & vast.df$Rho_Intercept!='FE-RW',],
+            aes(x=Year, y=Biomass/1e3, group=Rho_Intercept, colour=Rho_Intercept, ymin=0)) +
+  theme_gray() +
+  # scale_color_colorblind() +
+  geom_line(alpha=0.5) +
+  geom_point(alpha=0.5) +
+  # theme_fivethirtyeight() +
+  # scale_color_colorblind() +
+  # facet_grid(Species~Knots, scales='free') +
+  facet_wrap(~Species, scales='free') +
+  ggtitle('Gulf of Alaska Survey') +
+  ylab('Biomass (thousands of metric tonnes)')
+
+g
+
+
+
+# g <- ggplot(vast.list[vast.list$Survey=='GOA',],
+#             aes(x=Knots, y=Biomass, group=Rho_Intercept, fill=Rho_Intercept, ymin=0)) +
+#   theme_gray() +
+#   geom_boxplot() +
+#   facet_wrap(~Species, scales='free')
+# g
+
+# g <- ggplot(vast.list[vast.list$Survey=='GOA' & vast.list$Rho_Intercept!='RW-FE',],
+#             aes(x=Year, y=Biomass/1e3,  colour=Rho_Intercept, ymin=0)) +
+#   theme_gray() +
+#   geom_line() +
+#   facet_grid(Species~Knots, scales='free')
+# g
 

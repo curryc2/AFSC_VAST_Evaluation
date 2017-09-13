@@ -537,7 +537,7 @@ g <- ggplot(aic.df, aes(x=RhoConfig, y=maxGradient, color=Knots)) +
        facet_grid(Est_Spatial_RE~Species, scales='free') +
        theme(axis.text.x=element_text(angle=45, hjust=1))
 g
-ggsave(paste0(output.dir,'/Convergence.png'), plot=g, height=8, width=8, units='in', dpi=500)
+ggsave(paste0(output.dir,'/Convergence.png'), plot=g, height=8, width=8, units='in', dpi=1e3)
 
 g <- ggplot(aic.df, aes(x=RhoConfig, y=Converge, color=Knots)) +
   theme_gray() +
@@ -566,7 +566,7 @@ for(t in 1:n.trial.knots) {
   
   g <- ggplot(temp.df, aes(x=Year, y=value, fill=Region)) +
          theme_dark()+
-         # theme(legend.position='top') +
+         theme(legend.position='top') +
          scale_fill_colorblind() +
          geom_area(position='stack', alpha=alpha) +
          facet_grid(Species~RhoConfig) +
@@ -584,7 +584,7 @@ for(t in 1:n.trial.knots) {
   
   g2 <- ggplot(temp.df, aes(x=Year, y=value, fill=Region)) +
           theme_dark()+
-          # theme(legend.position='top') +
+          theme(legend.position='top') +
           scale_fill_colorblind() +
           geom_area(position='stack', alpha=alpha) +
           facet_grid(Species~RhoConfig) +
@@ -598,7 +598,7 @@ for(t in 1:n.trial.knots) {
   g12 <- plot_grid(g, g2, nrow=2, ncol=1, align='v')
   # g12
   ggsave(paste0(output.dir,'/Rockfish ', temp.knots,'kt.png'), plot=g12, 
-           height=heights, width=widths, units='in', dpi=500)
+           height=heights, width=widths, units='in', dpi=1e3)
 }#next t
 
 #===========================================================
@@ -647,7 +647,7 @@ for(t in 1:n.trial.knots) {
   g12 <- plot_grid(g, g2, nrow=2, ncol=1, align='v')
   # g12
   ggsave(paste0(output.dir,'/Pollock_Cod ', temp.knots,'kt.png'), plot=g12, 
-         height=heights, width=widths, units='in', dpi=500)
+         height=heights, width=widths, units='in', dpi=1e3)
 }#next t
 
 
@@ -697,7 +697,7 @@ for(t in 1:n.trial.knots) {
   g12 <- plot_grid(g, g2, nrow=2, ncol=1, align='v')
   # g12
   ggsave(paste0(output.dir,'/Others ', temp.knots,'kt.png'), plot=g12, 
-         height=heights, width=widths, units='in', dpi=500)
+         height=heights, width=widths, units='in', dpi=1e3)
 }#next t
 
 #===========================================================

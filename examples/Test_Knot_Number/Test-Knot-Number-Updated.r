@@ -28,6 +28,7 @@ require(snowfall)
 require(ggplot2)
 require(cowplot)
 require(xlsx)
+require(ggthemes)
 
 
 source("R/calc-design-based-index.r")
@@ -341,7 +342,7 @@ if(survey=='GOA') { plot.list <- plot.list[-which(plot.list$Year==2001 & plot.li
 plot.list$Biomass <- plot.list$Biomass/1e3
 
 #PLOT Indices
-g <- ggplot(plot.list, aes(x=Year, y=Biomass, color=Knots, lty=Model)) +
+g <- ggplot(plot.list, aes(x=Year, y=Biomass, color=Knots, lty=Model, ymin=0)) +
        theme_gray() +
        # theme_economist() +
        theme(legend.position='right') +
@@ -360,7 +361,7 @@ g
 ggsave(paste0(output.dir,"/", survey," VAST Index Compare v DB.png"), g, height=9, width=8, units='in', dpi=dpi)
 
 #Vast Models only
-g2 <- ggplot(plot.list[plot.list$Model=='VAST',], aes(x=Year, y=Biomass, color=Knots)) +
+g2 <- ggplot(plot.list[plot.list$Model=='VAST',], aes(x=Year, y=Biomass, color=Knots, ymin=0)) +
         theme_gray() +
         geom_line() +
         theme(legend.position='right') +
@@ -390,6 +391,7 @@ g3 <- ggplot(plot.list, aes(x=Species, y=CV, fill=Knots)) +
         
 g3
 ggsave(paste0(output.dir,"/", survey," CV Compare.png"), g3, height=5, width=7, units='in', dpi=dpi)
+ggsave(paste0(getwd(),"/Output/Figs for Sept_2017 GPT/", survey," CV Compare.png"), g3, height=5, width=8, units='in', dpi=1e3)
 
 #Separate boxes
 g4 <- ggplot(plot.list, aes(x=Species, y=CV, fill=Knots)) +
@@ -404,15 +406,33 @@ g4 <- ggplot(plot.list, aes(x=Species, y=CV, fill=Knots)) +
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank()) +
   scale_fill_hue(h=scale.hues) +
-  ggtitle(paste(survey, 'Survey')) +
+  # ggtitle(paste(survey, 'Survey')) +
   facet_wrap(~Species, scales='free', nrow=2)
   
 
 
 g4
-ggsave(paste0(output.dir,"/", survey," CV Compare_2.png"), g4, height=6, width=8, units='in', dpi=dpi)
-ggsave(paste0(getwd(),"/Figs for Sept_2017 GPT/", survey, "CV Compare_2.png"), g4, height=6, width=8, units='in', dpi=dpi)
+ggsave(paste0(output.dir,"/", survey," CV Compare.png"), g4, height=6, width=8, units='in', dpi=dpi)
+ggsave(paste0(getwd(),"/Output/Figs for Sept_2017 GPT/", survey, " CV Compare_2.png"), g4, height=7, width=8, units='in', dpi=1000)
 
+#Plotting for GPT presentation
+g5 <- ggplot(plot.list, aes(x=Year, y=Biomass, color=Knots, lty=Model, ymin=0)) +
+        theme_gray() +
+        # theme_wsj() +
+        # theme_solarized() +
+        theme(legend.position='right') +
+        geom_line() +
+        facet_wrap(~Species, scales='free', ncol=3) +
+        labs(list(y='Biomass (thousands of metric tonnes)')) +
+        # ggtitle('Survey:', subtitle='Gulf of Alaska') +
+        ggtitle(paste(survey, 'Survey')) +
+        scale_color_hue(h=scale.hues) +
+        geom_line(data=plot.list[plot.list$Model=='Design-based',], color='black') +
+        geom_point(data=plot.list[plot.list$Model=='Design-based',], show.legend=FALSE, colour='black')
+
+g5
+
+ggsave(paste0(getwd(),"/Output/Figs for Sept_2017 GPT/", survey, " Index Compare.png"), g5, height=7, width=10, units='in', dpi=1000)
 # png(paste0(output.dir,'/', survey, ' Figures.png'), height=7, width=8, units='in', res=500)
 # dev.off()
 }
