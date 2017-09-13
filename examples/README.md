@@ -41,5 +41,8 @@ Simple testing script to ensure VAST inputs and design-based estimates can be ge
 * Note: Previously functions had only been tested for GOA.
 
 ***
+## Test_DeltaModel
+Script to generate stratified Delta model biomass indices, and compare with design-based estimates.
 
+***
 
