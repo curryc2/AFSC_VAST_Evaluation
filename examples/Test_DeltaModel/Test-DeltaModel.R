@@ -1,13 +1,10 @@
 #==================================================================================================
-#Project Name: VAST spatial delta-GLMM (Thorson) Evaluation: Compare Apportionment Between VAST and
-#                                                              RE Model for GOA
-#Creator: Curry James Cunningham, NOAA/NMFS, ABL
-#Date: 5.11.17
+#Project Name: VAST spatial delta-GLMM (Thorson) Evaluation: Compare VAST estimates with delta-GLMM
 #
-#Purpose: Evaluate apportionment (Eastern, Central, Western) for Gulf of Alaska RACE
-#           Bottom Trawl indices of abundance. 
-#             1) Evaluate across three alternative knot numbers
-#             2) Several specifications for autocorrelation in EC and PCR intercept
+#Creator: Curry James Cunningham, NOAA/NMFS, ABL
+#Date: 9.13.17
+#
+#Purpose: Evaluate whether differences between design-based and VAST (model-based) indices and uncertainty, is a function of the delta model structure. 
 #
 #
 #==================================================================================================
@@ -16,8 +13,7 @@
 #  b) Non-convergence with intercepts estimted as IaY i.e. ==1, independent of spatio-temporal RE specs.
 #==================================================================================================
 #TIMING:
-# [1] "### START: Tue Jul 18 15:32:25 2017"
-# [1] "### END: Wed Jul 19 01:35:23 2017"
+
 ##==================================================================================================
 
 require(VAST)
