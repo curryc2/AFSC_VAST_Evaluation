@@ -20,7 +20,7 @@
 #'
 #' @return VAST_input: Containing Data_Geostat, Spatial_List, Extrapolation_List, and TmbData
 #' @export
-create_VAST_input <- function(species.codes, lat_lon.def="mean", save.Record=TRUE,
+create_VAST_input <- function(species.codes, combineSpecies=FALSE, lat_lon.def="mean", save.Record=TRUE,
                                 Method="Mesh", grid_size_km=25, n_x=250,
                                 Kmeans_Config=list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 ),
                                 strata.limits=NULL, survey="GOA",
