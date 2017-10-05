@@ -20,8 +20,8 @@ run-RE-model.R                  | Function to call random effects model for area
 
 *  Dependency in input data creation functions (above calls below):
     + create_VAST_input()
-    ++ create_Data_Geostat()
-    +++ load_RACE_data() 
+    + create_Data_Geostat()
+    + load_RACE_data() 
     
     
     
