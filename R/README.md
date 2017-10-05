@@ -14,3 +14,15 @@ cleanup-VAST-file.r             | Simple function to remove unnecessary VAST TMB
 calc-design-based-index.R       | Calculates design-based biomass estimate from [RACE](https://www.afsc.noaa.gov/RACE/groundfish/bottom%20trawl%20surveys.php) surveys, along with Variance, SD, and CV. | Single
 get-VAST-index.r                | Simple function to retreive [VAST](https://github.com/James-Thorson/VAST) index value and variance estimates. NOTE: This function only a simplified version of the [PlotIndex_Fn.R](https://github.com/nwfsc-assess/geostatistical_delta-GLMM/blob/master/R/PlotIndex_Fn.R) function in the [SpatialDeltaGLMM](https://github.com/nwfsc-assess/geostatistical_delta-GLMM) package. | Single
 run-RE-model.R                  | Function to call random effects model for area apportionment. Builds input (.dat) file, copy and compiles ADMB-RE model, and executes.  | Single         
+
+***
+### Notes:
+
+*  Dependency in input data creation functions (above calls below):
+    + create_VAST_input()
+    ++ create_Data_Geostat()
+    +++ load_RACE_data() 
+    
+    
+    
+    
