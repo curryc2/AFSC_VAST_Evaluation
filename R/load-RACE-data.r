@@ -14,7 +14,10 @@ load_RACE_data <- function(species.codes=c(30150,30152), combineSpecies=FALSE, s
   require(dplyr)
   ###TESTING###
   species.codes <- c(30150,30152) #Pacific Cod 30420#
+  combineSpecies <- TRUE
   survey <- 'GOA'
+  writeCSV <- FALSE
+  writeDATA <- FALSE
   #############
   
   if(survey %in% c("GOA","AI","EBS_SHELF",'EBS_SLOPE')) { 
@@ -82,6 +85,19 @@ load_RACE_data <- function(species.codes=c(30150,30152), combineSpecies=FALSE, s
   #Limit to specific survey
   catchhaul.3 <- catchhaul.3[catchhaul.3$Survey==survey,]
   # catchhaul.3 <- catchhaul.3[catchhaul.3$Survey==survey & catchhaul.3$REGION.x==area,]
+  
+  #=================================================
+  #AGGREGATE CATCH BIOMASS ACROSS SPECIES CODES IN THE CASE OF A COMBINED INDEX
+  #  Dusky Rockfish Example 2 species codes to single index
+  #   Variables to combine: WEIGHT
+  if(combineSpecies==TRUE) {
+    catchhaul.4 <- data.frame(catchhaul.3 %>% group_by(HAULJOIN) %>% 
+                                mutate('WEIGHT'=sum(WEIGHT, na.rm=TRUE)))
+    #Since we have aggregated, only retain rows for 1st listed species code
+    catchhaul.5 <- catchhaul.4[catchhaul.4$SPECIES_CODE==species.codes[1],]
+  }
+  #=================================================
+  
   
   #Calculate and add Effort and CPUE
   catchhaul.3$effort <- catchhaul.3$NET_WIDTH*catchhaul.3$DISTANCE_FISHED/1000
