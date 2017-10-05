@@ -56,7 +56,8 @@ create_VAST_input <- function(species.codes, combineSpecies=FALSE, lat_lon.def="
   # Region <- "Other"
   
   #Retreive Data
-  Data_Geostat <- create_Data_Geostat(species.codes=species.codes, lat_lon.def=lat_lon.def, survey=survey) 
+  Data_Geostat <- create_Data_Geostat(species.codes=species.codes, combineSpecies=combineSpecies, 
+                                        lat_lon.def=lat_lon.def, survey=survey) 
   
   #Build Extrapolition Grid
   start.time <- date()
