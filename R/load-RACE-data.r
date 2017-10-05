@@ -100,8 +100,8 @@ load_RACE_data <- function(species.codes=c(30150,30152), combineSpecies=FALSE, s
   
   
   #Calculate and add Effort and CPUE
-  catchhaul.3$effort <- catchhaul.3$NET_WIDTH*catchhaul.3$DISTANCE_FISHED/1000
-  catchhaul.3$cpue <- catchhaul.3$WEIGHT/catchhaul.3$effort
+  catchhaul.5$effort <- catchhaul.5$NET_WIDTH*catchhaul.5$DISTANCE_FISHED/1000
+  catchhaul.5$cpue <- catchhaul.5$WEIGHT/catchhaul.5$effort
   
   #Add species name
   species.code.data <- read.csv("data/race_species_codes.csv", header=TRUE, stringsAsFactors=FALSE)
@@ -111,7 +111,7 @@ load_RACE_data <- function(species.codes=c(30150,30152), combineSpecies=FALSE, s
   # 
   # output <- left_join(x=catchhaul.3, y=species.code.data[,c("Species.Code","Common.Name")],
   #                      by=c("SPECIES_CODE"="Species.Code"))
-  output <- merge(x=catchhaul.3, y=species.code.data[,c("Species.Code","Common.Name")], 
+  output <- merge(x=catchhaul.5, y=species.code.data[,c("Species.Code","Common.Name")], 
                        by.x="SPECIES_CODE", by.y="Species.Code")
   
   #Return Section
