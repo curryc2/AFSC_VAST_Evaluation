@@ -4,6 +4,7 @@
 #' @param species.codes vector of species codes for which data will be returned
 #' @param lat_lon.def string defining how tow-specific Latitude and Longitude will be calculated
 #' @param survey string indicating the survey for which data are being extracted: GOA, AI, EBS_SHELF, EBS_SLOPE
+#' @param combineSpecies boolean indicating whether species codes should be combined into a single index (i.e. Dusky Rockfish)
 #'
 #' @return dataframe Data_Geostat with input data for VAST
 #' @export

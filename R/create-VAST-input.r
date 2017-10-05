@@ -17,6 +17,7 @@
 #' @param ObsModel 
 #' @param Options 
 #' @param save.Record boolean indicating whether or not VAST settings record is saved
+#' @param combineSpecies boolean indicating whether species codes should be combined into a single index (i.e. Dusky Rockfish)
 #'
 #' @return VAST_input: Containing Data_Geostat, Spatial_List, Extrapolation_List, and TmbData
 #' @export
@@ -131,6 +132,9 @@ create_VAST_input <- function(species.codes, combineSpecies=FALSE, lat_lon.def="
   
   return(VAST_input)
 }
+
+
+##### TESTING #####
 
 
 
