@@ -7,7 +7,7 @@
 #'
 #' @return dataframe Data_Geostat with input data for VAST
 #' @export
-create_Data_Geostat <- function(species.codes, lat_lon.def="start", survey="GOA") {
+create_Data_Geostat <- function(species.codes, combineSpecies=FALSE, lat_lon.def="start", survey="GOA") {
   ###TESTING###
   # species.codes <- c(30152)#,30420)
   # lat_lon.def <- "mean"
@@ -21,7 +21,7 @@ create_Data_Geostat <- function(species.codes, lat_lon.def="start", survey="GOA"
   if(!survey %in% c("GOA","AI","EBS_SHELF",'EBS_SLOPE')) { stop(paste("survey is:",survey,", should be one of: GOA, AI, EBS_SHELF, EBS_SLOPE"))  }
   
   #Get Data
-  load.data <- load_RACE_data(species.codes=species.codes, survey=survey)
+  load.data <- load_RACE_data(species.codes=species.codes, combineSpecies=combineSpecies, survey=survey)
   
   #Create VAST input data object
   Data_Geostat <- NULL
