@@ -46,7 +46,7 @@ strata.limits <- data.frame(STRATA = c("All_areas"))
 #DERIVED OBJECTS
 Version <-  "VAST_v2_4_0"
 ###########################
-trial.file <- paste0(getwd(),"/examples/Test_GOA_pollock/")
+trial.file <- paste0(getwd(),"/examples/Species_Specific_Case_Studies/Test_GOA_pollock")
 
 #MODEL SETTINGS
 FieldConfig = c(Omega1 = 1, Epsilon1 = 1, Omega2 = 1, Epsilon2 = 1)
