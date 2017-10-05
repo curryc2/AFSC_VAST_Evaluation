@@ -5,15 +5,16 @@
 #' @param survey string indicating the survey for which data are being extracted: GOA, AI, EBS_SHELF, EBS_SLOPE
 #' @param writeCSV boolean indicating whether "output/RACE_data_output.csv" is created
 #' @param writeDATA boolean indicating whether "output/RACE_data_output.RData" is created
+#' @param combineSpecies boolean indicating whether species codes should be combined into a single index (i.e. Dusky Rockfish)
 #'
 #' @return A data frame of RACE bottom trawl data, with rows equal to species-by-haul observations
 #' @export
-load_RACE_data <- function(species.codes=c(30152,30420), survey="GOA", writeCSV=FALSE, writeDATA=FALSE) {
+load_RACE_data <- function(species.codes=c(30150,30152), combineSpecies=FALSE, survey="GOA", writeCSV=FALSE, writeDATA=FALSE) {
   require(FishData)
   require(dplyr)
   ###TESTING###
-  # species.codes <- 21720 #Pacific Cod 30420#
-  # survey <- 'EBS_SHELF'
+  species.codes <- c(30150,30152) #Pacific Cod 30420#
+  survey <- 'GOA'
   #############
   
   if(survey %in% c("GOA","AI","EBS_SHELF",'EBS_SLOPE')) { 
