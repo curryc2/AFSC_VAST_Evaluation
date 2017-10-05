@@ -13,11 +13,11 @@ load_RACE_data <- function(species.codes=c(30150,30152), combineSpecies=FALSE, s
   require(FishData)
   require(dplyr)
   ###TESTING###
-  species.codes <- c(30150,30152) #Pacific Cod 30420#
-  combineSpecies <- TRUE
-  survey <- 'GOA'
-  writeCSV <- FALSE
-  writeDATA <- FALSE
+  # species.codes <- c(30150,30152) #Pacific Cod 30420#
+  # combineSpecies <- TRUE
+  # survey <- 'GOA'
+  # writeCSV <- FALSE
+  # writeDATA <- FALSE
   #############
   
   if(survey %in% c("GOA","AI","EBS_SHELF",'EBS_SLOPE')) { 
@@ -95,6 +95,8 @@ load_RACE_data <- function(species.codes=c(30150,30152), combineSpecies=FALSE, s
                                 mutate('WEIGHT'=sum(WEIGHT, na.rm=TRUE)))
     #Since we have aggregated, only retain rows for 1st listed species code
     catchhaul.5 <- catchhaul.4[catchhaul.4$SPECIES_CODE==species.codes[1],]
+  }else {
+    catchhaul.5 <- catchhaul.3
   }
   #=================================================
   
@@ -120,4 +122,56 @@ load_RACE_data <- function(species.codes=c(30150,30152), combineSpecies=FALSE, s
   
   return(output)
 }
+
+
+##### TESTING FUNCTION #####
+# #Northern Rockfish
+# temp <- load_RACE_data(species.codes=c(30420), combineSpecies=FALSE, survey='GOA', writeCSV=FALSE, writeDATA=FALSE)
+# dim(temp)
+# 
+# #Dusky Rockfish partial
+# temp.2 <- load_RACE_data(species.codes=c(30150), combineSpecies=FALSE, survey='GOA', writeCSV=FALSE, writeDATA=FALSE) 
+# dim(temp.2)
+# 
+# 
+# #Dusky Rockfish Complete/combined
+# temp.3 <- load_RACE_data(species.codes=c(30150,30152), combineSpecies=TRUE, survey='GOA', writeCSV=FALSE, writeDATA=FALSE)
+# dim(temp.3)
+# 
+# #Checkup
+# unique(sort(unique(temp.3$HAULJOIN))==sort(unique(temp$HAULJOIN)))
+# unique(sort(unique(temp.2$HAULJOIN))==sort(unique(temp$HAULJOIN)))
+# 
+# 
+# #Checkup figure
+# require(ggplot2)
+# require(ggthemes)
+# 
+# temp.4 <- load_RACE_data(species.codes=c(30150,30152), combineSpecies=FALSE, survey='GOA', writeCSV=FALSE, writeDATA=FALSE)
+# dim(temp.4)
+# 
+# 
+# 
+# g <- ggplot(temp.3, aes(x=Year, y=WEIGHT)) +
+#        stat_summary(fun.y=sum, geom='area', fill='blue') +
+#        stat_summary(fun.y=sum, geom='point', color='red')
+# 
+# g
+# 
+# g2 <- ggplot(temp.4, aes(x=Year, y=WEIGHT, fill=SPECIES_CODE)) +
+#         stat_summary(fun.y=sum, geom='area') +
+#         stat_summary(fun.y=sum, geom='point', color='black') +
+#         facet_wrap(~SPECIES_CODE, ncol=1)
+# 
+# g2
+# 
+# g3 <- ggplot(temp.4, aes(x=Year, y=WEIGHT, fill=SPECIES_CODE)) +
+#         stat_summary(fun.y=sum, geom='area', aes(group=SPECIES_CODE), alpha=0.5) +
+#         stat_summary(fun.y=sum, geom='point', color='black') +
+#         scale_fill_colorblind()
+# 
+# g3
+
+
+
 
