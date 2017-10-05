@@ -1,21 +1,21 @@
 #==================================================================================================
-#Project Name: VAST spatial delta-GLMM (Thorson) Evaluation: Gulf of Alaska Pollock for CIE Review
+#Project Name: VAST spatial delta-GLMM (Thorson) Evaluation: Gulf of Alaska Dusky Rockfish for Comparison to spatialDeltaGLMM()
 #Creator: Curry James Cunningham, NOAA/NMFS, ABL
 #Date: 5.22.17
 #
-#Purpose: Example implementation of VAST model for GOA Pollock
+#Purpose: Example implementation of VAST model for GOA Dusky rockfish
 #
 #
 #==================================================================================================
 #NOTES:
 #
 #==================================================================================================
- source("R/create-VAST-input.r")
- source("R/create-Data-Geostat.r")
- source("R/load-RACE-data.r")
- source("R/plot-VAST-output.r")
- source("R/cleanup-VAST-file.r")
- source("R/run-RE-model.r") 
+source("R/create-VAST-input.r")
+source("R/create-Data-Geostat.r")
+source("R/load-RACE-data.r")
+source("R/plot-VAST-output.r")
+source("R/cleanup-VAST-file.r")
+source("R/run-RE-model.r") 
 
 require(VAST)
 require(TMB)
@@ -24,7 +24,9 @@ require(TMB)
 ##### SETUP INPUT DATA #####
 
 #Generate a dataset
-species.codes <- 21740
+species.codes <- c(30150,30152)
+combineSpecies <- TRUE
+
 lat_lon.def <- "start"
 
 survey <- "GOA"
@@ -34,7 +36,7 @@ bias.correct <- FALSE
 #SPATIAL SETTINGS
 Method <- c("Grid", "Mesh", "Spherical_mesh")[2]
 grid_size_km <- 25
-n_x <- c(100, 250, 500, 1000, 2000)[1] # Number of stations
+n_x <- 100 #c(100, 250, 500, 1000, 2000)[1] # Number of stations
 Kmeans_Config <- list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )
 
 
@@ -46,7 +48,7 @@ strata.limits <- data.frame(STRATA = c("All_areas"))
 #DERIVED OBJECTS
 Version <-  "VAST_v2_4_0"
 ###########################
-trial.file <- paste0(getwd(),"/examples/Test_GOA_pollock/")
+trial.file <- paste0(getwd(),"/examples/Species_Specific_Case_Studies/Test_GOA_Dusky_rockfish/")
 
 #MODEL SETTINGS
 FieldConfig = c(Omega1 = 1, Epsilon1 = 1, Omega2 = 1, Epsilon2 = 1)
@@ -64,14 +66,15 @@ Options = c(SD_site_density = 0, SD_site_logdensity = 0,
             Calculate_Coherence = 0)
 
 
-DateFile <- paste0(trial.file,"GOA Pollock knots_",n_x," bias.correct_", bias.correct, " Rho_",RhoConfig[1],RhoConfig[2],RhoConfig[3],RhoConfig[4],"/")
+DateFile <- paste0(trial.file,"GOA Dusky rockfish knots_",n_x," bias.correct_", bias.correct, " Rho_",RhoConfig[1],RhoConfig[2],RhoConfig[3],RhoConfig[4],"/")
 #=======================================================================
 ##### READ IN DATA AND BUILD vAST INPUT #####
 
 
 
 
-VAST_input <- create_VAST_input(species.codes=species.codes, lat_lon.def=lat_lon.def, save.Record=TRUE,
+VAST_input <- create_VAST_input(species.codes=species.codes, combineSpecies=combineSpecies,
+                                     lat_lon.def=lat_lon.def, save.Record=TRUE,
                                      Method=Method, grid_size_km=grid_size_km, n_x=n_x,
                                      Kmeans_Config=Kmeans_Config,
                                      strata.limits=strata.limits, survey=survey,
