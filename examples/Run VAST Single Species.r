@@ -24,7 +24,7 @@ require(TMB)
 working.dir <- getwd()
 #Generate a dataset
 species.codes <- 30420#21740#10110 #21740# 21740 #c(30420) #Rockfish
-combineSpecies <- FALSE
+combineSpecies <- TRUE
 
 lat_lon.def <- "start"
 
@@ -70,7 +70,7 @@ Options = c(SD_site_density = 0, SD_site_logdensity = 0,
             Calculate_Cov_SE = 0, Calculate_Synchrony = 0,
             Calculate_Coherence = 0)
 
-bias.correct <- TRUE
+bias.correct <- FALSE
 
 #=======================================================================
 ##### READ IN DATA AND BUILD vAST INPUT #####
