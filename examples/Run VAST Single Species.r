@@ -33,7 +33,7 @@ survey <- "GOA"
 #SPATIAL SETTINGS
 Method <- c("Grid", "Mesh", "Spherical_mesh")[2]
 grid_size_km <- 25
-n_x <- c(100, 250, 500, 1000, 2000)[2] # Number of stations
+n_x <- c(100, 250, 500, 1000, 2000)[1] # Number of stations
 Kmeans_Config <- list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )
 
 
