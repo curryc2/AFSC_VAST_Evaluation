@@ -1,41 +1,42 @@
 #==================================================================================================
-#Project Name: VAST spatial delta-GLMM (Thorson) Evaluation: Example Script
+#Project Name: VAST spatial delta-GLMM (Thorson) Evaluation: Gulf of Alaska Dusky Rockfish for Comparison to spatialDeltaGLMM()
 #Creator: Curry James Cunningham, NOAA/NMFS, ABL
-#Date: 3.28.17
+#Date: 5.22.17
 #
-#Purpose: Example of How to Use helper functions
+#Purpose: Example implementation of VAST model for GOA Dusky rockfish
 #
 #
 #==================================================================================================
 #NOTES:
 #
 #==================================================================================================
- source("R/create-VAST-input.r")
- source("R/create-Data-Geostat.r")
- source("R/load-RACE-data.r")
- source("R/plot-VAST-output.r")
- source("R/cleanup-VAST-file.r")
- 
+source("R/create-VAST-input.r")
+source("R/create-Data-Geostat.r")
+source("R/load-RACE-data.r")
+source("R/plot-VAST-output.r")
+source("R/cleanup-VAST-file.r")
+source("R/run-RE-model.r") 
+
 require(VAST)
 require(TMB)
 
 #=======================================================================
 ##### SETUP INPUT DATA #####
-working.dir <- getwd()
+
 #Generate a dataset
-species.codes <- 30420#21740#10110 #21740# 21740 #c(30420) #Rockfish
-combineSpecies <- FALSE
+species.codes <- c(30150,30152)
+combineSpecies <- TRUE
 
 lat_lon.def <- "start"
 
 survey <- "GOA"
-#"EBS_SHELF"
-#"AI"
+
+bias.correct <- FALSE
 
 #SPATIAL SETTINGS
 Method <- c("Grid", "Mesh", "Spherical_mesh")[2]
 grid_size_km <- 25
-n_x <- c(100, 250, 500, 1000, 2000)[1] # Number of stations
+n_x <- 100 #c(100, 250, 500, 1000, 2000)[1] # Number of stations
 Kmeans_Config <- list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )
 
 
@@ -47,18 +48,12 @@ strata.limits <- data.frame(STRATA = c("All_areas"))
 #DERIVED OBJECTS
 Version <-  "VAST_v2_4_0"
 ###########################
-trial.file <- paste0(getwd(),"/examples/VAST_output/")
-dir.create(trial.file)
-
-
+trial.file <- paste0(getwd(),"/examples/Species_Specific_Case_Studies/Test_GOA_Dusky_rockfish/")
 
 #MODEL SETTINGS
 FieldConfig = c(Omega1 = 1, Epsilon1 = 1, Omega2 = 1, Epsilon2 = 1)
-RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0)
+RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 4)
 OverdispersionConfig = c(Delta1 = 0, Delta2 = 0)
-
-DateFile <- paste0(trial.file,survey,"_",species.codes," n_x_",n_x," Rho_",
-                   RhoConfig[1],RhoConfig[2],RhoConfig[3],RhoConfig[4],"/")
 
 ObsModel = c(1, 0) #Lognormal
 # ObsModel = c(2, 0) #Gamma
@@ -70,19 +65,19 @@ Options = c(SD_site_density = 0, SD_site_logdensity = 0,
             Calculate_Cov_SE = 0, Calculate_Synchrony = 0,
             Calculate_Coherence = 0)
 
-bias.correct <- TRUE
 
+DateFile <- paste0(trial.file,"GOA Dusky rockfish knots_",n_x," bias.correct_", bias.correct, " Rho_",RhoConfig[1],RhoConfig[2],RhoConfig[3],RhoConfig[4],"/")
 #=======================================================================
 ##### READ IN DATA AND BUILD vAST INPUT #####
 
 
 
 
-VAST_input <- create_VAST_input(species.codes=species.codes, combineSpecies=combineSpecies, 
+VAST_input <- create_VAST_input(species.codes=species.codes, combineSpecies=combineSpecies,
                                      lat_lon.def=lat_lon.def, save.Record=TRUE,
                                      Method=Method, grid_size_km=grid_size_km, n_x=n_x,
                                      Kmeans_Config=Kmeans_Config,
-                                     strata.limits=NULL, survey=survey,
+                                     strata.limits=strata.limits, survey=survey,
                                      DateFile=DateFile,
                                      FieldConfig, RhoConfig, OverdispersionConfig,
                                      ObsModel, Options)
@@ -112,7 +107,6 @@ Obj <- TmbList[["Obj"]]
 Opt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
                           upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
                           bias.correct = bias.correct)
-
 #Save output
 Report = Obj$report()
 Save = list("Opt"=Opt, "Report"=Report, "ParHat"=Obj$env$parList(Opt$par), "TmbData"=TmbData)
@@ -125,6 +119,24 @@ plot_VAST_output(Opt, Report, DateFile, survey, TmbData, Data_Geostat, Extrapola
 #========================================================================
 ##### CLEAN UP MODEL FILES #####
 # cleanup_VAST_file(DateFile, Version=Version)
+
+
+
+#========================================================================
+##### APPORTIONMENT #####
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # 
 # 
@@ -236,5 +248,3 @@ plot_VAST_output(Opt, Report, DateFile, survey, TmbData, Data_Geostat, Extrapola
 # SpatialDeltaGLMM::Plot_range_shifts(Report = Report,
 #                                     TmbData = TmbData, Sdreport = Opt[["SD"]], Znames = colnames(TmbData$Z_xm),
 #                                     PlotDir = DateFile, Year_Set = Year_Set)
-
-setwd(working.dir)
