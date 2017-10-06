@@ -70,7 +70,7 @@ Options = c(SD_site_density = 0, SD_site_logdensity = 0,
             Calculate_Cov_SE = 0, Calculate_Synchrony = 0,
             Calculate_Coherence = 0)
 
-bias.correct <- TRUE
+bias.correct <- FALSE
 
 #=======================================================================
 ##### READ IN DATA AND BUILD vAST INPUT #####
@@ -84,8 +84,9 @@ VAST_input <- create_VAST_input(species.codes=species.codes, combineSpecies=comb
                                      Kmeans_Config=Kmeans_Config,
                                      strata.limits=NULL, survey=survey,
                                      DateFile=DateFile,
-                                     FieldConfig, RhoConfig, OverdispersionConfig,
-                                     ObsModel, Options)
+                                     FieldConfig=FieldConfig, RhoConfig=RhoConfig, 
+                                     OverdispersionConfig=OverdispersionConfig,
+                                     ObsModel=ObsModel, Options=Options)
 
 #Unpack
 TmbData <- VAST_input$TmbData
