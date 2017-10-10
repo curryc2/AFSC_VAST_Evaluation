@@ -24,7 +24,7 @@ require(TMB)
 working.dir <- getwd()
 #Generate a dataset
 species.codes <- 30420#21740#10110 #21740# 21740 #c(30420) #Rockfish
-combineSpecies <- TRUE
+combineSpecies <- FALSE
 
 lat_lon.def <- "start"
 
@@ -45,7 +45,7 @@ strata.limits <- data.frame(STRATA = c("All_areas"))
 
 
 #DERIVED OBJECTS
-Version <-  "VAST_v2_4_0"
+Version <-  "VAST_v2_8_0"
 ###########################
 trial.file <- paste0(getwd(),"/examples/VAST_output/")
 dir.create(trial.file)
