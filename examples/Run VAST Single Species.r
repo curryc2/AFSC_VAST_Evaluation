@@ -24,7 +24,7 @@ require(TMB)
 working.dir <- getwd()
 #Generate a dataset
 species.codes <- 30420#21740#10110 #21740# 21740 #c(30420) #Rockfish
-combineSpecies <- FALSE
+combineSpecies <- TRUE
 
 lat_lon.def <- "start"
 
