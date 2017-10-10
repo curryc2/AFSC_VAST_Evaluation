@@ -46,13 +46,13 @@ strata.limits <- data.frame(STRATA = c("All_areas"))
 
 
 #DERIVED OBJECTS
-Version <-  "VAST_v2_4_0"
+Version <-  "VAST_v2_8_0"
 ###########################
 trial.file <- paste0(getwd(),"/examples/Species_Specific_Case_Studies/Test_GOA_Dusky_rockfish/")
 
 #MODEL SETTINGS
 FieldConfig = c(Omega1 = 1, Epsilon1 = 1, Omega2 = 1, Epsilon2 = 1)
-RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 4)
+RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0)
 OverdispersionConfig = c(Delta1 = 0, Delta2 = 0)
 
 ObsModel = c(1, 0) #Lognormal
@@ -114,100 +114,81 @@ save(Save, file=paste0(DateFile,"Save.RData"))
 
 #========================================================================
 ##### DIAGNOSTIC AND PREDICTION PLOTS #####
-plot_VAST_output(Opt, Report, DateFile, survey, TmbData, Data_Geostat, Extrapolation_List, Spatial_List)
+# plot_VAST_output(Opt, Report, DateFile, survey, TmbData, Data_Geostat, Extrapolation_List, Spatial_List)
 
 #========================================================================
 ##### CLEAN UP MODEL FILES #####
 # cleanup_VAST_file(DateFile, Version=Version)
 
 
-
-#========================================================================
-##### APPORTIONMENT #####
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# 
-# 
 # #========================================================================
 # ##### DIAGNOSTIC PLOTS #####
 # 
-# #Plot spatial distribution of data
-# SpatialDeltaGLMM::Plot_data_and_knots(Extrapolation_List = Extrapolation_List,
-#                                       Spatial_List = Spatial_List, Data_Geostat = Data_Geostat,
-#                                       PlotDir = DateFile)
-# 
-# #Diagnostics for Encounter Probability
-# #  "Diag--Encounter_prob"
-# Enc_prob = SpatialDeltaGLMM::Check_encounter_prob(Report = Report,
-#                                                   Data_Geostat = Data_Geostat,
-#                                                   DirName = DateFile)
-# 
-# #Diagnostics for positive-catch-rate component
-# Q = SpatialDeltaGLMM::QQ_Fn(TmbData = TmbData, Report = Report,
-#                             FileName_PP = paste0(DateFile, "Posterior_Predictive.jpg"),
-#                             FileName_Phist = paste0(DateFile, "Posterior_Predictive-Histogram.jpg"),
-#                             FileName_QQ = paste0(DateFile, "Q-Q_plot.jpg"),
-#                             FileName_Qhist = paste0(DateFile, "Q-Q_hist.jpg"))
-# 
-# 
-# #Diagnostics for plotting residuals on a map
-# 
-# 
-# MapDetails_List = SpatialDeltaGLMM::MapDetails_Fn( "Region"=Region,
-#                                                    "NN_Extrap"=Spatial_List$PolygonList$NN_Extrap,
-#                                                    "Extrapolation_List"=Extrapolation_List )
-# 
-# #Which Years to Include
-# Year_Set = seq(min(Data_Geostat[,'Year']),max(Data_Geostat[,'Year']))
-# Years2Include = which( Year_Set %in% sort(unique(Data_Geostat[,'Year'])))
-# 
-# #Or just include years with observations
-# 
-# #Plot Pearson Residuals
-# #  Look for spatial patterns-- indication of "overshrinking"
-# #  Creates "maps--" files
-# SpatialDeltaGLMM:::plot_residuals(Lat_i = Data_Geostat[,"Lat"], Lon_i = Data_Geostat[, "Lon"], TmbData = TmbData,
-#                                   Report = Report, Q = Q, savedir = DateFile, MappingDetails = MapDetails_List[["MappingDetails"]],
-#                                   PlotDF = MapDetails_List[["PlotDF"]], MapSizeRatio = MapDetails_List[["MapSizeRatio"]],
-#                                   Xlim = MapDetails_List[["Xlim"]], Ylim = MapDetails_List[["Ylim"]],
-#                                   FileName = DateFile, Year_Set = Year_Set, Years2Include = Years2Include,
-#                                   Rotate = MapDetails_List[["Rotate"]], Cex = MapDetails_List[["Cex"]],
-#                                   Legend = MapDetails_List[["Legend"]], zone = MapDetails_List[["Zone"]],
-#                                   mar = c(0, 0, 2, 0), oma = c(3.5, 3.5, 0, 0), cex = 1.8)
-# 
-# 
-# 
-# 
-# #========================================================================
-# ##### MODEL OUTPUT PLOTS #####
-# 
-# #Direction of "geometric anisotropy"
-# SpatialDeltaGLMM::PlotAniso_Fn(FileName = paste0(DateFile,"Aniso.png"),
-#                                Report = Report, TmbData = TmbData)
-# 
-# #Density Surface for Each Year -- "Dens"
-# SpatialDeltaGLMM::PlotResultsOnMap_Fn(plot_set = c(3),
-#                                       MappingDetails = MapDetails_List[["MappingDetails"]],
-#                                       Report = Report, Sdreport = Opt$SD, PlotDF = MapDetails_List[["PlotDF"]],
-#                                       MapSizeRatio = MapDetails_List[["MapSizeRatio"]],
-#                                       Xlim = MapDetails_List[["Xlim"]], Ylim = MapDetails_List[["Ylim"]],
-#                                       FileName = DateFile, Year_Set = Year_Set, Years2Include = Years2Include,
-#                                       Rotate = MapDetails_List[["Rotate"]], Cex = MapDetails_List[["Cex"]],
-#                                       Legend = MapDetails_List[["Legend"]], zone = MapDetails_List[["Zone"]],
-#                                       mar = c(0, 0, 2, 0), oma = c(3.5, 3.5, 0, 0), cex = 1.8,
-#                                       plot_legend_fig = TRUE)
+#Plot spatial distribution of data
+SpatialDeltaGLMM::Plot_data_and_knots(Extrapolation_List = Extrapolation_List,
+                                      Spatial_List = Spatial_List, Data_Geostat = Data_Geostat,
+                                      PlotDir = DateFile)
+
+#Diagnostics for Encounter Probability
+#  "Diag--Encounter_prob"
+Enc_prob = SpatialDeltaGLMM::Check_encounter_prob(Report = Report,
+                                                  Data_Geostat = Data_Geostat,
+                                                  DirName = DateFile)
+
+#Diagnostics for positive-catch-rate component - WARNINGS
+Q = SpatialDeltaGLMM::QQ_Fn(TmbData = TmbData, Report = Report,
+                            FileName_PP = paste0(DateFile, "Posterior_Predictive.jpg"),
+                            FileName_Phist = paste0(DateFile, "Posterior_Predictive-Histogram.jpg"),
+                            FileName_QQ = paste0(DateFile, "Q-Q_plot.jpg"),
+                            FileName_Qhist = paste0(DateFile, "Q-Q_hist.jpg"))
+
+
+#Diagnostics for plotting residuals on a map
+
+
+MapDetails_List = SpatialDeltaGLMM::MapDetails_Fn( "Region"=Region,
+                                                   "NN_Extrap"=Spatial_List$PolygonList$NN_Extrap,
+                                                   "Extrapolation_List"=Extrapolation_List )
+
+#Which Years to Include
+Year_Set = seq(min(Data_Geostat[,'Year']),max(Data_Geostat[,'Year']))
+Years2Include = which( Year_Set %in% sort(unique(Data_Geostat[,'Year'])))
+
+#Or just include years with observations
+
+#Plot Pearson Residuals - NOT WORKING
+#  Look for spatial patterns-- indication of "overshrinking"
+#  Creates "maps--" files
+SpatialDeltaGLMM:::plot_residuals(Lat_i = Data_Geostat[,"Lat"], Lon_i = Data_Geostat[, "Lon"], TmbData = TmbData,
+                                  Report = Report, Q = Q, savedir = DateFile, MappingDetails = MapDetails_List[["MappingDetails"]],
+                                  PlotDF = MapDetails_List[["PlotDF"]], MapSizeRatio = MapDetails_List[["MapSizeRatio"]],
+                                  Xlim = MapDetails_List[["Xlim"]], Ylim = MapDetails_List[["Ylim"]],
+                                  FileName = DateFile, Year_Set = Year_Set, Years2Include = Years2Include,
+                                  Rotate = MapDetails_List[["Rotate"]], Cex = MapDetails_List[["Cex"]],
+                                  Legend = MapDetails_List[["Legend"]], zone = MapDetails_List[["Zone"]],
+                                  mar = c(0, 0, 2, 0), oma = c(3.5, 3.5, 0, 0), cex = 1.8)
+
+
+
+
+#========================================================================
+##### MODEL OUTPUT PLOTS #####
+
+#Direction of "geometric anisotropy"
+SpatialDeltaGLMM::PlotAniso_Fn(FileName = paste0(DateFile,"Aniso.png"),
+                               Report = Report, TmbData = TmbData)
+
+#Density Surface for Each Year -- "Dens"
+SpatialDeltaGLMM::PlotResultsOnMap_Fn(plot_set = c(3),
+                                      MappingDetails = MapDetails_List[["MappingDetails"]],
+                                      Report = Report, Sdreport = Opt$SD, PlotDF = MapDetails_List[["PlotDF"]],
+                                      MapSizeRatio = MapDetails_List[["MapSizeRatio"]],
+                                      Xlim = MapDetails_List[["Xlim"]], Ylim = MapDetails_List[["Ylim"]],
+                                      FileName = DateFile, Year_Set = Year_Set, Years2Include = Years2Include,
+                                      Rotate = MapDetails_List[["Rotate"]], Cex = MapDetails_List[["Cex"]],
+                                      Legend = MapDetails_List[["Legend"]], zone = MapDetails_List[["Zone"]],
+                                      mar = c(0, 0, 2, 0), oma = c(3.5, 3.5, 0, 0), cex = 1.8,
+                                      plot_legend_fig = TRUE)
 # 
 # 
 # 
