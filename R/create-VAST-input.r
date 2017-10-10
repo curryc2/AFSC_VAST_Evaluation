@@ -17,10 +17,11 @@
 #' @param ObsModel 
 #' @param Options 
 #' @param save.Record boolean indicating whether or not VAST settings record is saved
+#' @param combineSpecies boolean indicating whether species codes should be combined into a single index (i.e. Dusky Rockfish)
 #'
 #' @return VAST_input: Containing Data_Geostat, Spatial_List, Extrapolation_List, and TmbData
 #' @export
-create_VAST_input <- function(species.codes, lat_lon.def="mean", save.Record=TRUE,
+create_VAST_input <- function(species.codes, combineSpecies=FALSE, lat_lon.def="mean", save.Record=TRUE,
                                 Method="Mesh", grid_size_km=25, n_x=250,
                                 Kmeans_Config=list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 ),
                                 strata.limits=NULL, survey="GOA",
@@ -56,7 +57,8 @@ create_VAST_input <- function(species.codes, lat_lon.def="mean", save.Record=TRU
   # Region <- "Other"
   
   #Retreive Data
-  Data_Geostat <- create_Data_Geostat(species.codes=species.codes, lat_lon.def=lat_lon.def, survey=survey) 
+  Data_Geostat <- create_Data_Geostat(species.codes=species.codes, combineSpecies=combineSpecies, 
+                                        lat_lon.def=lat_lon.def, survey=survey) 
   
   #Build Extrapolition Grid
   start.time <- date()
@@ -130,6 +132,9 @@ create_VAST_input <- function(species.codes, lat_lon.def="mean", save.Record=TRU
   
   return(VAST_input)
 }
+
+
+##### TESTING #####
 
 
 

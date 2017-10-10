@@ -23,7 +23,9 @@ require(TMB)
 ##### SETUP INPUT DATA #####
 working.dir <- getwd()
 #Generate a dataset
-species.codes <- 30060#30420#21740#10110 #21740# 21740 #c(30420) #Rockfish
+species.codes <- 30420#21740#10110 #21740# 21740 #c(30420) #Rockfish
+combineSpecies <- FALSE
+
 lat_lon.def <- "start"
 
 survey <- "GOA"
@@ -33,7 +35,7 @@ survey <- "GOA"
 #SPATIAL SETTINGS
 Method <- c("Grid", "Mesh", "Spherical_mesh")[2]
 grid_size_km <- 25
-n_x <- c(100, 250, 500, 1000, 2000)[2] # Number of stations
+n_x <- c(100, 250, 500, 1000, 2000)[1] # Number of stations
 Kmeans_Config <- list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )
 
 
@@ -76,13 +78,15 @@ bias.correct <- FALSE
 
 
 
-VAST_input <- create_VAST_input(species.codes=species.codes, lat_lon.def=lat_lon.def, save.Record=TRUE,
+VAST_input <- create_VAST_input(species.codes=species.codes, combineSpecies=combineSpecies, 
+                                     lat_lon.def=lat_lon.def, save.Record=TRUE,
                                      Method=Method, grid_size_km=grid_size_km, n_x=n_x,
                                      Kmeans_Config=Kmeans_Config,
                                      strata.limits=NULL, survey=survey,
                                      DateFile=DateFile,
-                                     FieldConfig, RhoConfig, OverdispersionConfig,
-                                     ObsModel, Options)
+                                     FieldConfig=FieldConfig, RhoConfig=RhoConfig, 
+                                     OverdispersionConfig=OverdispersionConfig,
+                                     ObsModel=ObsModel, Options=Options)
 
 #Unpack
 TmbData <- VAST_input$TmbData
