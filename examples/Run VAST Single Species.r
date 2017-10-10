@@ -43,7 +43,7 @@ strata.limits <- data.frame(STRATA = c("All_areas"))
 
 
 #DERIVED OBJECTS
-Version <-  "VAST_v2_4_0"
+Version <-  "VAST_v2_8_0"
 ###########################
 trial.file <- paste0(getwd(),"/examples/VAST_output/")
 dir.create(trial.file)
@@ -68,7 +68,7 @@ Options = c(SD_site_density = 0, SD_site_logdensity = 0,
             Calculate_Cov_SE = 0, Calculate_Synchrony = 0,
             Calculate_Coherence = 0)
 
-bias.correct <- TRUE
+bias.correct <- FALSE
 
 #=======================================================================
 ##### READ IN DATA AND BUILD vAST INPUT #####
