@@ -86,7 +86,7 @@ VAST_input <- create_VAST_input(species.codes=species.codes, combineSpecies=comb
                                      DateFile=DateFile,
                                      FieldConfig=FieldConfig, RhoConfig=RhoConfig, 
                                      OverdispersionConfig=OverdispersionConfig,
-                                     ObsModel=ObsModel, Options=Options)
+                                     ObsModel=ObsModel, Options=Options, Version=Version)
 
 #Unpack
 TmbData <- VAST_input$TmbData
