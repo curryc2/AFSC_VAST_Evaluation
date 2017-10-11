@@ -52,6 +52,8 @@ load_RACE_data <- function(species.codes=c(30150,30152), combineSpecies=FALSE, s
   # load("data/race_base_haul.RData")
   catch <- readRDS("data/race_base_catch.rds")
   haul <- readRDS("data/race_base_haul.rds")
+  #Limit to only certified abundance hauls
+  haul <- haul[haul$ABUNDANCE_HAUL=='Y',]
   
   #Merge data
   # catchhaul <- merge(x=catch, y=haul, all.y=TRUE, all.x=FALSE, by.x="HAULJOIN", by.y="HAULJOIN")
