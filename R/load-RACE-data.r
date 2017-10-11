@@ -46,9 +46,10 @@ load_RACE_data <- function(species.codes=c(30150,30152), combineSpecies=FALSE, s
   if(file.exists("data/race_cruise_info.csv")==FALSE) { stop("data/race_cruise_info.csv NOT FOUND") }
   
   #Load catch and haul data
-  load("data/race_base_catch.RData")
-  load("data/race_base_haul.RData")
-
+  # load("data/race_base_catch.RData")
+  # load("data/race_base_haul.RData")
+  catch <- readRDS("data/race_base_catch.rds")
+  haul <- readRDS("data/race_base_haul.rds")
   
   #Merge data
   # catchhaul <- merge(x=catch, y=haul, all.y=TRUE, all.x=FALSE, by.x="HAULJOIN", by.y="HAULJOIN")
