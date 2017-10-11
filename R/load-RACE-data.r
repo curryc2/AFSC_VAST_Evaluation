@@ -40,8 +40,10 @@ load_RACE_data <- function(species.codes=c(30150,30152), combineSpecies=FALSE, s
   
   #FOR NEW .RData INPUT
   #Opening section to determine suitability
-  if(file.exists("data/race_base_haul.RData")==FALSE) { stop("data/race_base_haul.RData NOT FOUND") }
-  if(file.exists("data/race_base_catch.RData")==FALSE) { stop("data/race_base_catch.RData NOT FOUND") }
+  # if(file.exists("data/race_base_haul.RData")==FALSE) { stop("data/race_base_haul.RData NOT FOUND") }
+  # if(file.exists("data/race_base_catch.RData")==FALSE) { stop("data/race_base_catch.RData NOT FOUND") }
+  if(file.exists("data/race_base_haul.rds")==FALSE) { stop("data/race_base_haul.rds NOT FOUND") }
+  if(file.exists("data/race_base_catch.rds")==FALSE) { stop("data/race_base_catch.rds NOT FOUND") }
   if(file.exists("data/race_species_codes.csv")==FALSE) { stop("data/race_species_codes.csv NOT FOUND") }
   if(file.exists("data/race_cruise_info.csv")==FALSE) { stop("data/race_cruise_info.csv NOT FOUND") }
   
