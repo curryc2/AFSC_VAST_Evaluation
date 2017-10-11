@@ -18,6 +18,7 @@
 #' @param Options 
 #' @param save.Record boolean indicating whether or not VAST settings record is saved
 #' @param combineSpecies boolean indicating whether species codes should be combined into a single index (i.e. Dusky Rockfish)
+#' @param Version version number for VAST cpp
 #'
 #' @return VAST_input: Containing Data_Geostat, Spatial_List, Extrapolation_List, and TmbData
 #' @export
@@ -27,12 +28,12 @@ create_VAST_input <- function(species.codes, combineSpecies=FALSE, lat_lon.def="
                                 strata.limits=NULL, survey="GOA",
                                 DateFile=paste0(getwd(),'/VAST_output/'),
                                 FieldConfig, RhoConfig, OverdispersionConfig,
-                                ObsModel, Options) {
+                                ObsModel, Options, Version=Version) {
   
   # source('R/create-Data-Geostat.r')
   
   #vERSION NUMBER
-  Version  <- "VAST_v2_4_0"
+  # Version  <- "VAST_v2_4_0"
   
   #DATA Set
   Data_Set <- "VAST_EVAL"
@@ -99,7 +100,7 @@ create_VAST_input <- function(species.codes, combineSpecies=FALSE, lat_lon.def="
   
   #Build VAST model data input
   
-  if(length(species.codes) > 1) {
+  if(length(species.codes) > 1 & combineSpecies==FALSE) {
     #MULTISPECIES
     TmbData <- VAST::Data_Fn(Version=Version, FieldConfig=FieldConfig, 
                       OverdispersionConfig=OverdispersionConfig,
