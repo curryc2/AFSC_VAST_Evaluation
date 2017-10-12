@@ -42,7 +42,7 @@ source("R/cleanup-VAST-file.r")
 working.dir <- paste0(getwd(),'/examples/Test_Obs_Model')
 
 #Determine species list
-species.list <- read.csv("data/eval_species_list.csv")
+species.list <- read.csv("data/eval_species_list.csv", stringsAsFactors=FALSE)
 
 #Limit species included
 species.list <- species.list[species.list$include=='Y',]
@@ -124,9 +124,9 @@ species_wrapper_fxn <- function(s) {
   #  NOTE: this will create the DateFile
   
   VAST_input <- create_VAST_input(species.codes=species.codes, lat_lon.def=lat_lon.def, save.Record=TRUE,
-                                  Method="Mesh", grid_size_km=25, n_X=250,
-                                  Kmeans_Config=list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 ),
-                                  strata.limits=NULL, Region="Gulf_of_Alaska",
+                                  Method=Method, grid_size_km=grid_size_km, n_X=n_x,
+                                  Kmeans_Config=Kmeans_Config,
+                                  strata.limits=strata.limits, Region=Region,
                                   DateFile=DateFile,
                                   FieldConfig, RhoConfig, OverdispersionConfig,
                                   ObsModel, Options)

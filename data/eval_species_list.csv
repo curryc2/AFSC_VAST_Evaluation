@@ -1,12 +1,17 @@
-number,name,species.code,include
-1,Pacific ocean perch,30060,Y
-2,Walleye pollock,21740,Y
-3,Pacific cod,21720,Y
-4,Northern rockfish,30420,Y
-5,Dusky rockfish,30152,N
-6,Dover sole,10180,Y
-7,Big skate,420,Y
-8,Atka mackerel,21921,Y
-9,Harlequin rockfish,30535,Y
-10,Arrowtooth flounder,10110,Y
-11,Spiny dogfish,310,Y
+number,name,species.code,include,survey,Region
+1,Pacific ocean perch,30060,Y,GOA,Gulf_of_Alaska
+2,Pacific ocean perch,30060,Y,AI,Aleutian_Islands
+3,Walleye pollock,21740,Y,GOA,Gulf_of_Alaska
+4,Walleye pollock,21740,Y,AI,Aleutian_Islands
+5,Pacific cod,21720,Y,GOA,Gulf_of_Alaska
+6,Pacific cod,21720,N,EBS_SHELF,Eastern_Bering_Sea
+7,Pacific cod,21720,Y,AI,Aleutian_Islands
+8,Northern rockfish,30420,Y,GOA,Gulf_of_Alaska
+9,Northern rockfish,30420,Y,AI,Aleutian_Islands
+10,Dover sole,10180,Y,GOA,Gulf_of_Alaska
+11,Big skate,420,Y,GOA,Gulf_of_Alaska
+12,Atka mackerel,21921,Y,AI,Aleutian_Islands
+13,Harlequin rockfish,30535,Y,GOA,Gulf_of_Alaska
+14,Arrowtooth flounder,10110,Y,GOA,Gulf_of_Alaska
+15,Arrowtooth flounder,10110,Y,EBS_SHELF,Eastern_Bering_Sea
+16,Spiny dogfish,310,Y,GOA,Gulf_of_Alaska

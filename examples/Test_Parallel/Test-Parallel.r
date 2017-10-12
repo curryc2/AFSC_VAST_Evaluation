@@ -13,7 +13,10 @@
 #
 #==================================================================================================
 #NOTES:
-#
+# Timings:
+#  100 n_X, and no bias cor
+# [1] "START: Tue May 02 09:00:52 2017"
+# [1] "End: Tue May 02 09:14:15 2017"
 #==================================================================================================
 require(snowfall)
 require(parallel)
@@ -24,16 +27,21 @@ require(VAST)
 
 #Source necessary files
 source("R/create-VAST-input.r")
+source("R/create-Data-Geostat.r")
+source("R/load-RACE-data.r")
 source("R/plot-VAST-output.r")
+source("R/cleanup-VAST-file.r")
 
 #Create testing directory
-parallel.dir <- paste0(getwd(),'/examples/Test_Parallel')
+home.dir <- getwd()
+working.dir <- paste0(home.dir,'/examples/Test_Parallel')
 
 #Determine species list
-species.list <- read.csv("data/eval_species_list.csv")
+species.list <- read.csv("data/eval_species_list.csv", stringsAsFactors=FALSE)
 #Limit to those included
 species.list <- species.list[species.list$include=='Y',]
 
+#NOTE: This now represents speciesXsurvey
 n.species <- nrow(species.list)
 species.series <- c(1:n.species)
 
@@ -45,24 +53,26 @@ n.cores <- detectCores()-1
 #=======================================================================
 ##### VAST MODEL SPECIFICATIONS #####
 
-lat_lon.def="mean"
+lat_lon.def <- "start"
 
 #SPATIAL SETTINGS
 Method = c("Grid", "Mesh", "Spherical_mesh")[2]
 grid_size_km = 25
-n_x = c(100, 250, 500, 1000, 2000)[2] # Number of stations
+n_x = c(100, 250, 500, 1000, 2000)[1] # Number of stations
 Kmeans_Config = list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )
 
 
 #SET SRATIFICATOIN
 #Basic - Single Area
-strata.limits <- data.frame(STRATA = c("All_areas"),
-                            west_border = c(-Inf),
-                            east_border = c(Inf))
+strata.limits <- data.frame(STRATA = c("All_areas"))#,
+                            # west_border = c(-Inf),
+                            # east_border = c(Inf))
 
 
 #DERIVED OBJECTS
-Region = "Gulf_of_Alaska"
+Version <-  "VAST_v2_4_0"
+
+bias.correct <- FALSE
 ###########################
 # DateFile=paste0(getwd(),'/examples/VAST_output/')
 
@@ -89,24 +99,25 @@ Options = c(SD_site_density = 0, SD_site_logdensity = 0,
 #Temporary wrapper function for species
 # s <- 1 #S is for species number
 species_wrapper_fxn <- function(s) {
-  
+# for(s in 1:n.species) {  
   #Define file for analyses
-  DateFile <- paste0(parallel.dir,"/",species.list$name[s],"/")
+  DateFile <- paste0(working.dir,"/",species.list$survey[s],"_",species.list$name[s],"/")
   
   #Define species.codes
   species.codes <- species.list$species.code[s]
-  
+  survey <- species.list$survey[s]
   #=======================================================================
   ##### READ IN DATA AND BUILD VAST INPUT #####
   #  NOTE: this will create the DateFile
   
   VAST_input <- create_VAST_input(species.codes=species.codes, lat_lon.def=lat_lon.def, save.Record=TRUE,
-                                  Method="Mesh", grid_size_km=25, n_X=250,
-                                  Kmeans_Config=list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 ),
-                                  strata.limits=NULL, Region="Gulf_of_Alaska",
+                                  Method=Method, grid_size_km=grid_size_km, n_x=n_x,
+                                  Kmeans_Config=Kmeans_Config,
+                                  strata.limits=NULL, survey=survey,
                                   DateFile=DateFile,
                                   FieldConfig, RhoConfig, OverdispersionConfig,
                                   ObsModel, Options)
+  
   
   
   
@@ -132,15 +143,15 @@ species_wrapper_fxn <- function(s) {
   
   Opt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
                              upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
-                             bias.correct = FALSE)
+                             bias.correct = bias.correct)
   #Save output
   Report = Obj$report()
   Save = list("Opt"=Opt, "Report"=Report, "ParHat"=Obj$env$parList(Opt$par), "TmbData"=TmbData)
-  save(Save, file=paste0(DateFile,"Save.RData"))
+  # save(Save, file=paste0(DateFile,"Save.RData")) #Works, but I want to save space
   
   #========================================================================
   ##### DIAGNOSTIC AND PREDICTION PLOTS #####
-  plot_VAST_output(Opt, Report, DateFile, Region, TmbData, Data_Geostat, Extrapolation_List, Spatial_List)
+  plot_VAST_output(Opt, Report, DateFile, survey, TmbData, Data_Geostat, Extrapolation_List, Spatial_List)
   
   #========================================================================
   ##### CLEANUP VAST OUTPUT #####
@@ -149,6 +160,8 @@ species_wrapper_fxn <- function(s) {
   rm("VAST_input", "TmbData", "Data_Geosta", "Spatial_List", "Extrapolation_List",
      "TmbList", "Obj", "Report", "Save")
   #========================================================================
+  #Reset working directory
+  setwd(home.dir)
   ##### RETURN SECTION #####
   return(Opt$AIC)
 
@@ -156,14 +169,28 @@ species_wrapper_fxn <- function(s) {
 
 #=======================================================================
 ##### SNOWFALL CODE FOR PARALLEL #####
+start.time <- date()
+
 sfInit(parallel=TRUE, cpus=n.cores, type='SOCK')
 sfExportAll() #Exportas all global variables to cores
 sfLibrary(TMB)  #Loads a package on all nodes
 sfLibrary(VAST)
 output <- sfLapply(species.series, fun=species_wrapper_fxn)
-output.snowfall <- unlist(rbind(output))
+
+# output <- sfLapply(1:3, fun=species_wrapper_fxn)
 sfStop()
 
+output.snowfall <- unlist(rbind(output))
 
+end.time <- date()
 
+#Print timing
+print(paste('START:',start.time))
+print(paste('End:',end.time))
 
+#=======================================================================
+##### POST-HOC REMOVAL OF LARGE DATA OBJECT #####
+s <- 1
+for(s in 1:n.species) {
+  unlink(paste0(working.dir,"/",species.list$survey[s],"_",species.list$name[s],"/Save.RData"), recursive=TRUE)
+}

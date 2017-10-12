@@ -8,3 +8,8 @@ Thumbs.db
 .Rproj.user
 .Rhistory
 .RData
+*.DS_Store
+
+#Ignore Testing Examples
+# exclude everything
+examples/VAST_output/*
