@@ -18,7 +18,10 @@
 #' @param Options 
 #' @param save.Record boolean indicating whether or not VAST settings record is saved
 #' @param combineSpecies boolean indicating whether species codes should be combined into a single index (i.e. Dusky Rockfish)
+<<<<<<< HEAD
 #' @param Version version number for VAST cpp
+=======
+>>>>>>> 4600f21970c899c3a73fae1ea1a94bd5093dfa2f
 #'
 #' @return VAST_input: Containing Data_Geostat, Spatial_List, Extrapolation_List, and TmbData
 #' @export
