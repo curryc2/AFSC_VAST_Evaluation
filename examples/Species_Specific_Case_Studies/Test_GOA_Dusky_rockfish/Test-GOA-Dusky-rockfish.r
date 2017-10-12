@@ -31,12 +31,12 @@ lat_lon.def <- "start"
 
 survey <- "GOA"
 
-bias.correct <- FALSE
+bias.correct <- TRUE
 
 #SPATIAL SETTINGS
 Method <- c("Grid", "Mesh", "Spherical_mesh")[2]
 grid_size_km <- 25
-n_x <- 1000 #c(100, 250, 500, 1000, 2000)[1] # Number of stations
+n_x <- 100 #c(100, 250, 500, 1000, 2000)[1] # Number of stations
 Kmeans_Config <- list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )
 
 
