@@ -71,6 +71,9 @@ DateFile <- paste0(trial.file,"GOA Dusky rockfish knots_",n_x," bias.correct_", 
 ##### READ IN DATA AND BUILD vAST INPUT #####
 
 
+#Extract Dusy data for comparison with Dana's version 10.12.17
+temp.data <- load_RACE_data(species.codes=species.codes, combineSpecies=combineSpecies, survey=survey, writeCSV=FALSE)
+write.csv(temp.data, file=paste0(trial.file,"/Dusky rockfish Input Data Curry.csv"))
 
 
 VAST_input <- create_VAST_input(species.codes=species.codes, combineSpecies=combineSpecies,
