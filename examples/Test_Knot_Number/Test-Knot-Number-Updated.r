@@ -60,7 +60,7 @@ species.series <- c(1:n.species)
 n.cores <- detectCores()-1
 
 #Boolean for running estimation models
-do.estim <- FALSE
+do.estim <- TRUE
 
 #Trial Knot Numbers
 trial.knots <- c(100,200,300,400,500,750,1000)#seq(100, 1000, by=100)
