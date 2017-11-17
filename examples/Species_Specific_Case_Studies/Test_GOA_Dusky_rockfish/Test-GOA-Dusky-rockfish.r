@@ -30,6 +30,7 @@ combineSpecies <- TRUE
 lat_lon.def <- "start"
 
 survey <- "GOA"
+Region <- 'Gulf_of_Alaska'
 
 bias.correct <- TRUE
 
