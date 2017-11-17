@@ -60,7 +60,7 @@ species.series <- c(1:n.species)
 n.cores <- detectCores()-1
 
 #Boolean for running estimation models
-do.estim <- FALSE
+do.estim <- TRUE
 
 #Trial Knot Numbers
 trial.knots <- c(100,200,300,400,500,750,1000)#seq(100, 1000, by=100)
@@ -81,7 +81,7 @@ if(bias.correct==TRUE) {
 }
 #=======================================================================
 ##### Run VAST model  #####
-Version <- "VAST_v2_4_0"
+Version <- "VAST_v2_8_0"
 lat_lon.def <- "start"
 
 #SPATIAL SETTINGS
@@ -134,15 +134,23 @@ species_wrapper_fxn_knots <- function(s, n_x) {
   ##### READ IN DATA AND BUILD VAST INPUT #####
   #  NOTE: this will create the DateFile
   
-  VAST_input <- create_VAST_input(species.codes=species.codes, lat_lon.def=lat_lon.def, save.Record=FALSE,
+  # VAST_input <- create_VAST_input(species.codes=species.codes, lat_lon.def=lat_lon.def, save.Record=FALSE,
+  #                                 Method=Method, grid_size_km=grid_size_km, n_x=n_x,
+  #                                 Kmeans_Config=Kmeans_Config,
+  #                                 strata.limits=strata.limits, survey=survey,
+  #                                 DateFile=DateFile,
+  #                                 FieldConfig, RhoConfig, OverdispersionConfig,
+  #                                 ObsModel, Options)
+  
+  VAST_input <- create_VAST_input(species.codes=species.codes, combineSpecies=FALSE,
+                                  lat_lon.def=lat_lon.def, save.Record=FALSE,
                                   Method=Method, grid_size_km=grid_size_km, n_x=n_x,
                                   Kmeans_Config=Kmeans_Config,
                                   strata.limits=strata.limits, survey=survey,
                                   DateFile=DateFile,
-                                  FieldConfig, RhoConfig, OverdispersionConfig,
-                                  ObsModel, Options)
-  
-  
+                                  FieldConfig=FieldConfig, RhoConfig=RhoConfig,
+                                  OverdispersionConfig=OverdispersionConfig,
+                                  ObsModel=ObsModel, Options=Options, Version=Version)
   
   #Unpack
   TmbData <- VAST_input$TmbData
