@@ -611,6 +611,81 @@ write.xlsx(survey.list[survey.list$Survey=='GOA' & survey.list$Species=='Pacific
                          survey.list$Year %in% yrs.surv,],
              file=paste0(output.dir,'/GOA POP Indices.xlsx'), sheetName='plot.list')
 
+
+
+#==================================================================================
+#Plot GOA Arrowtooth for Ingrid's Assessment
+survey <- 'Gulf of Alaska'
+plot.list <- survey.list[survey.list$Survey=='GOA' & survey.list$Species=='Arrowtooth flounder',]
+yrs.surv <- sort(unique(plot.list$Year[plot.list$Model=='Design-based']))
+plot.list <- plot.list[plot.list$Year %in% yrs.surv,]
+
+#Remove 2001 from design-based results because of incomplete sampling
+plot.list <- plot.list[-which(plot.list$Year==2001 & plot.list$Model=='Design-based'),]
+plot.list <- plot.list[-which(plot.list$Year==2017 & plot.list$Model=='Design-based'),]
+
+plot.list$Biomass <- plot.list$Biomass/1e3
+
+#PLOT Indices
+g.idx <- ggplot(plot.list, aes(x=Year, y=Biomass, color=Knots, lty=Model)) +
+  # theme_gray() +
+  # theme(legend.position='bottom') +
+  # geom_line() +
+  # facet_wrap(~Species, scales='free') +
+  # labs(list(y='Biomass (thousands of metric tonnes)')) +
+  # # ggtitle('Survey:', subtitle='Gulf of Alaska') +
+  # # ggtitle(paste(survey, 'Survey')) +
+  # scale_color_hue(h=scale.hues)
+
+
+
+
+  theme_gray() +
+  # theme_wsj() +
+  # theme_solarized() +
+  geom_line() +
+  facet_wrap(~Species, scales='free', ncol=3) +
+  labs(list(y='Biomass (thousands of metric tonnes)')) +
+  # ggtitle('Survey:', subtitle='Gulf of Alaska') +
+  ggtitle(paste(survey, 'Survey')) +
+  scale_color_hue(h=scale.hues) +
+  geom_line(data=plot.list[plot.list$Model=='Design-based',], color='black') +
+  geom_point(data=plot.list[plot.list$Model=='Design-based',], show.legend=FALSE, colour='black')
+
+# g.idx
+
+g.cv <- ggplot(plot.list, aes(x=Knots, y=CV, fill=Knots)) +
+  theme_gray() +
+  # geom_boxplot(aes(lty=Model)) +
+  geom_boxplot() +
+  facet_wrap(~Species, scales='free') +
+  labs(list(y=paste('Annual Survey CV'))) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, debug=FALSE)) +
+  scale_fill_hue(h=scale.hues) +
+  # ggtitle(paste(survey, 'Survey')) +
+  
+  theme(legend.position='none')
+
+  # theme_gray() +
+  # theme(legend.position='right') +
+  # # geom_boxplot(aes(lty=Model)) +
+  # geom_boxplot(aes(color=Model)) +
+  # scale_color_colorblind() +
+  # # scale_color_hue() +
+  # labs(list(y=paste('Annual Survey CV'))) +
+  # theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, debug=FALSE)) +
+  # scale_fill_hue(h=scale.hues) +
+  # ggtitle(paste(survey, 'Survey'))
+# g.cv
+
+
+#Combine plots with gridExtra
+g.both <- plot_grid(g.idx, g.cv, nrow=1, ncol=2, rel_widths=c(3.5,1))
+g.both
+
+ggsave(paste0(output.dir,"/GOA Arrowtooth Index and CV.png"), g.both, height=5, width=8, units='in', dpi=dpi)
+
+
 #Facet
 # g.multi <- vector('list', length=n.species)
 # 
