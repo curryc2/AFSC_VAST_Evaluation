@@ -19,16 +19,23 @@
 # For 10-1000, by 100 knots
 # [1] "### START: Mon Apr 10 16:17:08 2017"
 # [1] "### END: Mon Apr 10 22:54:04 2017"
+
+#11 cores NEW knot range
+# [1] "### START: Fri Nov 17 13:14:57 2017"
+# [1] "### END: Fri Nov 17 20:59:03 2017"
+
 #==================================================================================================
 
 require(VAST)
 require(TMB)
 require(parallel)
 require(snowfall)
-require(ggplot2)
+require(tidyverse)
 require(cowplot)
 require(xlsx)
 require(ggthemes)
+require(FishData)
+
 
 
 source("R/calc-design-based-index.r")
@@ -60,7 +67,7 @@ species.series <- c(1:n.species)
 n.cores <- detectCores()-1
 
 #Boolean for running estimation models
-do.estim <- TRUE
+do.estim <- FALSE
 
 #Trial Knot Numbers
 trial.knots <- c(100,200,300,400,500,750,1000)#seq(100, 1000, by=100)
@@ -273,6 +280,8 @@ if(do.estim==TRUE) {
   print(paste('### START:', time.1))
   print(paste('### END:', time.2))
   
+  #Reset to the home directory
+  setwd(home.dir)
 }else {
   load(paste0(output.dir,"/vast_est.output.RData"))
 }
