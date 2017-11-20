@@ -61,7 +61,7 @@ species.series <- c(1:n.species)
 n.cores <- detectCores()-1
 
 #Boolean for running estimation models
-do.estim <- FALSE
+do.estim <- TRUE
 
 #Trial Knot Numbers
 trial.knots <- c(100,500)
@@ -89,7 +89,7 @@ n.trial.rho <- nrow(trial.rho)
 bias.correct <- FALSE
 #=======================================================================
 ##### Run VAST model  #####
-Version <- "VAST_v2_4_0"
+Version <- "VAST_v2_8_0"
 lat_lon.def <- "start"
 
 #SPATIAL SETTINGS
@@ -141,13 +141,23 @@ wrapper_fxn <- function(s, n_x, RhoConfig) {
   ##### READ IN DATA AND BUILD VAST INPUT #####
   #  NOTE: this will create the DateFile
   
-  VAST_input <- create_VAST_input(species.codes=species.codes, lat_lon.def=lat_lon.def, save.Record=FALSE,
+  # VAST_input <- create_VAST_input(species.codes=species.codes, lat_lon.def=lat_lon.def, save.Record=FALSE,
+  #                                 Method=Method, grid_size_km=grid_size_km, n_x=n_x,
+  #                                 Kmeans_Config=Kmeans_Config,
+  #                                 strata.limits=strata.limits, survey=survey,
+  #                                 DateFile=DateFile,
+  #                                 FieldConfig, RhoConfig, OverdispersionConfig,
+  #                                 ObsModel, Options)
+  
+  VAST_input <- create_VAST_input(species.codes=species.codes, combineSpecies=FALSE,
+                                  lat_lon.def=lat_lon.def, save.Record=FALSE,
                                   Method=Method, grid_size_km=grid_size_km, n_x=n_x,
                                   Kmeans_Config=Kmeans_Config,
                                   strata.limits=strata.limits, survey=survey,
                                   DateFile=DateFile,
-                                  FieldConfig, RhoConfig, OverdispersionConfig,
-                                  ObsModel, Options)
+                                  FieldConfig=FieldConfig, RhoConfig=RhoConfig,
+                                  OverdispersionConfig=OverdispersionConfig,
+                                  ObsModel=ObsModel, Options=Options, Version=Version)
   
   
   
