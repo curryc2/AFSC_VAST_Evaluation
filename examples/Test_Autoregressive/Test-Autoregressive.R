@@ -25,7 +25,7 @@ require(VAST)
 require(TMB)
 require(parallel)
 require(snowfall)
-require(ggplot2)
+require(tidyverse)
 require(ggthemes)
 
 
@@ -61,7 +61,7 @@ species.series <- c(1:n.species)
 n.cores <- detectCores()-1
 
 #Boolean for running estimation models
-do.estim <- TRUE
+do.estim <- FALSE
 
 #Trial Knot Numbers
 trial.knots <- c(100,500)
@@ -200,8 +200,7 @@ wrapper_fxn <- function(s, n_x, RhoConfig) {
   ##### CLEANUP VAST OUTPUT #####
   # cleanup_VAST_file(DateFile=DateFile, Version=Version) #No longer necessary as we are deleting everything at the end
   
-  rm("VAST_input", "TmbData", "Data_Geostat", "Spatial_List", "Extrapolation_List",
-     "TmbList", "Obj")#, "Save")#, "Opt", "Report")
+  rm("VAST_input", "TmbData", "Data_Geostat", "Spatial_List", "Extrapolation_List", "TmbList", "Obj")#, "Save")#, "Opt", "Report")
   
   #========================================================================
   setwd(home.dir)
@@ -262,7 +261,11 @@ if(do.estim==TRUE) {
       trial.dir <- paste0(trial.dir, "/int_",vast_rho.int[counter], " stRE_",vast_rho.stRE[counter])
       dir.create(trial.dir)
     
-    
+      
+      #=======================================================================
+      ##### TEST WRAPPER FUNCTION #####
+      # wrapper_fxn(s=1, n_x=100, RhoConfig=RhoConfig)
+       
       #=======================================================================
       ##### SNOWFALL CODE FOR PARALLEL #####
       sfInit(parallel=TRUE, cpus=n.cores, type='SOCK')
@@ -335,8 +338,10 @@ aic.vect <- vector(length=0)
 converge.vect <- vector(length=0)
 
 #Load dataset to determine which years to include
-goa.yrs <- sort(unique(load_RACE_data(species.codes=30420, survey='GOA')$Year))
-ai.yrs <- sort(unique(load_RACE_data(species.codes=30420, survey='AI')$Year))
+goa.yrs <- sort(unique(load_RACE_data(species.codes=30420,
+                                        combineSpecies=FALSE, survey='GOA')$Year))
+ai.yrs <- sort(unique(load_RACE_data(species.codes=30420,
+                        combineSpecies=FALSE, survey='AI')$Year))
 
 
 i <- 1
@@ -439,7 +444,7 @@ g <- ggplot(aic.df, aes(x=Knots, y=AIC, colour=Rho_Intercept)) +
 g <- ggplot(aic.df, aes(x=Rho_Intercept, y=AIC, colour=Knots)) +
   theme_gray() +
   # geom_point(size=5, alpha=0.5) +
-  geom_jitter()
+  geom_jitter() +
   facet_grid(Species~Survey, scales='free')
 # g
 
