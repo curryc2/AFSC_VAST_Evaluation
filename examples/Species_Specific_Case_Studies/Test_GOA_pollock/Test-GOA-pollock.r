@@ -19,6 +19,7 @@
 
 require(VAST)
 require(TMB)
+require(tidyverse)
 
 #=======================================================================
 ##### SETUP INPUT DATA #####
@@ -50,7 +51,7 @@ trial.file <- paste0(getwd(),"/examples/Species_Specific_Case_Studies/Test_GOA_p
 
 #MODEL SETTINGS
 FieldConfig = c(Omega1 = 1, Epsilon1 = 1, Omega2 = 1, Epsilon2 = 1)
-RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 4)
+RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0)
 OverdispersionConfig = c(Delta1 = 0, Delta2 = 0)
 
 ObsModel = c(1, 0) #Lognormal
