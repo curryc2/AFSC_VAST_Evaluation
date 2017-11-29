@@ -28,7 +28,7 @@ create_VAST_input <- function(species.codes, combineSpecies=FALSE, lat_lon.def="
                                 strata.limits=NULL, survey="GOA",
                                 DateFile=paste0(getwd(),'/VAST_output/'),
                                 FieldConfig, RhoConfig, OverdispersionConfig,
-                                ObsModel, Options, Version=Version) {
+                                ObsModel, Options, Version="VAST_v2_8_0") {
   
   # source('R/create-Data-Geostat.r')
   
