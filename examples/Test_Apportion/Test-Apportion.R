@@ -170,16 +170,15 @@ wrapper_fxn <- function(s, n_x, RhoConfig, n_PE, PE_vec, FieldConfig) {
   #=======================================================================
   ##### READ IN DATA AND BUILD VAST INPUT #####
   #  NOTE: this will create the DateFile
-  
-  VAST_input <- create_VAST_input(species.codes=species.codes, lat_lon.def=lat_lon.def, save.Record=FALSE,
+  VAST_input <- create_VAST_input(species.codes=species.codes, combineSpecies=FALSE,
+                                  lat_lon.def=lat_lon.def, save.Record=FALSE,
                                   Method=Method, grid_size_km=grid_size_km, n_x=n_x,
                                   Kmeans_Config=Kmeans_Config,
                                   strata.limits=strata.limits, survey=survey,
                                   DateFile=DateFile,
-                                  FieldConfig, RhoConfig, OverdispersionConfig,
-                                  ObsModel, Options)
-  
-  
+                                  FieldConfig=FieldConfig, RhoConfig=RhoConfig,
+                                  OverdispersionConfig=OverdispersionConfig,
+                                  ObsModel=ObsModel, Options=Options, Version=Version)
   
   
   #Unpack
