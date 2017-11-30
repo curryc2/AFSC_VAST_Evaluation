@@ -12,8 +12,7 @@
 
 #==================================================================================================
 #TIMING:
-# [1] "### START: Wed Nov 29 15:35:28 2017"
-# [1] "### END: Wed Nov 29 20:42:35 2017"
+
 
 
 
@@ -36,7 +35,7 @@ source("R/get-VAST-index.r")
 
 home.dir <- getwd()
 #Create working directory
-working.dir <- paste0(home.dir, "/examples/Test_DeltaModel")
+working.dir <- paste0(home.dir, "/examples/Test_Bias_Correct")
 
 #Determine species list
 species.list <- read.csv("data/eval_species_list.csv", stringsAsFactors=FALSE)
@@ -64,15 +63,12 @@ trial.knots <- c(100,500,1000)
 n.trial.knots <- length(trial.knots)
 
 #Trial RANDOM EFECTS SPECIFICATIONS specifications
-trial.RE.names <- c('None','Spatial_Only','SpatioTemporal_Only','Full')
-n.trial.RE <- length(trial.RE.names)
-trial.RE <- matrix(c(0,0,0,0,
-                     1,0,1,0,
-                     0,1,0,1,
-                     1,1,1,1), nrow=4, ncol=4, byrow=TRUE)
+trial.bias.correct <- c(FALSE,TRUE)
+n.trial.bias.correct <- length(trial.bias.correct)
+
 
 #Boolean for bias correction
-bias.correct <- FALSE
+# bias.correct <- FALSE
 #=======================================================================
 ##### Run VAST model  #####
 Version <- "VAST_v2_8_0"
@@ -90,7 +86,7 @@ Kmeans_Config = list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )
 strata.limits <- data.frame(STRATA = c("All_areas"))
 
 #MODEL SETTINGS
-# FieldConfig = c(Omega1 = 1, Epsilon1 = 1, Omega2 = 1, Epsilon2 = 1)
+FieldConfig = c(Omega1 = 1, Epsilon1 = 1, Omega2 = 1, Epsilon2 = 1)
 RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0)
 OverdispersionConfig = c(Delta1 = 0, Delta2 = 0)
 
@@ -103,7 +99,7 @@ Options = c(SD_site_density = 0, SD_site_logdensity = 0,
             Calculate_Coherence = 0)
 
 #Output Directory Name
-output.dir <- paste0(working.dir,"/output_bias.correct_",bias.correct)
+output.dir <- paste0(working.dir,"/Testing")
 dir.create(output.dir)
 
 
@@ -112,7 +108,7 @@ dir.create(output.dir)
 
 s <- 1
 # for(s in 1:n.species) {
-wrapper_fxn <- function(s, n_x, FieldConfig) {
+wrapper_fxn <- function(s, n_x, bias.correct) {
   
   #Define file for analyses
   DateFile <- paste0(trial.dir,"/",species.list$survey[s],"_",species.list$name[s],"/")
@@ -191,9 +187,9 @@ wrapper_fxn <- function(s, n_x, FieldConfig) {
 
 #=======================================================================
 ##### Loop Through Trial Knots  #####
-vast_est.output <- vector('list', length=(n.trial.knots * n.trial.RE))
-vast_knots <- vector(length=(n.trial.knots * n.trial.RE))
-vast_RE <- vector(length=(n.trial.knots * n.trial.RE))
+vast_est.output <- vector('list', length=(n.trial.knots * n.trial.bias.correct))
+vast_knots <- vector(length=(n.trial.knots * n.trial.bias.correct))
+vast_bias.correct <- vector(length=(n.trial.knots * n.trial.bias.correct))
 
 if(do.estim==TRUE) {
   
@@ -213,27 +209,21 @@ if(do.estim==TRUE) {
     n_x <- trial.knots[t]
     
     r <- 1
-    for(r in 1:n.trial.RE) {
-      print(paste('#### Trial RE Scenario Number',r,'of',n.trial.RE))
+    for(r in 1:n.trial.bias.correct) {
+      print(paste('#### Trial Bias Correct',r,'of',n.trial.bias.correct))
       
-      #Specify Spatial and Spatio-temporal RE
-      FieldConfig <- trial.RE[r,]
-      names(FieldConfig) <- c('Omega1','Epsilon1','Omega2','Epsilon2')
-      
+      bias.correct <- trial.bias.correct[r]
       #Record
-      vast_RE[counter] <- trial.RE.names[r]
+      vast_bias.correct[counter] <- bias.correct
       vast_knots[counter] <- n_x
       
       #Setup File
       trial.dir <- paste0(working.dir,"/",n_x,"_bias.corr_",bias.correct)
       dir.create(trial.dir)
-      trial.dir <- paste0(trial.dir, "/RE_",vast_RE[counter])
-      dir.create(trial.dir)
-      
       
       #=======================================================================
       ##### TEST WRAPPER FUNCTION #####
-      # wrapper_fxn(s=1, n_x=n_x, FieldConfig=FieldConfig)
+      # wrapper_fxn(s=1, n_x=n_x, bias.correct=bias.correct)
       
       #=======================================================================
       ##### SNOWFALL CODE FOR PARALLEL #####
@@ -241,7 +231,7 @@ if(do.estim==TRUE) {
       sfExportAll() #Exportas all global variables to cores
       sfLibrary(TMB)  #Loads a package on all nodes
       sfLibrary(VAST)
-      output <- sfLapply(species.series, fun=wrapper_fxn, n_x=n_x, FieldConfig=FieldConfig)
+      output <- sfLapply(species.series, fun=wrapper_fxn, n_x=n_x, bias.correct=bias.correct)
       sfStop()
       
       vast_est.output[[counter]] <- output
@@ -289,150 +279,150 @@ if(do.estim==TRUE) {
     print(i)
     vast_est.output[[i]] <- readRDS(file=paste0(output.dir, "/VAST_output_",i,".rds"))
     vast_knots[i] <- specs$vast_knots[i]
-    vast_RE[i] <- specs$vast_RE[i]
+    vast_bias.correct[i] <- specs$vast_bias.correct[i]
   }#next i
 }
 
 #=====================================================
 # Gather Data
-vast.list <- NULL
-aic.list <- NULL
-aic.vect <- vector(length=0)
-converge.vect <- vector(length=0)
-
-#Load dataset to determine which years to include
-goa.yrs <- sort(unique(load_RACE_data(species.codes=30420,
-                                      combineSpecies=FALSE, survey='GOA')$Year))
-ai.yrs <- sort(unique(load_RACE_data(species.codes=30420,
-                                     combineSpecies=FALSE, survey='AI')$Year))
-
-
-i <- 1
-for(i in 1:n.specs) {
-  s <- 1
-  for(s in 1:n.species) {
-    #Species Information
-    temp.species <- species.list$name[s]
-    temp.survey <- species.list$survey[s]
-    temp.name <- paste0(temp.survey,": ",temp.species)
-    
-    #Determine Survey years (Currently only GOA and AI)
-    if(temp.survey=='GOA') {
-      temp.yrs <- goa.yrs
-    }else {
-      temp.yrs <- ai.yrs
-    }
-    
-    #Get VAST model index
-    temp.list <- vast_est.output[[i]][[s]]$vast_est[c(1,4,6)]
-    
-    #Calculate CV
-    CV <- temp.list$SD_mt/temp.list$Estimate_metric_tons
-    
-    #Determine which are survey years
-    survey.year <- temp.list$Year %in% temp.yrs
-    
-    #Bind it
-    temp.list <- cbind(temp.list, CV, temp.survey, temp.species, temp.name, 'VAST', vast_knots[i], vast_RE[i], survey.year)
-    
-    
-    #AIC and convergence
-    #Get AIC and convergence
-    temp.aic <- cbind(temp.survey, temp.species, temp.name, 'VAST', vast_knots[i], vast_RE[i])
-    
-    aic.vect <- append(aic.vect, vast_est.output[[i]][[s]]$Opt$AIC)
-    converge.vect <- append(converge.vect, vast_est.output[[i]][[s]]$Opt$converge)
-    
-    #Combine to larger lists
-    vast.list <- rbind(vast.list, temp.list)
-    aic.list <- rbind(aic.list, temp.aic) 
-    
-    
-  }#Next species
-  
-}#next model configuration i
-
-
-#Add Design-based estimates
-db.list <- NULL
-s <- 1
-for(s in 1:n.species) {
-  #Species Information
-  temp.species <- species.list$name[s]
-  temp.survey <- species.list$survey[s]
-  temp.name <- paste0(temp.survey,": ",temp.species)
-  
-  #Determine Survey years (Currently only GOA and AI)
-  if(temp.survey=='GOA') {
-    temp.yrs <- goa.yrs
-  }else {
-    temp.yrs <- ai.yrs
-  }
-  
-  #Get design-based estimate
-  db_est <- calc_design_based_index(species.codes=species.list$species.code[s], survey=temp.survey)
-  
-  #Determine which are survey years
-  survey.year <- db_est$YEAR %in% temp.yrs  #All TRUE
-  
-  temp.name <- paste0(temp.survey,": ",temp.species)
-  temp.list <- cbind(db_est[,c(1,2,4,5)], temp.survey, temp.species, temp.name, "Design-based", 'Design-based','Design-based', survey.year)
-  #Add it
-  db.list <- rbind(db.list, temp.list)
-}#next s
-db.df <- data.frame(db.list)
-names(db.df) <- c('Year','Biomass','SD','CV','Survey','Species', 'Name','Model','Knots','RE','SurveyYear')
-
-
-#Add names
-vast.df <- data.frame(vast.list)
-names(vast.df) <- c('Year','Biomass','SD','CV','Survey','Species', 'Name','Model','Knots','RE','SurveyYear')
-
-aic.df <- data.frame(aic.list, aic.vect, converge.vect)
-names(aic.df) <- c('Survey','Species','Name','Model','Knots','RE','AIC','Converge')
-aic.df$Converge <- as.factor(aic.df$Converge)
-
-#Combine the lists
-survey.df <- rbind(vast.df,db.df)
-# survey.df$Knots <- factor(survey.df$Knots, ordered=TRUE)
-#=====================================================
-#PLOT IT OUT
-c('Walleye pollock','Pacific cod')
--which(output.df$Species %in% c('Walleye pollock','Pacific cod',rockfish))
-
-
-###### GOA Rockfish #####
-rockfish <- c('Pacific ocean perch','Northern rockfish','Harlequin rockfish')
-
-plot.list <- survey.df[survey.df$Survey==survey &
-                         survey.df$Species %in% rockfish &
-                         survey.df$SurveyYear==TRUE,]
-# yrs.surv <- sort(unique(plot.list$Year[plot.list$Model=='Design-based']))
-# plot.list <- plot.list[plot.list$Year %in% yrs.surv,]
-
-#Remove 2001 from design-based results because of incomplete sampling
-# if(survey=='GOA') { plot.list <- plot.list[-which(plot.list$Year==2001 & plot.list$Model=='Design-based'),] }
-plot.list$Biomass <- plot.list$Biomass/1e3
-
-plot.list.v <- data.frame(plot.list[plot.list$Model!='Design-based',])
-plot.list.db <-  data.frame(plot.list[plot.list$Model=='Design-based', -which(names(plot.list)=='RE')])
-
-g <- ggplot(plot.list[plot.list$Model!='Design-based',], 
-            aes(x=Year, y=Biomass, color=RE, lty=Model, ymin=0)) +
-  theme_dark() +
-  theme(legend.position='right') +
-  geom_line(lwd=1.5) +
-  geom_line(data=plot.list[plot.list$Model=='Design-based',], color='black') +
-  geom_point(data=plot.list[plot.list$Model=='Design-based',], show.legend=FALSE, colour='black') +
-  # geom_line(data=plot.list.db, color='black') +
-  # geom_point(data=plot.list.db, show.legend=FALSE, colour='black') +
-  # facet_wrap(~Species, scales='free', ncol=3) +
-  facet_grid(Species ~ Knots, scales='free') +
-  labs(list(y='Biomass (thousands of metric tonnes)')) +
-  ggtitle(paste(survey, 'Survey')) +
-  scale_color_viridis(discrete=TRUE) 
-
-
-g
-
-
+# vast.list <- NULL
+# aic.list <- NULL
+# aic.vect <- vector(length=0)
+# converge.vect <- vector(length=0)
+# 
+# #Load dataset to determine which years to include
+# goa.yrs <- sort(unique(load_RACE_data(species.codes=30420,
+#                                       combineSpecies=FALSE, survey='GOA')$Year))
+# ai.yrs <- sort(unique(load_RACE_data(species.codes=30420,
+#                                      combineSpecies=FALSE, survey='AI')$Year))
+# 
+# 
+# i <- 1
+# for(i in 1:n.specs) {
+#   s <- 1
+#   for(s in 1:n.species) {
+#     #Species Information
+#     temp.species <- species.list$name[s]
+#     temp.survey <- species.list$survey[s]
+#     temp.name <- paste0(temp.survey,": ",temp.species)
+#     
+#     #Determine Survey years (Currently only GOA and AI)
+#     if(temp.survey=='GOA') {
+#       temp.yrs <- goa.yrs
+#     }else {
+#       temp.yrs <- ai.yrs
+#     }
+#     
+#     #Get VAST model index
+#     temp.list <- vast_est.output[[i]][[s]]$vast_est[c(1,4,6)]
+#     
+#     #Calculate CV
+#     CV <- temp.list$SD_mt/temp.list$Estimate_metric_tons
+#     
+#     #Determine which are survey years
+#     survey.year <- temp.list$Year %in% temp.yrs
+#     
+#     #Bind it
+#     temp.list <- cbind(temp.list, CV, temp.survey, temp.species, temp.name, 'VAST', vast_knots[i], vast_RE[i], survey.year)
+#     
+#     
+#     #AIC and convergence
+#     #Get AIC and convergence
+#     temp.aic <- cbind(temp.survey, temp.species, temp.name, 'VAST', vast_knots[i], vast_RE[i])
+#     
+#     aic.vect <- append(aic.vect, vast_est.output[[i]][[s]]$Opt$AIC)
+#     converge.vect <- append(converge.vect, vast_est.output[[i]][[s]]$Opt$converge)
+#     
+#     #Combine to larger lists
+#     vast.list <- rbind(vast.list, temp.list)
+#     aic.list <- rbind(aic.list, temp.aic) 
+#     
+#     
+#   }#Next species
+#   
+# }#next model configuration i
+# 
+# 
+# #Add Design-based estimates
+# db.list <- NULL
+# s <- 1
+# for(s in 1:n.species) {
+#   #Species Information
+#   temp.species <- species.list$name[s]
+#   temp.survey <- species.list$survey[s]
+#   temp.name <- paste0(temp.survey,": ",temp.species)
+#   
+#   #Determine Survey years (Currently only GOA and AI)
+#   if(temp.survey=='GOA') {
+#     temp.yrs <- goa.yrs
+#   }else {
+#     temp.yrs <- ai.yrs
+#   }
+#   
+#   #Get design-based estimate
+#   db_est <- calc_design_based_index(species.codes=species.list$species.code[s], survey=temp.survey)
+#   
+#   #Determine which are survey years
+#   survey.year <- db_est$YEAR %in% temp.yrs  #All TRUE
+#   
+#   temp.name <- paste0(temp.survey,": ",temp.species)
+#   temp.list <- cbind(db_est[,c(1,2,4,5)], temp.survey, temp.species, temp.name, "Design-based", 'Design-based','Design-based', survey.year)
+#   #Add it
+#   db.list <- rbind(db.list, temp.list)
+# }#next s
+# db.df <- data.frame(db.list)
+# names(db.df) <- c('Year','Biomass','SD','CV','Survey','Species', 'Name','Model','Knots','RE','SurveyYear')
+# 
+# 
+# #Add names
+# vast.df <- data.frame(vast.list)
+# names(vast.df) <- c('Year','Biomass','SD','CV','Survey','Species', 'Name','Model','Knots','RE','SurveyYear')
+# 
+# aic.df <- data.frame(aic.list, aic.vect, converge.vect)
+# names(aic.df) <- c('Survey','Species','Name','Model','Knots','RE','AIC','Converge')
+# aic.df$Converge <- as.factor(aic.df$Converge)
+# 
+# #Combine the lists
+# survey.df <- rbind(vast.df,db.df)
+# # survey.df$Knots <- factor(survey.df$Knots, ordered=TRUE)
+# #=====================================================
+# #PLOT IT OUT
+# c('Walleye pollock','Pacific cod')
+# -which(output.df$Species %in% c('Walleye pollock','Pacific cod',rockfish))
+# 
+# 
+# ###### GOA Rockfish #####
+# rockfish <- c('Pacific ocean perch','Northern rockfish','Harlequin rockfish')
+# 
+# plot.list <- survey.df[survey.df$Survey==survey &
+#                          survey.df$Species %in% rockfish &
+#                          survey.df$SurveyYear==TRUE,]
+# # yrs.surv <- sort(unique(plot.list$Year[plot.list$Model=='Design-based']))
+# # plot.list <- plot.list[plot.list$Year %in% yrs.surv,]
+# 
+# #Remove 2001 from design-based results because of incomplete sampling
+# # if(survey=='GOA') { plot.list <- plot.list[-which(plot.list$Year==2001 & plot.list$Model=='Design-based'),] }
+# plot.list$Biomass <- plot.list$Biomass/1e3
+# 
+# plot.list.v <- data.frame(plot.list[plot.list$Model!='Design-based',])
+# plot.list.db <-  data.frame(plot.list[plot.list$Model=='Design-based', -which(names(plot.list)=='RE')])
+# 
+# g <- ggplot(plot.list[plot.list$Model!='Design-based',], 
+#             aes(x=Year, y=Biomass, color=RE, lty=Model, ymin=0)) +
+#   theme_dark() +
+#   theme(legend.position='right') +
+#   geom_line(lwd=1.5) +
+#   geom_line(data=plot.list[plot.list$Model=='Design-based',], color='black') +
+#   geom_point(data=plot.list[plot.list$Model=='Design-based',], show.legend=FALSE, colour='black') +
+#   # geom_line(data=plot.list.db, color='black') +
+#   # geom_point(data=plot.list.db, show.legend=FALSE, colour='black') +
+#   # facet_wrap(~Species, scales='free', ncol=3) +
+#   facet_grid(Species ~ Knots, scales='free') +
+#   labs(list(y='Biomass (thousands of metric tonnes)')) +
+#   ggtitle(paste(survey, 'Survey')) +
+#   scale_color_viridis(discrete=TRUE) 
+# 
+# 
+# g
+# 
+# 
