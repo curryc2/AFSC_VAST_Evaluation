@@ -9,7 +9,8 @@
 #
 #==================================================================================================
 #NOTES:
-
+# 1)  Error in checkForRemoteErrors(val) : 8 nodes produced errors; first error: Memory allocation fail in function 'MakeADHessObject2' 
+#  Suggests cannot be done in parallel, will attempt in series.
 #==================================================================================================
 #TIMING:
 
@@ -59,7 +60,7 @@ n.cores <- detectCores()-1
 do.estim <- TRUE
 
 #Trial Knot Numbers
-trial.knots <- c(100,500,1000)
+trial.knots <- c(100,250,500)
 n.trial.knots <- length(trial.knots)
 
 #Trial RANDOM EFECTS SPECIFICATIONS specifications
@@ -187,9 +188,10 @@ wrapper_fxn <- function(s, n_x, bias.correct) {
 
 #=======================================================================
 ##### Loop Through Trial Knots  #####
-vast_est.output <- vector('list', length=(n.trial.knots * n.trial.bias.correct))
-vast_knots <- vector(length=(n.trial.knots * n.trial.bias.correct))
-vast_bias.correct <- vector(length=(n.trial.knots * n.trial.bias.correct))
+vast_est.output <- vector('list', length=(n.species*n.trial.knots*n.trial.bias.correct))
+vast_knots <- vector(length=(n.species*n.trial.knots*n.trial.bias.correct))
+vast_bias.correct <- vector(length=(n.species*n.trial.knots*n.trial.bias.correct))
+vast_species <- vector(length=(n.species*n.trial.knots*n.trial.bias.correct))
 
 if(do.estim==TRUE) {
   
@@ -198,9 +200,12 @@ if(do.estim==TRUE) {
   
   #Counter for knots by rho
   counter <- 1
+s <- 1
+for(s in 1:n.species) {
   
   t <- 1
   for(t in 1:n.trial.knots) {
+    print(paste('### Trial Species Number',s,'of',n.species))
     print(paste('## Trial Knot Number',t,'of',n.trial.knots))
     print(paste('# Trial Knots:',trial.knots[t]))
     #Specify trial observation model
@@ -216,25 +221,25 @@ if(do.estim==TRUE) {
       #Record
       vast_bias.correct[counter] <- bias.correct
       vast_knots[counter] <- n_x
-      
+      vast_species[counter] <- s
       #Setup File
       trial.dir <- paste0(working.dir,"/",n_x,"_bias.corr_",bias.correct)
       dir.create(trial.dir)
       
       #=======================================================================
       ##### TEST WRAPPER FUNCTION #####
-      # wrapper_fxn(s=1, n_x=n_x, bias.correct=bias.correct)
+      output <- wrapper_fxn(s=1, n_x=n_x, bias.correct=bias.correct)
       
       #=======================================================================
       ##### SNOWFALL CODE FOR PARALLEL #####
-      sfInit(parallel=TRUE, cpus=n.cores, type='SOCK')
-      sfExportAll() #Exportas all global variables to cores
-      sfLibrary(TMB)  #Loads a package on all nodes
-      sfLibrary(VAST)
-      output <- sfLapply(species.series, fun=wrapper_fxn, n_x=n_x, bias.correct=bias.correct)
-      sfStop()
-      
-      vast_est.output[[counter]] <- output
+      # sfInit(parallel=TRUE, cpus=n.cores, type='SOCK')
+      # sfExportAll() #Exportas all global variables to cores
+      # sfLibrary(TMB)  #Loads a package on all nodes
+      # sfLibrary(VAST)
+      # output <- sfLapply(species.series, fun=wrapper_fxn, n_x=n_x, bias.correct=bias.correct)
+      # sfStop()
+      # 
+      # vast_est.output[[counter]] <- output
       
       #For Update
       # output <- vast_est.output[[counter]]
@@ -246,10 +251,10 @@ if(do.estim==TRUE) {
       counter <- counter+1
     }#next r
   }#next t
-  
+}#next s  
   #Create output directory
   #Also save specifications
-  vast_specs <- data.frame(vast_knots, vast_RE)
+  vast_specs <- data.frame(vast_species, vast_knots, vast_RE)
   write.csv(vast_specs, file=paste0(output.dir,"/vast_specs.csv"))
   
   #=======================================================================
@@ -258,7 +263,10 @@ if(do.estim==TRUE) {
   setwd(working.dir)
   t <- 1
   for(t in 1:n.trial.knots) {
-    unlink(paste0(working.dir,"/",trial.knots[t],"_bias.corr_",bias.correct), recursive=TRUE)
+    r <- 1
+    for(r in 1:n.trial.bias.correct) {
+      unlink(paste0(working.dir,"/",trial.knots[t],"_bias.corr_",trial.bias.correct[r]), recursive=TRUE)
+    }#next r
   }#next t
   
   time.2 <- date()
