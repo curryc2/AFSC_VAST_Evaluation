@@ -2,11 +2,12 @@
 #'
 #' @param species.codes vector of species codes for which data will be returned
 #' @param survey string indicating the survey for which data are being extracted: GOA, AI, EBS_SHELF, EBS_SLOPE
+#' @param combineSpecies boolean indicating whether species codes should be combined into a single index (i.e. Dusky Rockfish)
 #' @param reg.area string indicating Regulatory Area Name for 
 #'
 #' @return data frame containing annual survey biomass estimate, variance, SD, and CV.
 #' @export
-calc_design_based_index <- function(species.codes, survey, reg.area=NULL) {
+calc_design_based_index <- function(species.codes, combineSpecies=FALSE, survey, reg.area=NULL) {
   ### TESTING VALUES
   # species.codes <- 21720 #Pacific Cod
   # survey <- 'GOA'
@@ -38,7 +39,7 @@ calc_design_based_index <- function(species.codes, survey, reg.area=NULL) {
   
   
   #Load RACE survey data
-  load.data <- load_RACE_data(species.codes=species.codes, survey=survey, writeCSV=FALSE, writeDATA=FALSE)
+  load.data <- load_RACE_data(species.codes=species.codes, combineSpecies=combineSpecies, survey=survey, writeCSV=FALSE, writeDATA=FALSE)
   
   #Calculate design-based estimator
   

@@ -30,6 +30,7 @@ combineSpecies <- TRUE
 lat_lon.def <- "start"
 
 survey <- "GOA"
+Region <- 'Gulf_of_Alaska'
 
 <<<<<<< HEAD
 bias.correct <- TRUE
@@ -75,6 +76,9 @@ DateFile <- paste0(trial.file,"GOA Dusky rockfish knots_",n_x," bias.correct_", 
 ##### READ IN DATA AND BUILD vAST INPUT #####
 
 
+#Extract Dusy data for comparison with Dana's version 10.12.17
+temp.data <- load_RACE_data(species.codes=species.codes, combineSpecies=combineSpecies, survey=survey, writeCSV=FALSE)
+write.csv(temp.data, file=paste0(trial.file,"/Dusky rockfish Input Data Curry.csv"))
 
 
 VAST_input <- create_VAST_input(species.codes=species.codes, combineSpecies=combineSpecies,
@@ -83,12 +87,18 @@ VAST_input <- create_VAST_input(species.codes=species.codes, combineSpecies=comb
                                      Kmeans_Config=Kmeans_Config,
                                      strata.limits=strata.limits, survey=survey,
                                      DateFile=DateFile,
+<<<<<<< HEAD
                                      FieldConfig, RhoConfig, OverdispersionConfig,
 <<<<<<< HEAD
                                      ObsModel, Options, Version=Version)
 =======
                                      ObsModel, Options)
 >>>>>>> 4600f21970c899c3a73fae1ea1a94bd5093dfa2f
+=======
+                                     FieldConfig=FieldConfig, RhoConfig=RhoConfig,
+                                     OverdispersionConfig=OverdispersionConfig,
+                                     ObsModel=ObsModel, Options=Options, Version=Version)
+>>>>>>> develop
 
 #Unpack
 TmbData <- VAST_input$TmbData

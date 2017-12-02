@@ -19,6 +19,7 @@
 
 require(VAST)
 require(TMB)
+require(tidyverse)
 
 #=======================================================================
 ##### SETUP INPUT DATA #####
@@ -44,13 +45,13 @@ strata.limits <- data.frame(STRATA = c("All_areas"))
 
 
 #DERIVED OBJECTS
-Version <-  "VAST_v2_4_0"
+Version <-  "VAST_v2_8_0"
 ###########################
 trial.file <- paste0(getwd(),"/examples/Species_Specific_Case_Studies/Test_GOA_pollock")
 
 #MODEL SETTINGS
 FieldConfig = c(Omega1 = 1, Epsilon1 = 1, Omega2 = 1, Epsilon2 = 1)
-RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 4)
+RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0)
 OverdispersionConfig = c(Delta1 = 0, Delta2 = 0)
 
 ObsModel = c(1, 0) #Lognormal
@@ -64,21 +65,18 @@ Options = c(SD_site_density = 0, SD_site_logdensity = 0,
             Calculate_Coherence = 0)
 
 
-DateFile <- paste0(trial.file,"GOA Pollock knots_",n_x," bias.correct_", bias.correct, " Rho_",RhoConfig[1],RhoConfig[2],RhoConfig[3],RhoConfig[4],"/")
+DateFile <- paste0(trial.file,"/GOA Pollock knots_",n_x," bias.correct_", bias.correct, " Rho_",RhoConfig[1],RhoConfig[2],RhoConfig[3],RhoConfig[4],"/")
 #=======================================================================
 ##### READ IN DATA AND BUILD vAST INPUT #####
-
-
-
-
-VAST_input <- create_VAST_input(species.codes=species.codes, lat_lon.def=lat_lon.def, save.Record=TRUE,
-                                     Method=Method, grid_size_km=grid_size_km, n_x=n_x,
-                                     Kmeans_Config=Kmeans_Config,
-                                     strata.limits=strata.limits, survey=survey,
-                                     DateFile=DateFile,
-                                     FieldConfig, RhoConfig, OverdispersionConfig,
-                                     ObsModel, Options)
-
+VAST_input <- create_VAST_input(species.codes=species.codes, combineSpecies=FALSE,
+                                lat_lon.def=lat_lon.def, save.Record=FALSE,
+                                Method=Method, grid_size_km=grid_size_km, n_x=n_x,
+                                Kmeans_Config=Kmeans_Config,
+                                strata.limits=strata.limits, survey=survey,
+                                DateFile=DateFile,
+                                FieldConfig=FieldConfig, RhoConfig=RhoConfig,
+                                OverdispersionConfig=OverdispersionConfig,
+                                ObsModel=ObsModel, Options=Options, Version=Version)
 #Unpack
 TmbData <- VAST_input$TmbData
 Data_Geostat <- VAST_input$Data_Geostat

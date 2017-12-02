@@ -63,7 +63,7 @@ plot_VAST_output <- function(Opt, Report, DateFile, survey, TmbData, Data_Geosta
   #Plot Pearson Residuals
   #  Look for spatial patterns-- indication of "overshrinking"
   #  Creates "maps--" files
-  SpatialDeltaGLMM:::plot_residuals(Lat_i = Data_Geostat[,"Lat"], Lon_i = Data_Geostat[, "Lon"], TmbData = TmbData,
+  SpatialDeltaGLMM::plot_residuals(Lat_i = Data_Geostat[,"Lat"], Lon_i = Data_Geostat[, "Lon"], TmbData = TmbData,
                                     Report = Report, Q = Q, savedir = DateFile, MappingDetails = MapDetails_List[["MappingDetails"]],
                                     PlotDF = MapDetails_List[["PlotDF"]], MapSizeRatio = MapDetails_List[["MapSizeRatio"]],
                                     Xlim = MapDetails_List[["Xlim"]], Ylim = MapDetails_List[["Ylim"]],

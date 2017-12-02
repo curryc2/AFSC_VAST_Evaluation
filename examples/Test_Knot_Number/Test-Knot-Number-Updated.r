@@ -19,16 +19,23 @@
 # For 10-1000, by 100 knots
 # [1] "### START: Mon Apr 10 16:17:08 2017"
 # [1] "### END: Mon Apr 10 22:54:04 2017"
+
+#11 cores NEW knot range
+# [1] "### START: Fri Nov 17 13:14:57 2017"
+# [1] "### END: Fri Nov 17 20:59:03 2017"
+
 #==================================================================================================
 
 require(VAST)
 require(TMB)
 require(parallel)
 require(snowfall)
-require(ggplot2)
+require(tidyverse)
 require(cowplot)
 require(xlsx)
 require(ggthemes)
+require(FishData)
+
 
 
 source("R/calc-design-based-index.r")
@@ -81,7 +88,7 @@ if(bias.correct==TRUE) {
 }
 #=======================================================================
 ##### Run VAST model  #####
-Version <- "VAST_v2_4_0"
+Version <- "VAST_v2_8_0"
 lat_lon.def <- "start"
 
 #SPATIAL SETTINGS
@@ -134,15 +141,23 @@ species_wrapper_fxn_knots <- function(s, n_x) {
   ##### READ IN DATA AND BUILD VAST INPUT #####
   #  NOTE: this will create the DateFile
   
-  VAST_input <- create_VAST_input(species.codes=species.codes, lat_lon.def=lat_lon.def, save.Record=FALSE,
+  # VAST_input <- create_VAST_input(species.codes=species.codes, lat_lon.def=lat_lon.def, save.Record=FALSE,
+  #                                 Method=Method, grid_size_km=grid_size_km, n_x=n_x,
+  #                                 Kmeans_Config=Kmeans_Config,
+  #                                 strata.limits=strata.limits, survey=survey,
+  #                                 DateFile=DateFile,
+  #                                 FieldConfig, RhoConfig, OverdispersionConfig,
+  #                                 ObsModel, Options)
+  
+  VAST_input <- create_VAST_input(species.codes=species.codes, combineSpecies=FALSE,
+                                  lat_lon.def=lat_lon.def, save.Record=FALSE,
                                   Method=Method, grid_size_km=grid_size_km, n_x=n_x,
                                   Kmeans_Config=Kmeans_Config,
                                   strata.limits=strata.limits, survey=survey,
                                   DateFile=DateFile,
-                                  FieldConfig, RhoConfig, OverdispersionConfig,
-                                  ObsModel, Options)
-  
-  
+                                  FieldConfig=FieldConfig, RhoConfig=RhoConfig,
+                                  OverdispersionConfig=OverdispersionConfig,
+                                  ObsModel=ObsModel, Options=Options, Version=Version)
   
   #Unpack
   TmbData <- VAST_input$TmbData
@@ -265,6 +280,8 @@ if(do.estim==TRUE) {
   print(paste('### START:', time.1))
   print(paste('### END:', time.2))
   
+  #Reset to the home directory
+  setwd(home.dir)
 }else {
   load(paste0(output.dir,"/vast_est.output.RData"))
 }
@@ -602,6 +619,81 @@ ggsave(paste0(output.dir,"/GOA POP Idx and CV.png"), g.both, height=5, width=8, 
 write.xlsx(survey.list[survey.list$Survey=='GOA' & survey.list$Species=='Pacific ocean perch' &
                          survey.list$Year %in% yrs.surv,],
              file=paste0(output.dir,'/GOA POP Indices.xlsx'), sheetName='plot.list')
+
+
+
+#==================================================================================
+#Plot GOA Arrowtooth for Ingrid's Assessment
+survey <- 'Gulf of Alaska'
+plot.list <- survey.list[survey.list$Survey=='GOA' & survey.list$Species=='Arrowtooth flounder',]
+yrs.surv <- sort(unique(plot.list$Year[plot.list$Model=='Design-based']))
+plot.list <- plot.list[plot.list$Year %in% yrs.surv,]
+
+#Remove 2001 from design-based results because of incomplete sampling
+plot.list <- plot.list[-which(plot.list$Year==2001 & plot.list$Model=='Design-based'),]
+plot.list <- plot.list[-which(plot.list$Year==2017 & plot.list$Model=='Design-based'),]
+
+plot.list$Biomass <- plot.list$Biomass/1e3
+
+#PLOT Indices
+g.idx <- ggplot(plot.list, aes(x=Year, y=Biomass, color=Knots, lty=Model)) +
+  # theme_gray() +
+  # theme(legend.position='bottom') +
+  # geom_line() +
+  # facet_wrap(~Species, scales='free') +
+  # labs(list(y='Biomass (thousands of metric tonnes)')) +
+  # # ggtitle('Survey:', subtitle='Gulf of Alaska') +
+  # # ggtitle(paste(survey, 'Survey')) +
+  # scale_color_hue(h=scale.hues)
+
+
+
+
+  theme_gray() +
+  # theme_wsj() +
+  # theme_solarized() +
+  geom_line() +
+  facet_wrap(~Species, scales='free', ncol=3) +
+  labs(list(y='Biomass (thousands of metric tonnes)')) +
+  # ggtitle('Survey:', subtitle='Gulf of Alaska') +
+  ggtitle(paste(survey, 'Survey')) +
+  scale_color_hue(h=scale.hues) +
+  geom_line(data=plot.list[plot.list$Model=='Design-based',], color='black') +
+  geom_point(data=plot.list[plot.list$Model=='Design-based',], show.legend=FALSE, colour='black')
+
+# g.idx
+
+g.cv <- ggplot(plot.list, aes(x=Knots, y=CV, fill=Knots)) +
+  theme_gray() +
+  # geom_boxplot(aes(lty=Model)) +
+  geom_boxplot() +
+  facet_wrap(~Species, scales='free') +
+  labs(list(y=paste('Annual Survey CV'))) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, debug=FALSE)) +
+  scale_fill_hue(h=scale.hues) +
+  # ggtitle(paste(survey, 'Survey')) +
+  
+  theme(legend.position='none')
+
+  # theme_gray() +
+  # theme(legend.position='right') +
+  # # geom_boxplot(aes(lty=Model)) +
+  # geom_boxplot(aes(color=Model)) +
+  # scale_color_colorblind() +
+  # # scale_color_hue() +
+  # labs(list(y=paste('Annual Survey CV'))) +
+  # theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, debug=FALSE)) +
+  # scale_fill_hue(h=scale.hues) +
+  # ggtitle(paste(survey, 'Survey'))
+# g.cv
+
+
+#Combine plots with gridExtra
+g.both <- plot_grid(g.idx, g.cv, nrow=1, ncol=2, rel_widths=c(3.5,1))
+g.both
+
+ggsave(paste0(output.dir,"/GOA Arrowtooth Index and CV.png"), g.both, height=5, width=8, units='in', dpi=dpi)
+
 
 #Facet
 # g.multi <- vector('list', length=n.species)
