@@ -10,6 +10,7 @@ Name                        | Description
 [Test_Obs_Model]("https://github.com/curryc2/AFSC_VAST_Evaluation/tree/develop/examples/Test_Obs_Model") | Evaluation of differences in VAST model results for example species, with different observation models.
 [Test_DesignBased_Estimator]("https://github.com/curryc2/AFSC_VAST_Evaluation/tree/develop/examples/Test_DesignBased_Estimator") | Simple comparison of design-based and VAST model-based indices across years and species.
 [Test_Knot_Number]("https://github.com/curryc2/AFSC_VAST_Evaluation/tree/develop/examples/Test_Knot_Number") | Script to run comparison of VAST indices with differing levels of spatial complexity, as specified by the number of "knots".
+[Test_Autoregressive]("https://github.com/curryc2/AFSC_VAST_Evaluation/tree/develop/examples/Test_Autoregressive") | Compares influence of different autoregressive structures for VAST model parameters over time.
 [Test_DeltaModel]("https://github.com/curryc2/AFSC_VAST_Evaluation/tree/develop/examples/Test_DeltaModel") | Script to generate stratified Delta model biomass indices, and compare with design-based estimates.
 
 ***
