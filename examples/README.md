@@ -36,11 +36,6 @@ Script to run comparison of [VAST](https://github.com/James-Thorson/VAST) indice
     + Test-Knot-Number-Updated.r -- Saves VAST indices at .RData object, which can be readily compared to design-based estimates. Saves space...
 
 ***
-## Test_Alternative_Area
-Simple testing script to ensure VAST inputs and design-based estimates can be generated for GOA, AI, and EBS.
-* Note: Previously functions had only been tested for GOA.
-
-***
 ## Test_DeltaModel
 Script to generate stratified Delta model biomass indices, and compare with design-based estimates.
 
