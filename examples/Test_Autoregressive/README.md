@@ -16,7 +16,7 @@ Compares influence of different autoregressive structures for [VAST](https://git
 
 *	Note: Wrapper functions rely on calls to existing functions developed by J. Thorson [VAST](https://github.com/James-Thorson/VAST)
 
-* Note: We have remove EBS_SHELF Arrowtooth from this example, given error. 
+* Note: We have removed EBS_SHELF Arrowtooth from this example, given errors. 
 
 ***
 #### Issues

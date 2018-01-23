@@ -24,6 +24,7 @@ require(tidyverse)
 require(ggthemes)
 require(VAST)
 require(TMB)
+require(viridis)
 
 source("R/calc-design-based-index.r")
 source("R/create-VAST-input.r")
@@ -36,6 +37,7 @@ source("R/get-VAST-index.r")
 home.dir <- getwd()
 #Create working directory
 working.dir <- paste0(home.dir, "/examples/Test_DeltaModel")
+
 
 #Determine species list
 species.list <- read.csv("data/eval_species_list.csv", stringsAsFactors=FALSE)
@@ -102,7 +104,7 @@ Options = c(SD_site_density = 0, SD_site_logdensity = 0,
             Calculate_Coherence = 0)
 
 #Output Directory Name
-output.dir <- paste0(working.dir,"/output_bias.correct_",bias.correct)
+output.dir <- paste0(working.dir,"/Output")
 dir.create(output.dir)
 
 
@@ -291,4 +293,267 @@ if(do.estim==TRUE) {
     vast_RE[i] <- specs$vast_RE[i]
   }#next i
 }
+
+#=====================================================
+# Gather Data
+vast.list <- NULL
+aic.list <- NULL
+aic.vect <- vector(length=0)
+converge.vect <- vector(length=0)
+
+#Load dataset to determine which years to include
+goa.yrs <- sort(unique(load_RACE_data(species.codes=30420,
+                                      combineSpecies=FALSE, survey='GOA')$Year))
+ai.yrs <- sort(unique(load_RACE_data(species.codes=30420,
+                                     combineSpecies=FALSE, survey='AI')$Year))
+
+
+i <- 1
+for(i in 1:n.specs) {
+  s <- 1
+  for(s in 1:n.species) {
+    #Species Information
+    temp.species <- species.list$name[s]
+    temp.survey <- species.list$survey[s]
+    temp.name <- paste0(temp.survey,": ",temp.species)
+    
+    #Determine Survey years (Currently only GOA and AI)
+    if(temp.survey=='GOA') {
+      temp.yrs <- goa.yrs
+    }else {
+      temp.yrs <- ai.yrs
+    }
+    
+    #Get VAST model index
+    temp.list <- vast_est.output[[i]][[s]]$vast_est[c(1,4,6)]
+    
+    #Calculate CV
+    CV <- temp.list$SD_mt/temp.list$Estimate_metric_tons
+    
+    #Determine which are survey years
+    survey.year <- temp.list$Year %in% temp.yrs
+    
+    #Bind it
+    temp.list <- cbind(temp.list, CV, temp.survey, temp.species, temp.name, 'VAST', vast_knots[i], vast_RE[i], survey.year)
+    
+    
+    #AIC and convergence
+    #Get AIC and convergence
+    temp.aic <- cbind(temp.survey, temp.species, temp.name, 'VAST', vast_knots[i], vast_RE[i])
+    
+    aic.vect <- append(aic.vect, vast_est.output[[i]][[s]]$Opt$AIC)
+    converge.vect <- append(converge.vect, vast_est.output[[i]][[s]]$Opt$converge)
+    
+    #Combine to larger lists
+    vast.list <- rbind(vast.list, temp.list)
+    aic.list <- rbind(aic.list, temp.aic) 
+    
+    
+  }#Next species
+  
+}#next model configuration i
+
+
+#Add Design-based estimates
+db.list <- NULL
+s <- 1
+for(s in 1:n.species) {
+  #Species Information
+  temp.species <- species.list$name[s]
+  temp.survey <- species.list$survey[s]
+  temp.name <- paste0(temp.survey,": ",temp.species)
+  
+  #Determine Survey years (Currently only GOA and AI)
+  if(temp.survey=='GOA') {
+    temp.yrs <- goa.yrs
+  }else {
+    temp.yrs <- ai.yrs
+  }
+  
+  #Get design-based estimate
+  db_est <- calc_design_based_index(species.codes=species.list$species.code[s], survey=temp.survey)
+  
+  #Determine which are survey years
+  survey.year <- db_est$YEAR %in% temp.yrs  #All TRUE
+  
+  temp.name <- paste0(temp.survey,": ",temp.species)
+  temp.list <- cbind(db_est[,c(1,2,4,5)], temp.survey, temp.species, temp.name, "Design-based", 'Design-based','Design-based', survey.year)
+  #Add it
+  db.list <- rbind(db.list, temp.list)
+}#next s
+db.df <- data.frame(db.list)
+names(db.df) <- c('Year','Biomass','SD','CV','Survey','Species', 'Name','Model','Knots','RE','SurveyYear')
+
+
+#Add names
+vast.df <- data.frame(vast.list)
+names(vast.df) <- c('Year','Biomass','SD','CV','Survey','Species', 'Name','Model','Knots','RE','SurveyYear')
+
+aic.df <- data.frame(aic.list, aic.vect, converge.vect)
+names(aic.df) <- c('Survey','Species','Name','Model','Knots','RE','AIC','Converge')
+aic.df$Converge <- as.factor(aic.df$Converge)
+
+#Combine the lists
+#  And order the factors
+survey.df <- rbind(vast.df,db.df)
+survey.df$Knots <- factor(survey.df$Knots, ordered=TRUE, levels=c(trial.knots, 'Design-based'))
+# survey.df$Model <- factor(survey.df$Model, ordered=TRUE, levels=c('VAST','Design-based'))# levels=c('Design-based', 'VAST'))
+
+survey.df$Biomass <- survey.df$Biomass/1e3
+
+#=====================================================
+#PLOT IT OUT
+# c('Walleye pollock','Pacific cod')
+# -which(output.df$Species %in% c('Walleye pollock','Pacific cod',rockfish))
+lty.db <- 2 #Line type for design.based estimator
+#================================
+###### GOA: Rockfish #####
+survey <- 'GOA'
+temp.species <- c('Pacific ocean perch','Northern rockfish','Harlequin rockfish')
+
+plot.list <- survey.df[survey.df$Survey==survey &
+                         survey.df$Species %in% temp.species &
+                         survey.df$SurveyYear==TRUE,]
+
+#Remove 2001 from design-based results because of incomplete sampling
+if(survey=='GOA') { plot.list <- plot.list[-which(plot.list$Year==2001 & plot.list$Model=='Design-based'),] }
+
+# Species ~ RE
+g <- ggplot(plot.list[plot.list$Model!='Design-based',], 
+              aes(x=Year, y=Biomass, color=Knots, ymin=0)) +
+       theme_gray() +
+       theme(legend.position='right') +
+       # geom_point() +
+       geom_line() +
+    
+       geom_line(data=plot.list[plot.list$Model=='Design-based',
+                             -which(names(plot.list) %in% c('RE')),],
+                   color='black', lty=lty.db) +
+       geom_point(data=plot.list[plot.list$Model=='Design-based',
+                              -which(names(plot.list) %in% c('RE')),], show.legend=FALSE,
+                   colour='black') +
+  
+      facet_grid(Species ~ RE, scales='free') +
+      labs(list(y='Biomass (thousands of metric tonnes)')) +
+      ggtitle(paste(survey, 'Survey')) +
+      # scale_color_viridis(discrete=TRUE) 
+      scale_color_brewer(type='sequential', palette='Set1')
+g
+
+ggsave(paste0(working.dir,"/GOA Rockfish Compare.png"), plot=g, height=7, width=9, units='in', dpi=600)
+
+
+#================================
+###### GOA: Pollock and Cod #####
+survey <- 'GOA'
+temp.species <- c('Walleye pollock','Pacific cod')
+
+plot.list <- survey.df[survey.df$Survey==survey &
+                         survey.df$Species %in% temp.species &
+                         survey.df$SurveyYear==TRUE,]
+
+#Remove 2001 from design-based results because of incomplete sampling
+if(survey=='GOA') { plot.list <- plot.list[-which(plot.list$Year==2001 & plot.list$Model=='Design-based'),] }
+
+# Species ~ RE
+g <- ggplot(plot.list[plot.list$Model!='Design-based',], 
+            aes(x=Year, y=Biomass, color=Knots, ymin=0)) +
+  theme_gray() +
+  theme(legend.position='right') +
+  # geom_point() +
+  geom_line() +
+  
+  geom_line(data=plot.list[plot.list$Model=='Design-based',
+                           -which(names(plot.list) %in% c('RE')),],
+            color='black', lty=lty.db) +
+  geom_point(data=plot.list[plot.list$Model=='Design-based',
+                            -which(names(plot.list) %in% c('RE')),], show.legend=FALSE,
+             colour='black') +
+  
+  facet_grid(Species ~ RE, scales='free') +
+  labs(list(y='Biomass (thousands of metric tonnes)')) +
+  ggtitle(paste(survey, 'Survey')) +
+  # scale_color_viridis(discrete=TRUE) 
+  scale_color_brewer(type='sequential', palette='Set1')
+g
+
+ggsave(paste0(working.dir,"/GOA Pollock and Cod Compare.png"), plot=g, height=7, width=9, units='in', dpi=600)
+
+
+#================================
+###### GOA: Others #####
+survey <- 'GOA'
+
+temp.species <- species.list$name[species.list$survey==survey &
+                                    !species.list$name %in% c('Walleye pollock', 'Pacific cod',
+                                                                'Pacific ocean perch', 'Northern rockfish',
+                                                                'Harlequin rockfish') ]
+
+plot.list <- survey.df[survey.df$Survey==survey &
+                         survey.df$Species %in% temp.species &
+                         survey.df$SurveyYear==TRUE,]
+
+
+#Remove 2001 from design-based results because of incomplete sampling
+if(survey=='GOA') { plot.list <- plot.list[-which(plot.list$Year==2001 & plot.list$Model=='Design-based'),] }
+
+# Species ~ RE
+g <- ggplot(plot.list[plot.list$Model!='Design-based',], 
+            aes(x=Year, y=Biomass, color=Knots, ymin=0)) +
+  theme_gray() +
+  theme(legend.position='right') +
+  # geom_point() +
+  geom_line() +
+  
+  geom_line(data=plot.list[plot.list$Model=='Design-based',
+                           -which(names(plot.list) %in% c('RE')),],
+            color='black', lty=lty.db) +
+  geom_point(data=plot.list[plot.list$Model=='Design-based',
+                            -which(names(plot.list) %in% c('RE')),], show.legend=FALSE,
+             colour='black') +
+  
+  facet_grid(Species ~ RE, scales='free') +
+  labs(list(y='Biomass (thousands of metric tonnes)')) +
+  ggtitle(paste(survey, 'Survey')) +
+  # scale_color_viridis(discrete=TRUE) 
+  scale_color_brewer(type='sequential', palette='Set1')
+g
+
+ggsave(paste0(working.dir,"/GOA Others.png"), plot=g, height=7, width=9, units='in', dpi=600)
+
+
+#================================
+###### AI: All #####
+survey <- 'AI'
+
+plot.list <- survey.df[survey.df$Survey==survey &
+                         survey.df$SurveyYear==TRUE,]
+
+
+#Remove 2001 from design-based results because of incomplete sampling
+if(survey=='GOA') { plot.list <- plot.list[-which(plot.list$Year==2001 & plot.list$Model=='Design-based'),] }
+
+# Species ~ RE
+g <- ggplot(plot.list[plot.list$Model!='Design-based',], 
+            aes(x=Year, y=Biomass, color=Knots, ymin=0)) +
+  theme_gray() +
+  theme(legend.position='right') +
+  # geom_point() +
+  geom_line() +
+  
+  geom_line(data=plot.list[plot.list$Model=='Design-based',
+                           -which(names(plot.list) %in% c('RE')),],
+            color='black', lty=lty.db) +
+  geom_point(data=plot.list[plot.list$Model=='Design-based',
+                            -which(names(plot.list) %in% c('RE')),], show.legend=FALSE,
+             colour='black') +
+  
+  facet_grid(Species ~ RE, scales='free') +
+  labs(list(y='Biomass (thousands of metric tonnes)')) +
+  ggtitle(paste(survey, 'Survey')) +
+  # scale_color_viridis(discrete=TRUE) 
+  scale_color_brewer(type='sequential', palette='Set1')
+g
+
+ggsave(paste0(working.dir,"/AI All Species.png"), plot=g, height=7, width=9, units='in', dpi=600)
 
