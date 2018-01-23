@@ -5,12 +5,11 @@ Repository for evaluation of VAST package for single and multispecies spatial de
 
 ## VAST Package Citation
 #### Please cite if using the software
-* Thorson, J.T., and Barnett, L.A.K. In press. Comparing estimates of abundance trends and distribution shifts using single- and multispecies models of fishes and biogenic habitat. ICES J. Mar. Sci. URL: https://academic.oup.com/icesjms/article-abstract/2907795/Comparing-estimates-of-abundance-trends-and
+* Thorson, J.T., and Barnett, L.A.K. In press. Comparing estimates of abundance trends and distribution shifts using single- and multispecies models of fishes and biogenic habitat. ICES J. Mar. Sci. [URL](https://academic.oup.com/icesjms/article/74/5/1311/2907795)
 
 ***
 
-## VAST Package Website
-https://github.com/James-Thorson/VAST
+## [VAST Package Website](https://github.com/James-Thorson/VAST)
 
 ***
 
