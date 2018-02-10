@@ -11,6 +11,8 @@
 #NOTES:
 # 1)  Error in checkForRemoteErrors(val) : 8 nodes produced errors; first error: Memory allocation fail in function 'MakeADHessObject2' 
 #  Suggests cannot be done in parallel, will attempt in series.
+
+# 2) Running in series (32 GB Ram) stopped with bias.corr=TRUE, knots=400, s=4 (AI Walleye Pollock)
 #==================================================================================================
 #TIMING:
 
@@ -46,6 +48,10 @@ species.list <- species.list[species.list$include=='Y',]
 #Remove EBS_SHELF Arrowtooth
 species.list <- species.list[species.list$survey!='EBS_SHELF',]
 
+#Remove AI Species
+# species.list <- species.list[species.list$survey!='EBS_SHELF',]
+
+
 n.species <- nrow(species.list)
 
 #Create
@@ -60,7 +66,7 @@ n.cores <- detectCores()-1
 do.estim <- TRUE
 
 #Trial Knot Numbers
-trial.knots <- c(100,250,500)
+trial.knots <- seq(from=100, to=300, by=100)
 n.trial.knots <- length(trial.knots)
 
 #Trial RANDOM EFECTS SPECIFICATIONS specifications
@@ -152,6 +158,7 @@ wrapper_fxn <- function(s, n_x, bias.correct) {
   TmbList <- VAST::Build_TMB_Fn(TmbData = TmbData, RunDir = DateFile,
                                 Version = Version, RhoConfig = RhoConfig, loc_x = Spatial_List$loc_x,
                                 Method = Method)
+  
   Obj <- TmbList[["Obj"]]
   
   
@@ -172,9 +179,12 @@ wrapper_fxn <- function(s, n_x, bias.correct) {
   
   #========================================================================
   ##### CLEANUP VAST OUTPUT #####
-  # cleanup_VAST_file(DateFile=DateFile, Version=Version) #No longer necessary as we are deleting everything at the end
+  cleanup_VAST_file(DateFile=DateFile, Version=Version) #No longer necessary as we are deleting everything at the end
   
-  rm("VAST_input", "TmbData", "Data_Geostat", "Spatial_List", "Extrapolation_List", "TmbList", "Obj")#, "Save")#, "Opt", "Report")
+  rm("VAST_input", "TmbData", "Data_Geostat", "Spatial_List", "Extrapolation_List", "TmbList", "Obj","Report")#, "Save")#, "Opt", "Report")
+  
+  dyn.unload("VAST_v2_8_0")
+  # is.loaded()
   
   #========================================================================
   setwd(home.dir)
@@ -228,7 +238,8 @@ for(s in 1:n.species) {
       
       #=======================================================================
       ##### TEST WRAPPER FUNCTION #####
-      output <- wrapper_fxn(s=1, n_x=n_x, bias.correct=bias.correct)
+      output <- NULL
+      output <- wrapper_fxn(s=s, n_x=n_x, bias.correct=bias.correct)
       
       #=======================================================================
       ##### SNOWFALL CODE FOR PARALLEL #####
@@ -254,7 +265,11 @@ for(s in 1:n.species) {
 }#next s  
   #Create output directory
   #Also save specifications
-  vast_specs <- data.frame(vast_species, vast_knots, vast_RE)
+  vast_name <- paste0(species.list$survey[vast_species],"_",
+                      species.list$name[vast_species])
+  vast_specs <- data.frame(vast_species, vast_knots, vast_bias.correct,
+                             vast_name)
+  
   write.csv(vast_specs, file=paste0(output.dir,"/vast_specs.csv"))
   
   #=======================================================================
