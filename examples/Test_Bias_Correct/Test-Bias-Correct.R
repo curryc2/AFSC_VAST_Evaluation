@@ -60,7 +60,7 @@ n.cores <- detectCores()-1
 do.estim <- TRUE
 
 #Trial Knot Numbers
-trial.knots <- c(100,250,500)
+trial.knots <- c(100,250)
 n.trial.knots <- length(trial.knots)
 
 #Trial RANDOM EFECTS SPECIFICATIONS specifications
@@ -200,58 +200,56 @@ if(do.estim==TRUE) {
   
   #Counter for knots by rho
   counter <- 1
-s <- 1
-for(s in 1:n.species) {
-  
-  t <- 1
-  for(t in 1:n.trial.knots) {
-    print(paste('### Trial Species Number',s,'of',n.species))
-    print(paste('## Trial Knot Number',t,'of',n.trial.knots))
-    print(paste('# Trial Knots:',trial.knots[t]))
-    #Specify trial observation model
+  s <- 1
+  for(s in 1:n.species) {
     
-    #Specify knots
-    n_x <- trial.knots[t]
+    t <- 1
+    for(t in 1:n.trial.knots) {
+      print(paste('### Trial Species Number',s,'of',n.species))
+      print(paste('## Trial Knot Number',t,'of',n.trial.knots))
+      print(paste('# Trial Knots:',trial.knots[t]))
+      #Specify trial observation model
     
-    r <- 1
-    for(r in 1:n.trial.bias.correct) {
-      print(paste('#### Trial Bias Correct',r,'of',n.trial.bias.correct))
+      #Specify knots
+      n_x <- trial.knots[t]
+    
+      r <- 1
+      for(r in 1:n.trial.bias.correct) {
+        print(paste('#### Trial Bias Correct',r,'of',n.trial.bias.correct))
       
-      bias.correct <- trial.bias.correct[r]
-      #Record
-      vast_bias.correct[counter] <- bias.correct
-      vast_knots[counter] <- n_x
-      vast_species[counter] <- s
-      #Setup File
-      trial.dir <- paste0(working.dir,"/",n_x,"_bias.corr_",bias.correct)
-      dir.create(trial.dir)
+        bias.correct <- trial.bias.correct[r]
+        #Record
+        vast_bias.correct[counter] <- bias.correct
+        vast_knots[counter] <- n_x
+        vast_species[counter] <- s
+        #Setup File
+        trial.dir <- paste0(working.dir,"/",n_x,"_bias.corr_",bias.correct)
+        dir.create(trial.dir)
       
-      #=======================================================================
-      ##### TEST WRAPPER FUNCTION #####
-      output <- wrapper_fxn(s=1, n_x=n_x, bias.correct=bias.correct)
+        #=======================================================================
+        ##### TEST WRAPPER FUNCTION #####
+        output <- wrapper_fxn(s=1, n_x=n_x, bias.correct=bias.correct)
       
-      #=======================================================================
-      ##### SNOWFALL CODE FOR PARALLEL #####
-      # sfInit(parallel=TRUE, cpus=n.cores, type='SOCK')
-      # sfExportAll() #Exportas all global variables to cores
-      # sfLibrary(TMB)  #Loads a package on all nodes
-      # sfLibrary(VAST)
-      # output <- sfLapply(species.series, fun=wrapper_fxn, n_x=n_x, bias.correct=bias.correct)
-      # sfStop()
-      # 
-      # vast_est.output[[counter]] <- output
+        #=======================================================================
+        ##### SNOWFALL CODE FOR PARALLEL #####
+        # sfInit(parallel=TRUE, cpus=n.cores, type='SOCK')
+        # sfExportAll() #Exportas all global variables to cores
+        # sfLibrary(TMB)  #Loads a package on all nodes
+        # sfLibrary(VAST)
+        # output <- sfLapply(species.series, fun=wrapper_fxn, n_x=n_x, bias.correct=bias.correct)
+        # sfStop()
+        # 
+        # vast_est.output[[counter]] <- output
       
-      #For Update
-      # output <- vast_est.output[[counter]]
-      # save(output, file=paste0(output.dir, "/testVAST_output_",counter,".RData"), compression_level=9)
-      saveRDS(output, file=paste0(output.dir, "/VAST_output_",counter,".rds"))
-      #Real
+        #For Update
+        # output <- vast_est.output[[counter]]
+        # save(output, file=paste0(output.dir, "/testVAST_output_",counter,".RData"), compression_level=9)
+        saveRDS(output, file=paste0(output.dir, "/VAST_output_",counter,".rds"))
       
-      
-      counter <- counter+1
-    }#next r
-  }#next t
-}#next s  
+        counter <- counter+1
+      }#next r
+    }#next t
+  }#next s  
   #Create output directory
   #Also save specifications
   vast_specs <- data.frame(vast_species, vast_knots, vast_RE)
