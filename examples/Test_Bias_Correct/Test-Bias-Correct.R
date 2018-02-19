@@ -72,7 +72,7 @@ n.trial.bias.correct <- length(trial.bias.correct)
 # bias.correct <- FALSE
 #=======================================================================
 ##### Run VAST model  #####
-Version <- "VAST_v2_8_0"
+Version <- "VAST_v4_0_0"
 lat_lon.def <- "start"
 
 #SPATIAL SETTINGS
