@@ -63,14 +63,10 @@ species.series <- c(1:n.species)
 n.cores <- detectCores()-1
 
 #Boolean for running estimation models
-do.estim <- TRUE
+do.estim <- FALSE
 
 #Trial Knot Numbers
-<<<<<<< HEAD
 trial.knots <- c(100,250)
-=======
-trial.knots <- seq(from=100, to=300, by=100)
->>>>>>> 0e8350bf30f3f8b4813d76d9588fbcd64cfafec7
 n.trial.knots <- length(trial.knots)
 
 #Trial RANDOM EFECTS SPECIFICATIONS specifications
@@ -117,9 +113,11 @@ dir.create(output.dir)
 #=======================================================================
 ##### WRAPPER FUNCTION FOR RUNNING IN PARALLEL #####
 
-s <- 1
+# s <- 1
+# n_x <- 100
+# bias.correct <- FALSE
 # for(s in 1:n.species) {
-wrapper_fxn <- function(s, n_x, bias.correct) {
+wrapper_fxn <- function(s, n_x, bias.correct, Version=Version) {
   
   #Define file for analyses
   DateFile <- paste0(trial.dir,"/",species.list$survey[s],"_",species.list$name[s],"/")
@@ -154,9 +152,7 @@ wrapper_fxn <- function(s, n_x, bias.correct) {
   
   #=======================================================================
   ##### RUN VAST #####
-  
-  
-  
+
   #Build TMB Object
   #  Compilation may take some time
   TmbList <- VAST::Build_TMB_Fn(TmbData = TmbData, RunDir = DateFile,
@@ -187,8 +183,9 @@ wrapper_fxn <- function(s, n_x, bias.correct) {
   
   rm("VAST_input", "TmbData", "Data_Geostat", "Spatial_List", "Extrapolation_List", "TmbList", "Obj","Report")#, "Save")#, "Opt", "Report")
   
-  dyn.unload("VAST_v2_8_0")
-  # is.loaded()
+  if(is.loaded(Version)) {
+    dyn.unload(Version)
+  }
   
   #========================================================================
   setwd(home.dir)
@@ -199,7 +196,6 @@ wrapper_fxn <- function(s, n_x, bias.correct) {
   return(out)
 } 
 
-
 #=======================================================================
 ##### Loop Through Trial Knots  #####
 vast_est.output <- vector('list', length=(n.species*n.trial.knots*n.trial.bias.correct))
@@ -208,7 +204,6 @@ vast_bias.correct <- vector(length=(n.species*n.trial.knots*n.trial.bias.correct
 vast_species <- vector(length=(n.species*n.trial.knots*n.trial.bias.correct))
 
 if(do.estim==TRUE) {
-  
   
   time.1 <- date()
   
@@ -231,7 +226,6 @@ if(do.estim==TRUE) {
       for(r in 1:n.trial.bias.correct) {
         print(paste('#### Trial Bias Correct',r,'of',n.trial.bias.correct))
       
-<<<<<<< HEAD
         bias.correct <- trial.bias.correct[r]
         #Record
         vast_bias.correct[counter] <- bias.correct
@@ -240,16 +234,15 @@ if(do.estim==TRUE) {
         #Setup File
         trial.dir <- paste0(working.dir,"/",n_x,"_bias.corr_",bias.correct)
         dir.create(trial.dir)
-=======
-      #=======================================================================
-      ##### TEST WRAPPER FUNCTION #####
-      output <- NULL
-      output <- wrapper_fxn(s=s, n_x=n_x, bias.correct=bias.correct)
->>>>>>> 0e8350bf30f3f8b4813d76d9588fbcd64cfafec7
-      
+
         #=======================================================================
         ##### TEST WRAPPER FUNCTION #####
-        output <- wrapper_fxn(s=1, n_x=n_x, bias.correct=bias.correct)
+        output <- NULL
+        output <- wrapper_fxn(s=s, n_x=n_x, bias.correct=bias.correct, Version=Version)
+
+        #=======================================================================
+        ##### TEST WRAPPER FUNCTION #####
+        # output <- wrapper_fxn(s=1, n_x=n_x, bias.correct=bias.correct)
       
         #=======================================================================
         ##### SNOWFALL CODE FOR PARALLEL #####
