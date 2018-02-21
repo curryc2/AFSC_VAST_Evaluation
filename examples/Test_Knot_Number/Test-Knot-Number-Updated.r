@@ -408,7 +408,7 @@ g3 <- ggplot(plot.list, aes(x=Species, y=CV, fill=Knots)) +
         
 g3
 ggsave(paste0(output.dir,"/", survey," CV Compare.png"), g3, height=5, width=7, units='in', dpi=dpi)
-ggsave(paste0(getwd(),"/Output/Figs for Sept_2017 GPT/", survey," CV Compare.png"), g3, height=5, width=8, units='in', dpi=1e3)
+ggsave(paste0(getwd(),"/Output/Figs for Sept_2017 GPT/", survey," CV Compare.png"), g3, height=7, width=8, units='in', dpi=1e3)
 
 #Separate boxes
 g4 <- ggplot(plot.list, aes(x=Species, y=CV, fill=Knots)) +
@@ -423,14 +423,15 @@ g4 <- ggplot(plot.list, aes(x=Species, y=CV, fill=Knots)) +
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank()) +
   scale_fill_hue(h=scale.hues) +
-  ggtitle(paste(survey, 'Survey')) +
+  # ggtitle(paste(survey, 'Survey')) +
   facet_wrap(~Species, scales='free', nrow=2)
   
 
 
 g4
-ggsave(paste0(output.dir,"/", survey," CV Compare.png"), g4, height=6, width=8, units='in', dpi=dpi)
-ggsave(paste0(getwd(),"/Output/Figs for Sept_2017 GPT/", survey, " CV Compare_2.png"), g4, height=5, width=8, units='in', dpi=1000)
+ggsave(paste0(output.dir,"/", survey," CV Compare.png"), g4 + ggtitle(paste(survey, 'Survey')), 
+         height=6, width=8, units='in', dpi=dpi)
+ggsave(paste0(getwd(),"/Output/Figs for Sept_2017 GPT/", survey, " CV Compare_2.png"), g4, height=7, width=8, units='in', dpi=1000)
 
 #Plotting for GPT presentation
 g5 <- ggplot(plot.list, aes(x=Year, y=Biomass, color=Knots, lty=Model, ymin=0)) +
