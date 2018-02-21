@@ -533,7 +533,7 @@ yrs.surv <- sort(unique(plot.list$Year[plot.list$Model=='Design-based']))
 plot.list <- plot.list[plot.list$Year %in% yrs.surv,]
 
 #Remove 2001 from design-based results because of incomplete sampling
-if(survey=='GOA') { plot.list <- plot.list[-which(plot.list$Year==2001 & plot.list$Model=='Design-based'),] }
+# if(survey=='GOA') { plot.list <- plot.list[-which(plot.list$Year==2001 & plot.list$Model=='Design-based'),] }
 plot.list$Biomass <- plot.list$Biomass/1e3
 
 #PLOT Indices
@@ -579,7 +579,7 @@ yrs.surv <- sort(unique(plot.list$Year[plot.list$Model=='Design-based']))
 plot.list <- plot.list[plot.list$Year %in% yrs.surv,]
 
 #Remove 2001 from design-based results because of incomplete sampling
-if(survey=='GOA') { plot.list <- plot.list[-which(plot.list$Year==2001 & plot.list$Model=='Design-based'),] }
+# if(survey=='GOA') { plot.list <- plot.list[-which(plot.list$Year==2001 & plot.list$Model=='Design-based'),] }
 plot.list$Biomass <- plot.list$Biomass/1e3
 
 #PLOT Indices
@@ -631,8 +631,8 @@ yrs.surv <- sort(unique(plot.list$Year[plot.list$Model=='Design-based']))
 plot.list <- plot.list[plot.list$Year %in% yrs.surv,]
 
 #Remove 2001 from design-based results because of incomplete sampling
-plot.list <- plot.list[-which(plot.list$Year==2001 & plot.list$Model=='Design-based'),]
-plot.list <- plot.list[-which(plot.list$Year==2017 & plot.list$Model=='Design-based'),]
+# plot.list <- plot.list[-which(plot.list$Year==2001 & plot.list$Model=='Design-based'),]
+# plot.list <- plot.list[-which(plot.list$Year==2017 & plot.list$Model=='Design-based'),]
 
 plot.list$Biomass <- plot.list$Biomass/1e3
 

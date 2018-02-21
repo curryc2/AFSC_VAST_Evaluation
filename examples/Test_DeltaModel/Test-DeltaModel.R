@@ -74,6 +74,10 @@ trial.RE <- matrix(c(0,0,0,0,
 
 #Boolean for bias correction
 bias.correct <- FALSE
+
+#Plotting Sizes
+height <- 6
+width <- 9
 #=======================================================================
 ##### Run VAST model  #####
 Version <- "VAST_v2_8_0"
@@ -416,7 +420,7 @@ plot.list <- survey.df[survey.df$Survey==survey &
                          survey.df$SurveyYear==TRUE,]
 
 #Remove 2001 from design-based results because of incomplete sampling
-if(survey=='GOA') { plot.list <- plot.list[-which(plot.list$Year==2001 & plot.list$Model=='Design-based'),] }
+# if(survey=='GOA') { plot.list <- plot.list[-which(plot.list$Year==2001 & plot.list$Model=='Design-based'),] }
 
 # Species ~ RE
 g <- ggplot(plot.list[plot.list$Model!='Design-based',], 
@@ -440,7 +444,7 @@ g <- ggplot(plot.list[plot.list$Model!='Design-based',],
       scale_color_brewer(type='sequential', palette='Set1')
 g
 
-ggsave(paste0(working.dir,"/GOA Rockfish Compare.png"), plot=g, height=7, width=9, units='in', dpi=600)
+ggsave(paste0(working.dir,"/GOA Rockfish Compare.png"), plot=g, height=height, width=width, units='in', dpi=600)
 
 
 #================================
@@ -453,7 +457,7 @@ plot.list <- survey.df[survey.df$Survey==survey &
                          survey.df$SurveyYear==TRUE,]
 
 #Remove 2001 from design-based results because of incomplete sampling
-if(survey=='GOA') { plot.list <- plot.list[-which(plot.list$Year==2001 & plot.list$Model=='Design-based'),] }
+# if(survey=='GOA') { plot.list <- plot.list[-which(plot.list$Year==2001 & plot.list$Model=='Design-based'),] }
 
 # Species ~ RE
 g <- ggplot(plot.list[plot.list$Model!='Design-based',], 
@@ -477,7 +481,7 @@ g <- ggplot(plot.list[plot.list$Model!='Design-based',],
   scale_color_brewer(type='sequential', palette='Set1')
 g
 
-ggsave(paste0(working.dir,"/GOA Pollock and Cod Compare.png"), plot=g, height=7, width=9, units='in', dpi=600)
+ggsave(paste0(working.dir,"/GOA Pollock and Cod Compare.png"), plot=g, height=height, width=width, units='in', dpi=600)
 
 
 #================================
@@ -495,7 +499,7 @@ plot.list <- survey.df[survey.df$Survey==survey &
 
 
 #Remove 2001 from design-based results because of incomplete sampling
-if(survey=='GOA') { plot.list <- plot.list[-which(plot.list$Year==2001 & plot.list$Model=='Design-based'),] }
+# if(survey=='GOA') { plot.list <- plot.list[-which(plot.list$Year==2001 & plot.list$Model=='Design-based'),] }
 
 # Species ~ RE
 g <- ggplot(plot.list[plot.list$Model!='Design-based',], 
@@ -519,7 +523,7 @@ g <- ggplot(plot.list[plot.list$Model!='Design-based',],
   scale_color_brewer(type='sequential', palette='Set1')
 g
 
-ggsave(paste0(working.dir,"/GOA Others.png"), plot=g, height=7, width=9, units='in', dpi=600)
+ggsave(paste0(working.dir,"/GOA Others.png"), plot=g, height=height, width=width, units='in', dpi=600)
 
 
 #================================
@@ -531,7 +535,7 @@ plot.list <- survey.df[survey.df$Survey==survey &
 
 
 #Remove 2001 from design-based results because of incomplete sampling
-if(survey=='GOA') { plot.list <- plot.list[-which(plot.list$Year==2001 & plot.list$Model=='Design-based'),] }
+# if(survey=='GOA') { plot.list <- plot.list[-which(plot.list$Year==2001 & plot.list$Model=='Design-based'),] }
 
 # Species ~ RE
 g <- ggplot(plot.list[plot.list$Model!='Design-based',], 
@@ -555,5 +559,5 @@ g <- ggplot(plot.list[plot.list$Model!='Design-based',],
   scale_color_brewer(type='sequential', palette='Set1')
 g
 
-ggsave(paste0(working.dir,"/AI All Species.png"), plot=g, height=7, width=9, units='in', dpi=600)
+ggsave(paste0(working.dir,"/AI All Species.png"), plot=g, height=height, width=width, units='in', dpi=600)
 

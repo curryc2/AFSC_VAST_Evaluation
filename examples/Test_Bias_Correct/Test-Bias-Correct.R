@@ -74,6 +74,10 @@ trial.bias.correct <- c(FALSE,TRUE)
 n.trial.bias.correct <- length(trial.bias.correct)
 
 
+#Plotting Stuff
+height <- 6
+width <- 10
+
 #Boolean for bias correction
 # bias.correct <- FALSE
 #=======================================================================
@@ -410,6 +414,10 @@ aic.df$Converge <- as.factor(aic.df$Converge)
 survey.df <- rbind(vast.df,db.df)
 # survey.df$Knots <- factor(survey.df$Knots, ordered=TRUE)
 
+#Add 95% CI
+survey.df$low.95 <- survey.df$Biomass - 1.96*survey.df$SD
+survey.df$up.95 <- survey.df$Biomass + 1.96*survey.df$SD
+
 # #=====================================================
 #PLOT IT OUT
 # c('Walleye pollock','Pacific cod')
@@ -418,37 +426,209 @@ survey.df <- rbind(vast.df,db.df)
 
 ###### GOA Rockfish #####
 # rockfish <- c('Pacific ocean perch','Northern rockfish','Harlequin rockfish')
-survey <- 'AI'
-
-plot.list <- survey.df[survey.df$Survey==survey &
-                         # survey.df$Species %in% rockfish &
-                         survey.df$SurveyYear==TRUE,]
+# survey <- 'GOA'
+# 
+# plot.list <- survey.df[survey.df$Survey==survey &
+#                          survey.df$Species %in% rockfish &
+#                          survey.df$SurveyYear==TRUE,]
 # yrs.surv <- sort(unique(plot.list$Year[plot.list$Model=='Design-based']))
 # plot.list <- plot.list[plot.list$Year %in% yrs.surv,]
 
 #Remove 2001 from design-based results because of incomplete sampling
 # if(survey=='GOA') { plot.list <- plot.list[-which(plot.list$Year==2001 & plot.list$Model=='Design-based'),] }
-plot.list$Biomass <- plot.list$Biomass/1e3
 
-plot.list.v <- data.frame(plot.list[plot.list$Model!='Design-based',])
-plot.list.db <-  data.frame(plot.list[plot.list$Model=='Design-based', -which(names(plot.list)=='RE')])
 
+#===============================================
+# g <- ggplot(plot.list[plot.list$Model=='VAST',], aes(x=Year, y=Biomass/1e3, 
+#                                                        color=Knots, lty=bias.correct, ymin=0)) +
+#   theme_gray() +
+#   # theme_economist() +
+#   theme(legend.position='right') +
+#   geom_line() +
+#   facet_wrap(~Species, scales='free', ncol=2) +
+#   labs(list(y='Biomass (thousands of metric tonnes)')) +
+#   # ggtitle('Survey:', subtitle='Gulf of Alaska') +
+#   ggtitle(paste(survey, 'Survey')) +
+#   scale_color_viridis(discrete=TRUE) +
+#   # scale_color_brewer(type='seq', palette=1)
+#   geom_line(data=plot.list[plot.list$Model=='Design-based',], color='black') +
+#   geom_point(data=plot.list[plot.list$Model=='Design-based',], show.legend=FALSE, colour='black')
+# 
+# g
+
+#========================================================================
+
+# plot.list.v <- data.frame(plot.list[plot.list$Model!='Design-based',])
+# plot.list.db <-  plot.list %>% subset(select=-bias.correct, Model=='Design-based')
+
+# g <- ggplot(plot.list[plot.list$Model!='Design-based',],
+#               aes(x=Year, y=Biomass/1e3, color=bias.correct, fill=bias.correct, ymin=0)) +
+#   theme_bw() +
+#   theme(legend.position='right') +
+#   geom_ribbon(aes(ymin=low.95/1e3, ymax=up.95/1e3), alpha=0.25, lwd=1e-6) +
+#   geom_line() +
+#   facet_grid(Species ~ Knots, scales='free') +
+#   labs(list(y='Biomass (thousands of metric tonnes)')) +
+#   ggtitle(paste(survey, 'Survey')) +
+#   scale_color_colorblind() +
+#   scale_fill_colorblind() +
+#   geom_line(data=plot.list[plot.list$Model=='Design-based',], show.legend=FALSE) +
+#   geom_point(data=plot.list[plot.list$Model=='Design-based',], show.legend=FALSE)
+# g
+
+# names(plot.list)
+
+# temp <- plot.list %>% subset(select=-Knots)
+
+#====================================
+#GOA: Rockfish
+
+rockfish <- c('Pacific ocean perch','Northern rockfish','Harlequin rockfish')
+survey <- 'GOA'
+
+plot.list <- survey.df[survey.df$Survey==survey &
+                         survey.df$Species %in% rockfish &
+                         survey.df$SurveyYear==TRUE,]
+#Plot
 g <- ggplot(plot.list[plot.list$Model!='Design-based',],
-            aes(x=Year, y=Biomass, color=bias.correct, lty=Model, ymin=0)) +
-  theme_dark() +
+            aes(x=Year, y=Biomass/1e3, color=Knots, fill=Knots, lty=bias.correct, ymin=0)) +
+        theme_bw() +
+        theme(legend.position='right') +
+        geom_line() +
+        facet_wrap(~Species, scale='free') +
+        labs(list(y='Biomass (thousands of metric tonnes)')) +
+        ggtitle(paste(survey, 'Survey')) +
+        scale_color_colorblind()
+# g
+ggsave(paste0(working.dir,"/GOA Rockfish_1.png"), plot=g, height=height, width=width, units='in', dpi=600)
+
+g2 <- ggplot(plot.list[plot.list$Model!='Design-based',],
+            aes(x=Year, y=Biomass/1e3, color=bias.correct, fill=bias.correct, ymin=0)) +
+        theme_bw() +
+        theme(legend.position='right') +
+        geom_ribbon(aes(ymin=low.95/1e3, ymax=up.95/1e3), alpha=0.25, lwd=1e-6) +
+        geom_line() +
+        facet_grid(Species ~ Knots, scales='free') +
+        labs(list(y='Biomass (thousands of metric tonnes)')) +
+        ggtitle(paste(survey, 'Survey')) +
+        scale_color_colorblind() +
+        scale_fill_colorblind() +
+        geom_line(data=plot.list[plot.list$Model=='Design-based',], show.legend=FALSE) +
+        geom_point(data=plot.list[plot.list$Model=='Design-based',], show.legend=FALSE)
+# g2
+ggsave(paste0(working.dir,"/GOA Rockfish_2.png"), plot=g2, height=height, width=width, units='in', dpi=600)
+
+#================================
+###### GOA: Pollock and Cod #####
+survey <- 'GOA'
+temp.species <- c('Walleye pollock','Pacific cod')
+
+plot.list <- survey.df[survey.df$Survey==survey &
+                         survey.df$Species %in% temp.species &
+                         survey.df$SurveyYear==TRUE,]
+
+#Plot
+g <- ggplot(plot.list[plot.list$Model!='Design-based',],
+            aes(x=Year, y=Biomass/1e3, color=Knots, fill=Knots, lty=bias.correct, ymin=0)) +
+  theme_bw() +
   theme(legend.position='right') +
-  geom_line(lwd=1.5) +
-  geom_line(data=plot.list[plot.list$Model=='Design-based',], color='black') +
-  geom_point(data=plot.list[plot.list$Model=='Design-based',], show.legend=FALSE, colour='black') +
-  # geom_line(data=plot.list.db, color='black') +
-  # geom_point(data=plot.list.db, show.legend=FALSE, colour='black') +
-  # facet_wrap(~Species, scales='free', ncol=3) +
+  geom_line() +
+  facet_wrap(~Species, scale='free') +
+  labs(list(y='Biomass (thousands of metric tonnes)')) +
+  ggtitle(paste(survey, 'Survey')) +
+  scale_color_colorblind()
+# g
+ggsave(paste0(working.dir,"/GOA Pollock Cod_1.png"), plot=g, height=height, width=width, units='in', dpi=600)
+
+g2 <- ggplot(plot.list[plot.list$Model!='Design-based',],
+             aes(x=Year, y=Biomass/1e3, color=bias.correct, fill=bias.correct, ymin=0)) +
+  theme_bw() +
+  theme(legend.position='right') +
+  geom_ribbon(aes(ymin=low.95/1e3, ymax=up.95/1e3), alpha=0.25, lwd=1e-6) +
+  geom_line() +
   facet_grid(Species ~ Knots, scales='free') +
   labs(list(y='Biomass (thousands of metric tonnes)')) +
   ggtitle(paste(survey, 'Survey')) +
-  scale_color_viridis(discrete=TRUE)
+  scale_color_colorblind() +
+  scale_fill_colorblind() +
+  geom_line(data=plot.list[plot.list$Model=='Design-based',], show.legend=FALSE) +
+  geom_point(data=plot.list[plot.list$Model=='Design-based',], show.legend=FALSE)
+# g2
+ggsave(paste0(working.dir,"/GOA Pollock Cod_2.png"), plot=g2, height=height, width=width, units='in', dpi=600)
 
+#================================
+###### GOA: Others #####
+survey <- 'GOA'
 
-g
+temp.species <- species.list$name[species.list$survey==survey &
+                                    !species.list$name %in% c('Walleye pollock', 'Pacific cod',
+                                                              'Pacific ocean perch', 'Northern rockfish',
+                                                              'Harlequin rockfish') ]
 
+plot.list <- survey.df[survey.df$Survey==survey &
+                         survey.df$Species %in% temp.species &
+                         survey.df$SurveyYear==TRUE,]
 
+#Plot
+g <- ggplot(plot.list[plot.list$Model!='Design-based',],
+            aes(x=Year, y=Biomass/1e3, color=Knots, fill=Knots, lty=bias.correct, ymin=0)) +
+  theme_bw() +
+  theme(legend.position='right') +
+  geom_line() +
+  facet_wrap(~Species, scale='free') +
+  labs(list(y='Biomass (thousands of metric tonnes)')) +
+  ggtitle(paste(survey, 'Survey')) +
+  scale_color_colorblind()
+# g
+ggsave(paste0(working.dir,"/GOA Others_1.png"), plot=g, height=height, width=width, units='in', dpi=600)
+
+g2 <- ggplot(plot.list[plot.list$Model!='Design-based',],
+             aes(x=Year, y=Biomass/1e3, color=bias.correct, fill=bias.correct, ymin=0)) +
+  theme_bw() +
+  theme(legend.position='right') +
+  geom_ribbon(aes(ymin=low.95/1e3, ymax=up.95/1e3), alpha=0.25, lwd=1e-6) +
+  geom_line() +
+  facet_grid(Species ~ Knots, scales='free') +
+  labs(list(y='Biomass (thousands of metric tonnes)')) +
+  ggtitle(paste(survey, 'Survey')) +
+  scale_color_colorblind() +
+  scale_fill_colorblind() +
+  geom_line(data=plot.list[plot.list$Model=='Design-based',], show.legend=FALSE) +
+  geom_point(data=plot.list[plot.list$Model=='Design-based',], show.legend=FALSE)
+# g2
+ggsave(paste0(working.dir,"/GOA Others_2.png"), plot=g2, height=height, width=width, units='in', dpi=600)
+
+#================================
+###### AI: All #####
+survey <- 'AI'
+
+plot.list <- survey.df[survey.df$Survey==survey &
+                         survey.df$SurveyYear==TRUE,]
+#Plot
+g <- ggplot(plot.list[plot.list$Model!='Design-based',],
+            aes(x=Year, y=Biomass/1e3, color=Knots, fill=Knots, lty=bias.correct, ymin=0)) +
+  theme_bw() +
+  theme(legend.position='right') +
+  geom_line() +
+  facet_wrap(~Species, scale='free') +
+  labs(list(y='Biomass (thousands of metric tonnes)')) +
+  ggtitle(paste(survey, 'Survey')) +
+  scale_color_colorblind()
+# g
+ggsave(paste0(working.dir,"/AI All_1.png"), plot=g, height=height, width=width, units='in', dpi=600)
+
+g2 <- ggplot(plot.list[plot.list$Model!='Design-based',],
+             aes(x=Year, y=Biomass/1e3, color=bias.correct, fill=bias.correct, ymin=0)) +
+  theme_bw() +
+  theme(legend.position='right') +
+  geom_ribbon(aes(ymin=low.95/1e3, ymax=up.95/1e3), alpha=0.25, lwd=1e-6) +
+  geom_line() +
+  facet_grid(Species ~ Knots, scales='free') +
+  labs(list(y='Biomass (thousands of metric tonnes)')) +
+  ggtitle(paste(survey, 'Survey')) +
+  scale_color_colorblind() +
+  scale_fill_colorblind() +
+  geom_line(data=plot.list[plot.list$Model=='Design-based',], show.legend=FALSE) +
+  geom_point(data=plot.list[plot.list$Model=='Design-based',], show.legend=FALSE)
+# g2
+ggsave(paste0(working.dir,"/AI All_2.png"), plot=g2, height=height, width=width, units='in', dpi=600)
