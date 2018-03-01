@@ -30,12 +30,12 @@ lat_lon.def <- "start"
 
 survey <- "GOA"
 
-bias.correct <- FALSE
+bias.correct <- TRUE
 
 #SPATIAL SETTINGS
 Method <- c("Grid", "Mesh", "Spherical_mesh")[2]
 grid_size_km <- 25
-n_x <- c(100, 250, 500, 1000, 2000)[1] # Number of stations
+n_x <- c(100, 250, 500, 1000, 2000)[3] # Number of stations
 Kmeans_Config <- list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )
 
 
@@ -45,7 +45,7 @@ strata.limits <- data.frame(STRATA = c("All_areas"))
 
 
 #DERIVED OBJECTS
-Version <-  "VAST_v2_8_0"
+Version <-  "VAST_v4_0_0"
 ###########################
 trial.file <- paste0(getwd(),"/examples/Species_Specific_Case_Studies/Test_GOA_pollock")
 
@@ -101,7 +101,8 @@ Obj <- TmbList[["Obj"]]
 
 Opt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
                           upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
-                          bias.correct = bias.correct)
+                          bias.correct = bias.correct,
+                          bias.correct.control=list(nsplit=200, split=NULL, sd=FALSE))
 #Save output
 Report = Obj$report()
 Save = list("Opt"=Opt, "Report"=Report, "ParHat"=Obj$env$parList(Opt$par), "TmbData"=TmbData)
