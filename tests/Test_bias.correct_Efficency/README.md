@@ -1,8 +1,8 @@
 # Test-bias.correct-Efficency.r
 
-Trial implementation of several alternatives for reducing RAM use for bias.correction with large numbers of knots .
+Trial implementation of several alternatives for reducing RAM use for bias.correction with large numbers of knots.
 
-##Methods
+##  Methods
 
 Description                     | Code                            | Result
 --------------------------------|---------------------------------|-------------------------
