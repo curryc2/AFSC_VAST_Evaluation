@@ -8,7 +8,21 @@
 #
 #==================================================================================================
 #NOTES:
-#
+#Memory ProfilingJust
+
+
+# Using nsplit=200
+# [1] "bias.correct: TRUE"
+# [1] "n_x: 1000"
+# [1] "START: Mon Mar 05 10:18:23 2018"
+# [1] "END: Mon Mar 05 17:28:07 2018"
+
+#Using Jim's new method
+# [1] "bias.correct: TRUE"
+# [1] "n_x: 1000"
+# [1] "START: Tue Mar 06 10:02:39 2018"
+# [1] "END: Tue Mar 06 11:24:57 2018"
+
 #==================================================================================================
  source("R/create-VAST-input.r")
  source("R/create-Data-Geostat.r")
@@ -35,7 +49,7 @@ bias.correct <- TRUE
 #SPATIAL SETTINGS
 Method <- c("Grid", "Mesh", "Spherical_mesh")[2]
 grid_size_km <- 25
-n_x <- c(100, 250, 500, 1000, 2000)[3] # Number of stations
+n_x <- c(100, 250, 500, 1000, 2000)[4] # Number of stations
 Kmeans_Config <- list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )
 
 
@@ -98,11 +112,52 @@ TmbList <- VAST::Build_TMB_Fn(TmbData = TmbData, RunDir = DateFile,
                                 Method = Method)
 Obj <- TmbList[["Obj"]]
 
+start.time <- date()
 
-Opt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
-                          upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
-                          bias.correct = bias.correct,
-                          bias.correct.control=list(nsplit=200, split=NULL, sd=FALSE))
+#================================================
+#TESTING OPTIMIZATION: Original Call
+
+# Opt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
+#                           upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
+#                           bias.correct = bias.correct)
+
+
+#================================================
+#TESTING OPTIMIZATION: Updated call with nsplit to reduce memory load and 
+#                        allow running bias.cor with kt > ~300
+# Opt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
+#                            upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
+#                            bias.correct = bias.correct,
+#                            bias.correct.control=list(nsplit=200, split=NULL, sd=FALSE))
+
+#================================================
+#TESTING OPTIMIZATION: New Alternative Following Jim's Suggestion
+#  Should limit bias correction to single vector of interst: index
+
+nsplit <- 200
+
+Opt = TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
+                           upper = TmbList[["Upper"]], getsd = TRUE, 
+                           savedir = DateFile, bias.correct=FALSE )
+
+# First SD run 
+h <- optimHess(Opt$par, Obj$fn, Obj$gr)
+SD = sdreport( obj=Obj, par.fixed=Opt$par, hessian.fixed=h )
+
+# Determine indices
+BiasCorrNames = c("Index_cyl")
+Which = which( rownames(summary(SD,"report")) %in% BiasCorrNames )
+Which = split( Which, cut(seq_along(Which), nsplit) )
+Which = Which[sapply(Which,FUN=length)>0]
+
+
+# Repeat SD with indexing
+SD = sdreport( obj=Obj, par.fixed=Opt$par, hessian.fixed=h, bias.correct=TRUE, bias.correct.control=list(sd=FALSE, split=Which, nsplit=NULL) )
+
+#================================================
+
+
+end.time <- date()
 #Save output
 Report = Obj$report()
 Save = list("Opt"=Opt, "Report"=Report, "ParHat"=Obj$env$parList(Opt$par), "TmbData"=TmbData)
@@ -116,6 +171,10 @@ plot_VAST_output(Opt, Report, DateFile, survey, TmbData, Data_Geostat, Extrapola
 ##### CLEAN UP MODEL FILES #####
 # cleanup_VAST_file(DateFile, Version=Version)
 
+print(paste('bias.correct:',bias.correct))
+print(paste('n_x:',n_x))
+print(paste('START:',start.time))
+print(paste('END:',end.time))
 
 
 #========================================================================
