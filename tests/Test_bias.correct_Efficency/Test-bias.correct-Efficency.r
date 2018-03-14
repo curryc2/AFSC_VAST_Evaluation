@@ -115,7 +115,7 @@ Obj <- TmbList[["Obj"]]
 start.time <- date()
 
 #================================================
-#TESTING OPTIMIZATION: Original Call
+#TESTING OPTIMIZATION 1: Original Call
 
 # Opt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
 #                           upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
@@ -123,7 +123,7 @@ start.time <- date()
 
 
 #================================================
-#TESTING OPTIMIZATION: Updated call with nsplit to reduce memory load and 
+#TESTING OPTIMIZATION 1: Updated call with nsplit to reduce memory load and 
 #                        allow running bias.cor with kt > ~300
 # Opt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
 #                            upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
@@ -131,28 +131,34 @@ start.time <- date()
 #                            bias.correct.control=list(nsplit=200, split=NULL, sd=FALSE))
 
 #================================================
-#TESTING OPTIMIZATION: New Alternative Following Jim's Suggestion
+#TESTING OPTIMIZATION 2: New Alternative Following Jim's Suggestion
 #  Should limit bias correction to single vector of interst: index
 
-nsplit <- 200
+# nsplit <- 200
+# 
+# Opt = TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
+#                            upper = TmbList[["Upper"]], getsd = TRUE, 
+#                            savedir = DateFile, bias.correct=FALSE )
+# 
+# # First SD run 
+# h <- optimHess(Opt$par, Obj$fn, Obj$gr)
+# SD = sdreport( obj=Obj, par.fixed=Opt$par, hessian.fixed=h )
+# 
+# # Determine indices
+# BiasCorrNames = c("Index_cyl")
+# Which = which( rownames(summary(SD,"report")) %in% BiasCorrNames )
+# Which = split( Which, cut(seq_along(Which), nsplit) )
+# Which = Which[sapply(Which,FUN=length)>0]
+# 
+# 
+# # Repeat SD with indexing
+# SD = sdreport( obj=Obj, par.fixed=Opt$par, hessian.fixed=h, bias.correct=TRUE, bias.correct.control=list(sd=FALSE, split=Which, nsplit=NULL) )
 
-Opt = TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
-                           upper = TmbList[["Upper"]], getsd = TRUE, 
-                           savedir = DateFile, bias.correct=FALSE )
+#================================================
+#TESTING OPTIMIZATION 3: Updated TMB Implementation Where Transformed Variables Are Specified
 
-# First SD run 
-h <- optimHess(Opt$par, Obj$fn, Obj$gr)
-SD = sdreport( obj=Obj, par.fixed=Opt$par, hessian.fixed=h )
-
-# Determine indices
-BiasCorrNames = c("Index_cyl")
-Which = which( rownames(summary(SD,"report")) %in% BiasCorrNames )
-Which = split( Which, cut(seq_along(Which), nsplit) )
-Which = Which[sapply(Which,FUN=length)>0]
-
-
-# Repeat SD with indexing
-SD = sdreport( obj=Obj, par.fixed=Opt$par, hessian.fixed=h, bias.correct=TRUE, bias.correct.control=list(sd=FALSE, split=Which, nsplit=NULL) )
+Opt = TMBhelper::Optimize( obj=Obj, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], getsd=TRUE, savedir=DateFile, bias.correct=TRUE, newtonsteps=1,  
+                           bias.correct.control=list(sd=FALSE, split=NULL, nsplit=1, vars_to_correct="Index_cyl") )
 
 #================================================
 
