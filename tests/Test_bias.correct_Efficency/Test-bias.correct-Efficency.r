@@ -4,7 +4,11 @@
 #Date: 3.1.2018
 #
 #Purpose: Example implementation of VAST model for GOA Pollock
-#
+#  bias.corr.option - controls which method is used.
+#     Alternatives:  1 = Orignal implementation (error @ 300kt + )
+#                    2 = Use nsplit to break up epsilon-estimator bias correction processes - slow
+#                    3 = Manually estimte without bias correction then re-estimate the bias corrected index - faster
+#                    4 = Use NEW option in TMBhelper::Optimize() to specify which variables are bias corrected.
 #
 #==================================================================================================
 #NOTES:
@@ -60,6 +64,10 @@ strata.limits <- data.frame(STRATA = c("All_areas"))
 
 #DERIVED OBJECTS
 Version <-  "VAST_v4_0_0"
+
+#SPECIFY METHOD FOR DEALING WITH BIAS.CORRECTION
+bias.corr.option <- 4
+
 ###########################
 trial.file <- paste0(getwd(),"/tests/Test_bias.correct_Efficency")
 
@@ -79,7 +87,7 @@ Options = c(SD_site_density = 0, SD_site_logdensity = 0,
             Calculate_Coherence = 0)
 
 
-DateFile <- paste0(trial.file,"/GOA Pollock knots_",n_x," bias.correct_", bias.correct, " Rho_",RhoConfig[1],RhoConfig[2],RhoConfig[3],RhoConfig[4],"/")
+DateFile <- paste0(trial.file,"/Option_",bias.corr.option,"/GOA Pollock knots_",n_x," bias.correct_", bias.correct, " Rho_",RhoConfig[1],RhoConfig[2],RhoConfig[3],RhoConfig[4],"/")
 #=======================================================================
 ##### READ IN DATA AND BUILD vAST INPUT #####
 VAST_input <- create_VAST_input(species.codes=species.codes, combineSpecies=FALSE,
@@ -116,50 +124,56 @@ start.time <- date()
 
 #================================================
 #TESTING OPTIMIZATION 1: Original Call
-
-# Opt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
-#                           upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
-#                           bias.correct = bias.correct)
-
+if(bias.corr.option==1) {
+  Opt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
+                          upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
+                          bias.correct = bias.correct)
+}
 
 #================================================
-#TESTING OPTIMIZATION 1: Updated call with nsplit to reduce memory load and 
+#TESTING OPTIMIZATION 2: Updated call with nsplit to reduce memory load and 
 #                        allow running bias.cor with kt > ~300
-# Opt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
-#                            upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
-#                            bias.correct = bias.correct,
-#                            bias.correct.control=list(nsplit=200, split=NULL, sd=FALSE))
-
+if(bias.corr.option==2) {
+  nsplit <- 200
+  Opt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
+                             upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
+                             bias.correct = bias.correct,
+                             bias.correct.control=list(nsplit=nsplit, split=NULL, sd=FALSE))
+}
 #================================================
-#TESTING OPTIMIZATION 2: New Alternative Following Jim's Suggestion
+#TESTING OPTIMIZATION 3: New Alternative Following Jim's Suggestion
 #  Should limit bias correction to single vector of interst: index
+#  Conducts estimation without bias correction then re-estimates bias corrected index parameter.
+if(bias.corr.option==3) {
+  nsplit <- 200
 
-# nsplit <- 200
-# 
-# Opt = TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
-#                            upper = TmbList[["Upper"]], getsd = TRUE, 
-#                            savedir = DateFile, bias.correct=FALSE )
-# 
-# # First SD run 
-# h <- optimHess(Opt$par, Obj$fn, Obj$gr)
-# SD = sdreport( obj=Obj, par.fixed=Opt$par, hessian.fixed=h )
-# 
-# # Determine indices
-# BiasCorrNames = c("Index_cyl")
-# Which = which( rownames(summary(SD,"report")) %in% BiasCorrNames )
-# Which = split( Which, cut(seq_along(Which), nsplit) )
-# Which = Which[sapply(Which,FUN=length)>0]
-# 
-# 
-# # Repeat SD with indexing
-# SD = sdreport( obj=Obj, par.fixed=Opt$par, hessian.fixed=h, bias.correct=TRUE, bias.correct.control=list(sd=FALSE, split=Which, nsplit=NULL) )
+  Opt = TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
+                            upper = TmbList[["Upper"]], getsd = TRUE,
+                            savedir = DateFile, bias.correct=FALSE )
 
+  # First SD run
+  h <- optimHess(Opt$par, Obj$fn, Obj$gr)
+  SD = sdreport( obj=Obj, par.fixed=Opt$par, hessian.fixed=h )
+
+  # Determine indices
+  BiasCorrNames = c("Index_cyl")
+  Which = which( rownames(summary(SD,"report")) %in% BiasCorrNames )
+  Which = split( Which, cut(seq_along(Which), nsplit) )
+  Which = Which[sapply(Which,FUN=length)>0]
+
+
+  # Repeat SD with indexing
+  SD = sdreport( obj=Obj, par.fixed=Opt$par, hessian.fixed=h, bias.correct=TRUE, 
+                 bias.correct.control=list(sd=FALSE, split=Which, nsplit=NULL) )
+  
+}
 #================================================
-#TESTING OPTIMIZATION 3: Updated TMB Implementation Where Transformed Variables Are Specified
-
-Opt = TMBhelper::Optimize( obj=Obj, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], getsd=TRUE, savedir=DateFile, bias.correct=TRUE, newtonsteps=1,  
-                           bias.correct.control=list(sd=FALSE, split=NULL, nsplit=1, vars_to_correct="Index_cyl") )
-
+#TESTING OPTIMIZATION 4: Updated TMB Implementation Where Transformed Variables Are Specified
+if(bias.corr.option==4) {
+  Opt = TMBhelper::Optimize( obj=Obj, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], getsd=TRUE, 
+                             savedir=DateFile, bias.correct=TRUE, newtonsteps=1,  
+                             bias.correct.control=list(sd=FALSE, split=NULL, nsplit=1, vars_to_correct="Index_cyl") )
+}
 #================================================
 
 
