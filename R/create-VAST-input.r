@@ -72,7 +72,7 @@ create_VAST_input <- function(species.codes, combineSpecies=FALSE, lat_lon.def="
   }
   end.time <- date()
   #Create Location for Saving Files
-  dir.create(DateFile) #Recursive may need to be false if other elements exist
+  dir.create(DateFile, recursive=TRUE) #Recursive may need to be false if other elements exist
   
   #Save Settings for Later reference
   if(save.Record==TRUE) {
