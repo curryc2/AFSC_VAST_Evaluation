@@ -15,17 +15,27 @@
 #Memory ProfilingJust
 
 
-# Using nsplit=200
+# OPTION #2: Using nsplit=200
 # [1] "bias.correct: TRUE"
 # [1] "n_x: 1000"
 # [1] "START: Mon Mar 05 10:18:23 2018"
 # [1] "END: Mon Mar 05 17:28:07 2018"
 
-#Using Jim's new method
+# OPTION #3: Using Jim's new method - Restimate of index with bias corr. 
 # [1] "bias.correct: TRUE"
 # [1] "n_x: 1000"
 # [1] "START: Tue Mar 06 10:02:39 2018"
 # [1] "END: Tue Mar 06 11:24:57 2018"
+
+# OPTION #4: New TMBHelper implementation - nsplit=200
+# [1] "bias.correct: TRUE"
+# [1] "n_x: 1000"
+# [1] "START: Wed Mar 14 14:58:43 2018"
+# [1] "END: Wed Mar 14 22:22:01 2018"
+# If no nsplit specification, model has same memory allocation failure
+
+#   Requires development version of TMB: devtools::install_github("kaskr/adcomp/TMB")
+#     Checkup
 
 #==================================================================================================
  source("R/create-VAST-input.r")
@@ -88,6 +98,8 @@ Options = c(SD_site_density = 0, SD_site_logdensity = 0,
 
 
 DateFile <- paste0(trial.file,"/Option_",bias.corr.option,"/GOA Pollock knots_",n_x," bias.correct_", bias.correct, " Rho_",RhoConfig[1],RhoConfig[2],RhoConfig[3],RhoConfig[4],"/")
+
+
 #=======================================================================
 ##### READ IN DATA AND BUILD vAST INPUT #####
 VAST_input <- create_VAST_input(species.codes=species.codes, combineSpecies=FALSE,
@@ -125,6 +137,7 @@ start.time <- date()
 #================================================
 #TESTING OPTIMIZATION 1: Original Call
 if(bias.corr.option==1) {
+  Opt <- NULL
   Opt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
                           upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
                           bias.correct = bias.correct)
@@ -135,6 +148,7 @@ if(bias.corr.option==1) {
 #                        allow running bias.cor with kt > ~300
 if(bias.corr.option==2) {
   nsplit <- 200
+  Opt <- NULL
   Opt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
                              upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
                              bias.correct = bias.correct,
@@ -146,7 +160,8 @@ if(bias.corr.option==2) {
 #  Conducts estimation without bias correction then re-estimates bias corrected index parameter.
 if(bias.corr.option==3) {
   nsplit <- 200
-
+  Opt <- NULL
+  
   Opt = TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
                             upper = TmbList[["Upper"]], getsd = TRUE,
                             savedir = DateFile, bias.correct=FALSE )
@@ -170,9 +185,14 @@ if(bias.corr.option==3) {
 #================================================
 #TESTING OPTIMIZATION 4: Updated TMB Implementation Where Transformed Variables Are Specified
 if(bias.corr.option==4) {
+  nsplit <- 100
+  Opt <- NULL
+  
   Opt = TMBhelper::Optimize( obj=Obj, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], getsd=TRUE, 
-                             savedir=DateFile, bias.correct=TRUE, newtonsteps=1,  
-                             bias.correct.control=list(sd=FALSE, split=NULL, nsplit=1, vars_to_correct="Index_cyl") )
+                             savedir=DateFile, bias.correct=bias.correct, newtonsteps=1,  
+                             # bias.correct.control=list(sd=FALSE, vars_to_correct="Index_cyl") )
+  bias.correct.control=list(split=NULL, sd=FALSE, nsplit=nsplit, vars_to_correct="Index_cyl") )
+   
 }
 #================================================
 
@@ -193,6 +213,7 @@ plot_VAST_output(Opt, Report, DateFile, survey, TmbData, Data_Geostat, Extrapola
 
 print(paste('bias.correct:',bias.correct))
 print(paste('n_x:',n_x))
+print(paste('nsplit:',nsplit))
 print(paste('START:',start.time))
 print(paste('END:',end.time))
 
