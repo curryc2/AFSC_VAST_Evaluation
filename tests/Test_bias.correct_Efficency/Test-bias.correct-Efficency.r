@@ -53,7 +53,7 @@ require(tidyverse)
 ##### SETUP INPUT DATA #####
 
 #Generate a dataset
-species.codes <- 21740
+species.codes <- 21740 #30420#
 lat_lon.def <- "start"
 
 survey <- "GOA"
@@ -63,7 +63,7 @@ bias.correct <- TRUE
 #SPATIAL SETTINGS
 Method <- c("Grid", "Mesh", "Spherical_mesh")[2]
 grid_size_km <- 25
-n_x <- c(100, 250, 500, 1000, 2000)[4] # Number of stations
+n_x <- c(100, 250, 500, 1000, 2000)[1] # Number of stations
 Kmeans_Config <- list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )
 
 
@@ -136,7 +136,7 @@ start.time <- date()
 
 #================================================
 #TESTING OPTIMIZATION 1: Original Call
-if(bias.corr.option==1) {
+if(bias.corr.option==1 | bias.correct==FALSE) {
   Opt <- NULL
   Opt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
                           upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
@@ -190,8 +190,12 @@ if(bias.corr.option==4) {
   
   Opt = TMBhelper::Optimize( obj=Obj, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], getsd=TRUE, 
                              savedir=DateFile, bias.correct=bias.correct, newtonsteps=1,  
-                             # bias.correct.control=list(sd=FALSE, vars_to_correct="Index_cyl") )
-  bias.correct.control=list(split=NULL, sd=FALSE, nsplit=nsplit, vars_to_correct="Index_cyl") )
+                             bias.correct.control=list(vars_to_correct="Index_cyl") )
+                             # bias.correct.control=list(nsplit=nsplit, vars_to_correct="Index_cyl") )  FAIL:  Error in seq.int(rx[1L], rx[2L], length.out = nb) : 'from' must be finite
+  # bias.correct.control=list(split=NULL, sd=FALSE, nsplit=nsplit, vars_to_correct="Index_cyl") ) #FAIL even with low knot number
+  
+  # bias.correct.control=list(sd=FALSE, vars_to_correct="Index_cyl") )
+  
    
 }
 #================================================
@@ -205,7 +209,7 @@ save(Save, file=paste0(DateFile,"Save.RData"))
 
 #========================================================================
 ##### DIAGNOSTIC AND PREDICTION PLOTS #####
-plot_VAST_output(Opt, Report, DateFile, survey, TmbData, Data_Geostat, Extrapolation_List, Spatial_List)
+# plot_VAST_output(Opt, Report, DateFile, survey, TmbData, Data_Geostat, Extrapolation_List, Spatial_List)
 
 #========================================================================
 ##### CLEAN UP MODEL FILES #####
