@@ -189,8 +189,9 @@ if(bias.corr.option==4) {
   Opt <- NULL
   
   Opt = TMBhelper::Optimize( obj=Obj, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], getsd=TRUE, 
-                             savedir=DateFile, bias.correct=bias.correct, newtonsteps=1,  
-                             bias.correct.control=list(vars_to_correct="Index_cyl") )
+                             savedir=DateFile, bias.correct=bias.correct, newtonsteps=1,
+                             bias.correct.control=list(sd=FALSE, nsplit=nsplit, split="Index_cyl") )
+                             # bias.correct.control=list(vars_to_correct="Index_cyl") )
                              # bias.correct.control=list(nsplit=nsplit, vars_to_correct="Index_cyl") )  FAIL:  Error in seq.int(rx[1L], rx[2L], length.out = nb) : 'from' must be finite
   # bias.correct.control=list(split=NULL, sd=FALSE, nsplit=nsplit, vars_to_correct="Index_cyl") ) #FAIL even with low knot number
   
@@ -199,6 +200,9 @@ if(bias.corr.option==4) {
    
 }
 #================================================
+
+head(summary(Opt$SD))
+unique(summary(Opt$SD)[,'Est. (bias.correct)'])
 
 
 end.time <- date()
