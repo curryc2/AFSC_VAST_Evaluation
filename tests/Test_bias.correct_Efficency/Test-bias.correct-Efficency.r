@@ -27,12 +27,16 @@
 # [1] "START: Tue Mar 06 10:02:39 2018"
 # [1] "END: Tue Mar 06 11:24:57 2018"
 
-# OPTION #4: New TMBHelper implementation - nsplit=200
+# OPTION #4: New TMBHelper implementation ~3 hours
 # [1] "bias.correct: TRUE"
-# [1] "n_x: 1000"
-# [1] "START: Wed Mar 14 14:58:43 2018"
-# [1] "END: Wed Mar 14 22:22:01 2018"
-# If no nsplit specification, model has same memory allocation failure
+# [1] "n_x: 500"
+# [1] "nsplit: 100" NOTE: nsplit <- NULL does NOT work
+# [1] "START: Sun Apr 29 12:53:21 2018"
+# [1] "END: Sun Apr 29 15:07:11 2018"
+# 
+# Opt = TMBhelper::Optimize( obj=Obj, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], getsd=TRUE, 
+#                            savedir=DateFile, bias.correct=bias.correct, newtonsteps=1,
+#                            bias.correct.control=list(sd=FALSE, nsplit=nsplit, split="Index_cyl") )
 
 #   Requires development version of TMB: devtools::install_github("kaskr/adcomp/TMB")
 #     Checkup
@@ -63,7 +67,7 @@ bias.correct <- TRUE
 #SPATIAL SETTINGS
 Method <- c("Grid", "Mesh", "Spherical_mesh")[2]
 grid_size_km <- 25
-n_x <- c(100, 250, 500, 1000, 2000)[1] # Number of stations
+n_x <- c(100, 250, 500, 1000, 2000)[4] # Number of stations
 Kmeans_Config <- list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )
 
 
@@ -185,7 +189,7 @@ if(bias.corr.option==3) {
 #================================================
 #TESTING OPTIMIZATION 4: Updated TMB Implementation Where Transformed Variables Are Specified
 if(bias.corr.option==4) {
-  nsplit <- 100
+  nsplit <- 200
   Opt <- NULL
   
   Opt = TMBhelper::Optimize( obj=Obj, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], getsd=TRUE, 
