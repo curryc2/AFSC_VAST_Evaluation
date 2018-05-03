@@ -41,6 +41,22 @@
 #   Requires development version of TMB: devtools::install_github("kaskr/adcomp/TMB")
 #     Checkup
 
+# [1] "bias.correct: TRUE"
+# [1] "n_x: 1000"
+# [1] "nsplit: 100"
+# [1] "START: Wed May 02 14:20:00 2018" ~ 15
+# [1] "END: Thu May 03 05:19:04 2018"
+
+# [1] "bias.correct: TRUE"
+# [1] "n_x: 1000"
+# [1] "nsplit: 200"
+# [1] "START: Mon Apr 30 09:04:17 2018" ~ 9 hours
+# [1] "END: Mon Apr 30 16:16:39 2018"
+
+#ATTEMPT WITH nsplit=10,50,75
+# Error in sparseHessianFun(env, skipFixedEffects = skipFixedEffects) : 
+#   Memory allocation fail in function 'MakeADHessObject2' 
+
 #==================================================================================================
  source("R/create-VAST-input.r")
  source("R/create-Data-Geostat.r")
@@ -189,7 +205,7 @@ if(bias.corr.option==3) {
 #================================================
 #TESTING OPTIMIZATION 4: Updated TMB Implementation Where Transformed Variables Are Specified
 if(bias.corr.option==4) {
-  nsplit <- 200
+  nsplit <- 100#200
   Opt <- NULL
   
   Opt = TMBhelper::Optimize( obj=Obj, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], getsd=TRUE, 
