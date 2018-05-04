@@ -88,7 +88,7 @@ bias.correct <- TRUE
 # }
 #=======================================================================
 ##### Run VAST model  #####
-Version <- "VAST_v2_8_0"
+Version <- "VAST_v4_0_0"
 lat_lon.def <- "start"
 
 #SPATIAL SETTINGS
