@@ -27,13 +27,24 @@
 # [1] "START: Tue Mar 06 10:02:39 2018"
 # [1] "END: Tue Mar 06 11:24:57 2018"
 
-# OPTION #4: New TMBHelper implementation ~3 hours
+# OPTION #4: New TMBHelper implementation ~1.5 hours = not converged, good gradient
 # [1] "bias.correct: TRUE"
-# [1] "n_x: 500"
-# [1] "nsplit: 100" NOTE: nsplit <- NULL does NOT work
-# [1] "START: Sun Apr 29 12:53:21 2018"
-# [1] "END: Sun Apr 29 15:07:11 2018"
+# [1] "n_x: 1000"
+# [1] "nsplit: 100"
+# [1] "START: Thu May 03 10:22:45 2018"
+# [1] "END: Thu May 03 11:44:15 2018"
 # 
+
+#BETTER - NO ERRORS 1.5 HRS
+# [1] "bias.correct: TRUE"
+# [1] "n_x: 1000"
+# [1] "nsplit: 200"
+# [1] "START: Fri May 04 08:30:25 2018"
+# [1] "END: Fri May 04 09:53:00 2018"
+
+
+
+
 # Opt = TMBhelper::Optimize( obj=Obj, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], getsd=TRUE, 
 #                            savedir=DateFile, bias.correct=bias.correct, newtonsteps=1,
 #                            bias.correct.control=list(sd=FALSE, nsplit=nsplit, split="Index_cyl") )
@@ -205,12 +216,17 @@ if(bias.corr.option==3) {
 #================================================
 #TESTING OPTIMIZATION 4: Updated TMB Implementation Where Transformed Variables Are Specified
 if(bias.corr.option==4) {
-  nsplit <- 100#200
+  nsplit <- 200
   Opt <- NULL
   
   Opt = TMBhelper::Optimize( obj=Obj, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], getsd=TRUE, 
                              savedir=DateFile, bias.correct=bias.correct, newtonsteps=1,
-                             bias.correct.control=list(sd=FALSE, nsplit=nsplit, split="Index_cyl") )
+                             bias.correct.control=list(sd=FALSE, nsplit=nsplit, split=NULL, vars_to_correct="Index_cyl") )
+  
+
+  # Opt = TMBhelper::Optimize( obj=Obj, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], getsd=TRUE, 
+  #                            savedir=DateFile, bias.correct=bias.correct, newtonsteps=1,
+  #                            bias.correct.control=list(sd=FALSE, nsplit=nsplit, split="Index_cyl") )
                              # bias.correct.control=list(vars_to_correct="Index_cyl") )
                              # bias.correct.control=list(nsplit=nsplit, vars_to_correct="Index_cyl") )  FAIL:  Error in seq.int(rx[1L], rx[2L], length.out = nb) : 'from' must be finite
   # bias.correct.control=list(split=NULL, sd=FALSE, nsplit=nsplit, vars_to_correct="Index_cyl") ) #FAIL even with low knot number
