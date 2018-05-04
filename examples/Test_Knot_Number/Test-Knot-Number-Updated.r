@@ -67,25 +67,25 @@ species.series <- c(1:n.species)
 n.cores <- detectCores()-1
 
 #Boolean for running estimation models
-do.estim <- FALSE
+do.estim <- TRUE
 
 #Trial Knot Numbers
 trial.knots <- c(100,200,300,400,500,750,1000)#seq(100, 1000, by=100)
 n.trial.knots <- length(trial.knots)
 
 #Boolean for bias correction
-bias.correct <- FALSE
+bias.correct <- TRUE
 
 #Update if
-if(bias.correct==TRUE) {
-  species.list <- species.list[-which(species.list$survey=='EBS_SHELF'),]
-  n.species <- nrow(species.list)
-  species.series <- c(1:n.species)
-  
-  
-  trial.knots <- c(100,200,300,400,500)
-  n.trial.knots <- length(trial.knots)
-}
+# if(bias.correct==TRUE) {
+#   species.list <- species.list[-which(species.list$survey=='EBS_SHELF'),]
+#   n.species <- nrow(species.list)
+#   species.series <- c(1:n.species)
+#   
+#   
+#   # trial.knots <- c(100,200,300,400,500)
+#   # n.trial.knots <- length(trial.knots)
+# }
 #=======================================================================
 ##### Run VAST model  #####
 Version <- "VAST_v2_8_0"
@@ -178,10 +178,19 @@ species_wrapper_fxn_knots <- function(s, n_x) {
                                 Method = Method)
   Obj <- TmbList[["Obj"]]
   
+  if(bias.correct==FALSE) {
+    Opt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
+                               upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
+                               bias.correct = bias.correct)
+  }else {
+    #NEW: Only Bias Correct Index
+    Opt <- TMBhelper::Optimize(obj=Obj, lower=TmbList[["Lower"]], 
+                               upper=TmbList[["Upper"]], getsd=TRUE, savedir=DateFile, 
+                               bias.correct=bias.correct, newtonsteps=1,
+                               bias.correct.control=list(sd=FALSE, nsplit=200, split=NULL, 
+                                                         vars_to_correct="Index_cyl"))
+  }
   
-  Opt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
-                             upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
-                             bias.correct = bias.correct)
   #Save output
   # Report = Obj$report()
   # Save = list("Opt"=Opt, "Report"=Report, "ParHat"=Obj$env$parList(Opt$par), "TmbData"=TmbData)
