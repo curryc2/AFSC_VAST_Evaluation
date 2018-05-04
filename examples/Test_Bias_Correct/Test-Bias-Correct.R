@@ -63,10 +63,10 @@ species.series <- c(1:n.species)
 n.cores <- detectCores()-1
 
 #Boolean for running estimation models
-do.estim <- FALSE
+do.estim <- TRUE
 
 #Trial Knot Numbers
-trial.knots <- c(100,250)
+trial.knots <- c(100,250,500,1000)
 n.trial.knots <- length(trial.knots)
 
 #Trial RANDOM EFECTS SPECIFICATIONS specifications
@@ -163,12 +163,23 @@ wrapper_fxn <- function(s, n_x, bias.correct, Version=Version) {
                                 Version = Version, RhoConfig = RhoConfig, loc_x = Spatial_List$loc_x,
                                 Method = Method)
   
+
+  
+  if(bias.correct==FALSE) {
+    Opt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
+                               upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
+                               bias.correct = bias.correct)
+  }else {
+    #NEW: Only Bias Correct Index
+    Opt <- TMBhelper::Optimize(obj=Obj, lower=TmbList[["Lower"]], 
+                               upper=TmbList[["Upper"]], getsd=TRUE, savedir=DateFile, 
+                               bias.correct=bias.correct, newtonsteps=1,
+                               bias.correct.control=list(sd=FALSE, nsplit=200, split=NULL, 
+                                                       vars_to_correct="Index_cyl"))
+  }
+  
   Obj <- TmbList[["Obj"]]
   
-  
-  Opt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
-                             upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
-                             bias.correct = bias.correct)
   #Save output
   Report = Obj$report()
   # Save = list("Opt"=Opt, "Report"=Report, "ParHat"=Obj$env$parList(Opt$par), "TmbData"=TmbData)
