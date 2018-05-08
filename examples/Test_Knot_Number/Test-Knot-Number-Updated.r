@@ -77,15 +77,15 @@ n.trial.knots <- length(trial.knots)
 bias.correct <- TRUE
 
 #Update if
-# if(bias.correct==TRUE) {
-#   species.list <- species.list[-which(species.list$survey=='EBS_SHELF'),]
-#   n.species <- nrow(species.list)
-#   species.series <- c(1:n.species)
+if(bias.correct==TRUE) {
+  species.list <- species.list[-which(species.list$survey=='EBS_SHELF'),]
+  n.species <- nrow(species.list)
+  species.series <- c(1:n.species)
 #   
 #   
 #   # trial.knots <- c(100,200,300,400,500)
 #   # n.trial.knots <- length(trial.knots)
-# }
+}
 #=======================================================================
 ##### Run VAST model  #####
 Version <- "VAST_v4_0_0"
@@ -187,7 +187,7 @@ species_wrapper_fxn_knots <- function(s, n_x) {
     Opt <- TMBhelper::Optimize(obj=Obj, lower=TmbList[["Lower"]], 
                                upper=TmbList[["Upper"]], getsd=TRUE, savedir=DateFile, 
                                bias.correct=bias.correct, newtonsteps=1,
-                               bias.correct.control=list(sd=FALSE, nsplit=200, split=NULL, 
+                               bias.correct.control=list(sd=FALSE, nsplit=200, split=NULL,
                                                          vars_to_correct="Index_cyl"))
   }
   
