@@ -13,10 +13,15 @@
 #  Suggests cannot be done in parallel, will attempt in series.
 
 # 2) Running in series (32 GB Ram) stopped with bias.corr=TRUE, knots=400, s=4 (AI Walleye Pollock)
+
+#Spiny Dogfish May be the Problem
+
+#  3) Does not work for Arrowtooth Flounder
 #==================================================================================================
 #TIMING:
 
-
+# [1] "### START: Thu May 31 16:35:10 2018"
+# [1] "### END: Sat Jun 02 02:54:21 2018"
 
 
 ##==================================================================================================
@@ -27,6 +32,7 @@ require(ggthemes)
 require(VAST)
 require(TMB)
 require(viridis)
+require(TMBhelper)
 
 source("R/calc-design-based-index.r")
 source("R/create-VAST-input.r")
@@ -46,11 +52,13 @@ species.list <- read.csv("data/eval_species_list.csv", stringsAsFactors=FALSE)
 #Limit species included
 species.list <- species.list[species.list$include=='Y',]
 #Remove EBS_SHELF Arrowtooth
-species.list <- species.list[species.list$survey!='EBS_SHELF',]
-
-#Remove AI Species
 # species.list <- species.list[species.list$survey!='EBS_SHELF',]
 
+#Remove Spiny Dogfish
+# species.list <- species.list[-which(species.list$name=='Spiny dogfish'),]
+
+#Remove Arrowtooth
+# species.list <- species.list[-which(species.list$name=='Arrowtooth flounder'),]
 
 n.species <- nrow(species.list)
 
@@ -63,10 +71,10 @@ species.series <- c(1:n.species)
 n.cores <- detectCores()-1
 
 #Boolean for running estimation models
-do.estim <- TRUE
+do.estim <- FALSE
 
 #Trial Knot Numbers
-trial.knots <- c(100,250,500,1000)
+trial.knots <- c(100,250,500,750)
 n.trial.knots <- length(trial.knots)
 
 #Trial RANDOM EFECTS SPECIFICATIONS specifications
@@ -117,12 +125,13 @@ dir.create(output.dir)
 #=======================================================================
 ##### WRAPPER FUNCTION FOR RUNNING IN PARALLEL #####
 
-# s <- 1
+s <- 1
 # n_x <- 100
 # bias.correct <- FALSE
 # for(s in 1:n.species) {
-wrapper_fxn <- function(s, n_x, bias.correct, Version=Version) {
-  
+wrapper_fxn <- function(s, n_x, bias.correct, Version=Version, ...) {
+  require(TMB)
+  require(TMBhelper)
   #Define file for analyses
   DateFile <- paste0(trial.dir,"/",species.list$survey[s],"_",species.list$name[s],"/")
   
@@ -163,31 +172,31 @@ wrapper_fxn <- function(s, n_x, bias.correct, Version=Version) {
                                 Version = Version, RhoConfig = RhoConfig, loc_x = Spatial_List$loc_x,
                                 Method = Method)
   
-
+  Obj <- TmbList[["Obj"]]
   
   if(bias.correct==FALSE) {
-    Opt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
-                               upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
-                               bias.correct = bias.correct)
+    Opt <- TMBhelper::Optimize(obj=Obj, lower=TmbList[["Lower"]],
+                               upper=TmbList[["Upper"]], getsd=TRUE, savedir=DateFile,
+                               bias.correct=bias.correct, newtonsteps=1)
   }else {
     #NEW: Only Bias Correct Index
     Opt <- TMBhelper::Optimize(obj=Obj, lower=TmbList[["Lower"]], 
                                upper=TmbList[["Upper"]], getsd=TRUE, savedir=DateFile, 
                                bias.correct=bias.correct, newtonsteps=1,
-                               bias.correct.control=list(sd=FALSE, nsplit=200, split=NULL, 
-                                                       vars_to_correct="Index_cyl"))
+                               bias.correct.control=list(sd=FALSE, nsplit=200, split=NULL,
+                               vars_to_correct="Index_cyl"))
   }
   
-  Obj <- TmbList[["Obj"]]
-  
+  print('Here? #1')
   #Save output
   Report = Obj$report()
   # Save = list("Opt"=Opt, "Report"=Report, "ParHat"=Obj$env$parList(Opt$par), "TmbData"=TmbData)
   # save(Save, file=paste0(DateFile,"Save.RData"))
-  
+  print('Here? #2')
   #Calculate index values
   # TmbData = TmbData, Sdreport = Opt[["SD"]]
   vast_est <- get_VAST_index(TmbData=TmbData, Sdreport=Opt[["SD"]], bias.correct=bias.correct, Data_Geostat=Data_Geostat)
+  print('Here? #3')
   #========================================================================
   ##### DIAGNOSTIC AND PREDICTION PLOTS #####
   # plot_VAST_output(Opt, Report, DateFile, survey, TmbData, Data_Geostat, Extrapolation_List, Spatial_List)
@@ -195,13 +204,14 @@ wrapper_fxn <- function(s, n_x, bias.correct, Version=Version) {
   #========================================================================
   ##### CLEANUP VAST OUTPUT #####
   cleanup_VAST_file(DateFile=DateFile, Version=Version) #No longer necessary as we are deleting everything at the end
+  print('Here? #4')
   
   rm("VAST_input", "TmbData", "Data_Geostat", "Spatial_List", "Extrapolation_List", "TmbList", "Obj","Report")#, "Save")#, "Opt", "Report")
-  
+  print('Here? #5')
   if(is.loaded(Version)) {
     dyn.unload(Version)
   }
-  
+  print('Here? #6')
   #========================================================================
   setwd(home.dir)
   ##### RETURN SECTION #####
