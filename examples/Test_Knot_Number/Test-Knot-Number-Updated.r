@@ -16,13 +16,25 @@
 #  b.1) Problem is with EBS Arrowtooth. for bias.corr=TRUE, this species will be remove and knot numbers limited. 
 #==================================================================================================
 #TIMING:
-# For 10-1000, by 100 knots
+# For 100-1000, by 100 knots
 # [1] "### START: Mon Apr 10 16:17:08 2017"
 # [1] "### END: Mon Apr 10 22:54:04 2017"
 
 #11 cores NEW knot range
 # [1] "### START: Fri Nov 17 13:14:57 2017"
 # [1] "### END: Fri Nov 17 20:59:03 2017"
+
+#bias.correction=TRUE - Removed EBS Shelf and Spiny dogfish
+# [1] "## Trial Knot Number 7 of 7"
+# [1] "# Trial Knots: 1000"
+# snowfall 1.84-6.1 initialized (using snow 0.4-2): parallel execution on 11 CPUs.
+# 
+# Error in checkForRemoteErrors(val) : 
+#   one node produced an error: Memory allocation fail in function 'MakeADHessObject2'
+# In addition: Warning message:
+#   In dir.create(trial.dir) :
+
+#Failed on s=13, arrowtooth flounder
 
 #==================================================================================================
 
@@ -67,7 +79,7 @@ species.series <- c(1:n.species)
 n.cores <- detectCores()-1
 
 #Boolean for running estimation models
-do.estim <- TRUE
+do.estim <- FALSE
 
 #Trial Knot Numbers
 trial.knots <- c(100,200,300,400,500,750,1000)#seq(100, 1000, by=100)
@@ -78,9 +90,12 @@ bias.correct <- TRUE
 
 #Update if
 if(bias.correct==TRUE) {
-  species.list <- species.list[-which(species.list$survey=='EBS_SHELF'),]
-  n.species <- nrow(species.list)
-  species.series <- c(1:n.species)
+  # species.list <- species.list[-which(species.list$survey=='EBS_SHELF'),]
+  
+  # species.list <- species.list[-which(species.list$name=='Spiny dogfish'),]
+  # 
+  # n.species <- nrow(species.list)
+  # species.series <- c(1:n.species)
 #   
 #   
 #   # trial.knots <- c(100,200,300,400,500)
@@ -126,7 +141,7 @@ output.dir <- paste0(working.dir,"/output_bias.correct_",bias.correct)
 
 s <- 1
 # for(s in 1:n.species) {
-species_wrapper_fxn_knots <- function(s, n_x) {
+species_wrapper_fxn_knots <- function(s, n_x, bias.correct) {
   
   #Define file for analyses
   DateFile <- paste0(trial.dir,"/",species.list$survey[s],"_",species.list$name[s],"/")
@@ -217,6 +232,10 @@ species_wrapper_fxn_knots <- function(s, n_x) {
 } 
 
 
+# for(s in 1:n.species) {
+#   species_wrapper_fxn_knots(s=s, n_x=n_x, bias.correct=bias.correct)
+# }
+
 #=======================================================================
 ##### Loop Through Trial Knots  #####
 if(do.estim==TRUE) {
@@ -244,7 +263,7 @@ if(do.estim==TRUE) {
     sfExportAll() #Exportas all global variables to cores
     sfLibrary(TMB)  #Loads a package on all nodes
     sfLibrary(VAST)
-    output <- sfLapply(species.series, fun=species_wrapper_fxn_knots, n_x=n_x)
+    output <- sfLapply(species.series, fun=species_wrapper_fxn_knots, n_x=n_x, bias.correct=bias.correct)
     # sfRemove(Save)
     # sfRemover(VAST_input)
     sfStop()
