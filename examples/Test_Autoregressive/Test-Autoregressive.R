@@ -61,7 +61,7 @@ species.series <- c(1:n.species)
 n.cores <- detectCores()-1
 
 #Boolean for running estimation models
-do.estim <- FALSE
+do.estim <- TRUE
 
 #Trial Knot Numbers
 trial.knots <- c(100,500)
@@ -86,10 +86,10 @@ n.trial.rho <- nrow(trial.rho)
 # rho.stRE.pcr #Positive Catch Rate Component
 
 #Boolean for bias correction
-bias.correct <- FALSE
+bias.correct <- TRUE
 #=======================================================================
 ##### Run VAST model  #####
-Version <- "VAST_v2_8_0"
+Version <- "VAST_v4_0_0"
 lat_lon.def <- "start"
 
 #SPATIAL SETTINGS
@@ -127,7 +127,8 @@ dir.create(output.dir)
 s <- 1
 # for(s in 1:n.species) {
 wrapper_fxn <- function(s, n_x, RhoConfig) {
-  
+  require(TMB)
+  require(TMBhelper)
   #Define file for analyses
   DateFile <- paste0(trial.dir,"/",species.list$survey[s],"_",species.list$name[s],"/")
   
@@ -181,9 +182,18 @@ wrapper_fxn <- function(s, n_x, RhoConfig) {
   Obj <- TmbList[["Obj"]]
   
   
-  Opt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
-                             upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
-                             bias.correct = bias.correct)
+  if(bias.correct==FALSE) {
+    Opt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
+                               upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
+                               bias.correct = bias.correct)
+  }else {
+    #NEW: Only Bias Correct Index
+    Opt <- TMBhelper::Optimize(obj=Obj, lower=TmbList[["Lower"]], 
+                               upper=TmbList[["Upper"]], getsd=TRUE, savedir=DateFile, 
+                               bias.correct=bias.correct, newtonsteps=1,
+                               bias.correct.control=list(sd=FALSE, nsplit=200, split=NULL,
+                                                         vars_to_correct="Index_cyl"))
+  }
   #Save output
   Report = Obj$report()
   # Save = list("Opt"=Opt, "Report"=Report, "ParHat"=Obj$env$parList(Opt$par), "TmbData"=TmbData)
