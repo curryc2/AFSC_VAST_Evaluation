@@ -16,7 +16,7 @@
 #NOTES:
 #  a) int_RW-FE stRE_IaY - Fails on EBS Arrowtooth flounder. 
 #  b) As a result we have removed EBS_SHELF Arrowtooth from this example.
-#  
+#  c) When bias.correct==TRUE, n_x=100, and RhoConfig=c(2,0,0,0) - fails on s=10, GOA Big Skate
 #==================================================================================================
 #TIMING:
 #
@@ -49,6 +49,8 @@ species.list <- read.csv("data/eval_species_list.csv", stringsAsFactors=FALSE)
 species.list <- species.list[species.list$include=='Y',]
 #Remove EBS_SHELF Arrowtooth
 species.list <- species.list[species.list$survey!='EBS_SHELF',]
+#Remove Big Skate
+
 
 n.species <- nrow(species.list)
 
@@ -76,6 +78,10 @@ rho.stRE.types <- c('IaY',NA,'RW',NA,'AR')
 
 #Read in Autoregressive Input
 trial.rho <- t(read.csv('Data/Test-Autoregressive-Input.csv', header=TRUE, stringsAsFactors=FALSE)[,-c(1:2)])
+
+#Remove second option
+trial.rho <- trial.rho[-c(2:3),]
+
 n.trial.rho <- nrow(trial.rho)
 
 # #Intercept
@@ -221,7 +227,9 @@ wrapper_fxn <- function(s, n_x, RhoConfig) {
   return(out)
 } 
 
-
+# for(s in species.series) {
+# wrapper_fxn(s, n_x, RhoConfig)
+# }
 #=======================================================================
 ##### Loop Through Trial Knots  #####
 vast_est.output <- vector('list', length=(n.trial.knots * n.trial.rho))
@@ -248,6 +256,7 @@ if(do.estim==TRUE) {
     
     r <- 1
     for(r in 1:n.trial.rho) {
+      print(paste('### trial.rho, r:',r))
       #Specify intercepts and spatio-temporal variation across time
       RhoConfig <- trial.rho[r,]
       names(RhoConfig) <- c('Beta1','Beta2','Epsilon1','Epsilon2')
@@ -296,6 +305,7 @@ if(do.estim==TRUE) {
       
       counter <- counter+1
     }#next r
+    
   }#next t
   
   #Dimensions for vast_est.output are 1) Trial knots, 2) Species
