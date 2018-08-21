@@ -142,7 +142,8 @@ output.dir <- paste0(working.dir,"/output_bias.correct_",bias.correct)
 s <- 1
 # for(s in 1:n.species) {
 species_wrapper_fxn_knots <- function(s, n_x, bias.correct) {
-  
+  # require(VAST)
+  # require(TMB)
   #Define file for analyses
   DateFile <- paste0(trial.dir,"/",species.list$survey[s],"_",species.list$name[s],"/")
   
@@ -196,16 +197,15 @@ species_wrapper_fxn_knots <- function(s, n_x, bias.correct) {
   if(bias.correct==FALSE) {
     Opt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
                                upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
-                               bias.correct = bias.correct)
+                               bias.correct = bias.correct, newtonsteps=2)
   }else {
     #NEW: Only Bias Correct Index
     Opt <- TMBhelper::Optimize(obj=Obj, lower=TmbList[["Lower"]], 
                                upper=TmbList[["Upper"]], getsd=TRUE, savedir=DateFile, 
-                               bias.correct=bias.correct, newtonsteps=1,
-                               bias.correct.control=list(sd=FALSE, nsplit=200, split=NULL,
+                               bias.correct=bias.correct, newtonsteps=2,
+                               bias.correct.control=list(sd=TRUE, nsplit=200, split=NULL,
                                                          vars_to_correct="Index_cyl"))
   }
-  
   #Save output
   # Report = Obj$report()
   # Save = list("Opt"=Opt, "Report"=Report, "ParHat"=Obj$env$parList(Opt$par), "TmbData"=TmbData)
