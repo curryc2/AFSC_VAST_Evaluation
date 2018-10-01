@@ -1,9 +1,10 @@
 #==================================================================================================
-#Project Name: VAST spatial delta-GLMM (Thorson) Evaluation: Gulf of Alaska Dusky Rockfish for Comparison to spatialDeltaGLMM()
+#Project Name: VAST spatial delta-GLMM (Thorson) Evaluation: Gulf of Alaska Northern Rockfish for Comparison to spatialDeltaGLMM()
 #Creator: Curry James Cunningham, NOAA/NMFS, ABL
 #Date: 5.22.17
 #
-#Purpose: Example implementation of VAST model for GOA Dusky rockfish
+#Purpose: Example implementation of VAST model for GOA Northern rockfish, 
+#           to be proposed for 2018 stock assessment
 #
 #
 #==================================================================================================
@@ -24,8 +25,8 @@ require(TMB)
 ##### SETUP INPUT DATA #####
 
 #Generate a dataset
-species.codes <- c(30150,30152)
-combineSpecies <- TRUE
+species.codes <- c(30420)
+combineSpecies <- FALSE
 
 lat_lon.def <- "start"
 
@@ -49,7 +50,7 @@ strata.limits <- data.frame(STRATA = c("All_areas"))
 #DERIVED OBJECTS
 Version <-  "VAST_v4_0_0"
 ###########################
-trial.file <- paste0(getwd(),"/examples/Species_Specific_Case_Studies/Test_GOA_Dusky_rockfish/")
+trial.file <- paste0(getwd(),"/examples/Species_Specific_Case_Studies/Test_GOA_Northern_rockfish/")
 
 #MODEL SETTINGS
 FieldConfig = c(Omega1 = 1, Epsilon1 = 1, Omega2 = 1, Epsilon2 = 1)
@@ -67,14 +68,14 @@ Options = c(SD_site_density = 0, SD_site_logdensity = 0,
             Calculate_Coherence = 0)
 
 
-DateFile <- paste0(trial.file,"GOA Dusky rockfish knots_",n_x," bias.correct_", bias.correct, " Rho_",RhoConfig[1],RhoConfig[2],RhoConfig[3],RhoConfig[4],"/")
+DateFile <- paste0(trial.file,"GOA Northern rockfish knots_",n_x," bias.correct_", bias.correct, " Rho_",RhoConfig[1],RhoConfig[2],RhoConfig[3],RhoConfig[4],"/")
 #=======================================================================
 ##### READ IN DATA AND BUILD vAST INPUT #####
 
 
 #Extract Dusy data for comparison with Dana's version 10.12.17
 temp.data <- load_RACE_data(species.codes=species.codes, combineSpecies=combineSpecies, survey=survey, writeCSV=FALSE)
-write.csv(temp.data, file=paste0(trial.file,"/Dusky rockfish Input Data Curry.csv"))
+write.csv(temp.data, file=paste0(trial.file,"/Northern rockfish Input Data Curry.csv"))
 
 
 VAST_input <- create_VAST_input(species.codes=species.codes, combineSpecies=combineSpecies,
@@ -112,7 +113,11 @@ Obj <- TmbList[["Obj"]]
 # Opt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
 #                           upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
 #                           bias.correct = bias.correct,
-#                           bias.correct.control=list(nsplit=200, split=NULL, sd=FALSE))
+#                           bias.correct.control=list(sd=FALSE, nsplit=200, split=NULL,
+#                                vars_to_correct="Index_cyl"),
+#                           newtonsteps = 2)
+#                           # bias.correct.control=list(nsplit=200, split=NULL, sd=FALSE))
+
 if(bias.correct==FALSE) {
   Opt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
                              upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
@@ -177,17 +182,25 @@ Years2Include = which( Year_Set %in% sort(unique(Data_Geostat[,'Year'])))
 #Plot Pearson Residuals - NOT WORKING
 #  Look for spatial patterns-- indication of "overshrinking"
 #  Creates "maps--" files
-SpatialDeltaGLMM:::plot_residuals(Lat_i = Data_Geostat[,"Lat"], Lon_i = Data_Geostat[, "Lon"], TmbData = TmbData,
-                                  Report = Report, Q = Q, savedir = DateFile, MappingDetails = MapDetails_List[["MappingDetails"]],
-                                  PlotDF = MapDetails_List[["PlotDF"]], MapSizeRatio = MapDetails_List[["MapSizeRatio"]],
-                                  Xlim = MapDetails_List[["Xlim"]], Ylim = MapDetails_List[["Ylim"]],
-                                  FileName = DateFile, Year_Set = Year_Set, Years2Include = Years2Include,
-                                  Rotate = MapDetails_List[["Rotate"]], Cex = MapDetails_List[["Cex"]],
-                                  Legend = MapDetails_List[["Legend"]], zone = MapDetails_List[["Zone"]],
-                                  mar = c(0, 0, 2, 0), oma = c(3.5, 3.5, 0, 0), cex = 1.8)
+# SpatialDeltaGLMM:::plot_residuals(Lat_i = Data_Geostat[,"Lat"], Lon_i = Data_Geostat[, "Lon"], TmbData = TmbData,
+#                                   Report = Report, Q = Q, savedir = DateFile, MappingDetails = MapDetails_List[["MappingDetails"]],
+#                                   PlotDF = MapDetails_List[["PlotDF"]], MapSizeRatio = MapDetails_List[["MapSizeRatio"]],
+#                                   Xlim = MapDetails_List[["Xlim"]], Ylim = MapDetails_List[["Ylim"]],
+#                                   FileName = DateFile, Year_Set = Year_Set, Years2Include = Years2Include,
+#                                   Rotate = MapDetails_List[["Rotate"]], Cex = MapDetails_List[["Cex"]],
+#                                   Legend = MapDetails_List[["Legend"]], zone = MapDetails_List[["Zone"]],
+#                                   mar = c(0, 0, 2, 0), oma = c(3.5, 3.5, 0, 0), cex = 1.8)
 
 
 
+
+SpatialDeltaGLMM:::plot_residuals(Lat_i = Data_Geostat[,"Lat"], Lon_i = Data_Geostat[, "Lon"], TmbData = TmbData, 
+                                  Report = Report, Q = Q, savedir = DateFile, MappingDetails = MapDetails_List[["MappingDetails"]], 
+                                  PlotDF = MapDetails_List[["PlotDF"]], MapSizeRatio = MapDetails_List[["MapSizeRatio"]], 
+                                  Xlim = MapDetails_List[["Xlim"]], Ylim = MapDetails_List[["Ylim"]], 
+                                  FileName = DateFile, Year_Set = Year_Set, Rotate = 1,#MapDetails_List[["Rotate"]], 
+                                  Cex = MapDetails_List[["Cex"]], Legend = MapDetails_List[["Legend"]], 
+                                  zone = MapDetails_List[["Zone"]], mar = c(0, 0, 2, 0), oma = c(3.5, 3.5, 0, 0), cex = 1.8)
 
 #========================================================================
 ##### MODEL OUTPUT PLOTS #####
@@ -224,26 +237,57 @@ idx <- Index$Table
 dev.off()
 #Plotting
 
-yrs.surv <- Year_Set[Years2Include]
-x.lim <- c(min(yrs.surv), max(yrs.surv))
-up.sd <- idx$Estimate_metric_tons + idx$SD_mt
-low.sd <- idx$Estimate_metric_tons - idx$SD_mt
-y.lim <- c(min(low.sd), max(up.sd))
+# Extract VAST Index =======================================================
+source("R/get-VAST-index.r")
+vast_est = get_VAST_index(TmbData=TmbData, Sdreport=Opt[["SD"]], bias.correct=bias.correct, Data_Geostat=Data_Geostat)
+#Limit to years with observations
+vast_est = vast_est[Years2Include,]
 
-loc.yrs <- which(idx$Year %in% yrs.surv)
+# Compare VAST and Design-based ============================================
+#Calculate Design-Based
+source("R/load-RACE-data.R")
+source("R/calc-design-based-index.R")
+db_est = calc_design_based_index(species.codes=species.codes, survey=survey)
 
+# Plot 
 
-plot(x=NULL, y=NULL, xlim=x.lim, ylim=y.lim, ylab='Survey Estimate (metric Tons)', xlab='Year',
-     main='Gulf of Alaska\nDusky Rockfish Survey Index')
+png(paste0(DateFile,"/VAST DB Index Comparison.png"), height=8, width=9, units='in', res=500)  
+par(mfrow=c(1,1), oma=c(0,0,0,0), mar=c(4,4,3,1))
 
-polygon(x=c(yrs.surv, rev(yrs.surv)), y=c(low.sd[loc.yrs],rev(up.sd[loc.yrs])), col='lightblue', border=FALSE)
-lines(x=yrs.surv, y=idx$Estimate_metric_tons[loc.yrs], col='red')
-points(x=yrs.surv, y=idx$Estimate_metric_tons[loc.yrs], pch=21, bg='red')
+y.lim = c(0, max(vast_est$Estimate_metric_tons+2*vast_est$SD_mt,
+                 db_est$Biomass+2*db_est$SD, na.rm=TRUE))
+x.lim = c(min(Year_Set), max(Year_Set))
+
+#Survey years to plot
+years = Year_Set[Years2Include]
+
+#Plot it out
+plot(x=NULL, y=NULL, xlim=x.lim, ylim=y.lim, xlab='Year', ylab='Abundance (metric tonnes)',
+     main=paste0(' n=', TmbData$n_x, ' knots'))
 grid(col='black')
 
-# 
-# #Center of gravity and range expansion/contraction
-# #  For some reason I can't actually change the years to plot 
-# SpatialDeltaGLMM::Plot_range_shifts(Report = Report,
-#                                     TmbData = TmbData, Sdreport = Opt[["SD"]], Znames = colnames(TmbData$Z_xm),
-#                                     PlotDir = DateFile, Year_Set = Year_Set)
+legend('top', legend=c('Design-based', 'VAST'), fill=c('blue', 'red'), ncol=2, bg='white')
+
+#Design-based
+polygon(x=c(years, rev(years)), y=c(db_est$Biomass+2*db_est$SD, rev(db_est$Biomass-2*db_est$SD)),
+        border=FALSE, col=rgb(0,0,1, alpha=0.25))
+
+polygon(x=c(years, rev(years)), y=c(db_est$Biomass+1*db_est$SD, rev(db_est$Biomass-1*db_est$SD)),
+        border=FALSE, col=rgb(0,0,1, alpha=0.25))
+
+lines(x=years, y=db_est$Biomass, lwd=2, col='blue')
+points(x=years, y=db_est$Biomass, pch=21, bg='blue')
+
+#VAST
+polygon(x=c(years, rev(years)), y=c(vast_est$Estimate_metric_tons+2*vast_est$SD_mt,
+                                    rev(vast_est$Estimate_metric_tons-2*vast_est$SD_mt)),
+        border=FALSE, col=rgb(1,0,0, alpha=0.25))
+
+polygon(x=c(years, rev(years)), y=c(vast_est$Estimate_metric_tons+1*vast_est$SD_mt, 
+                                    rev(vast_est$Estimate_metric_tons-1*vast_est$SD_mt)),
+        border=FALSE, col=rgb(1,0,0, alpha=0.25))
+
+lines(x=years, y=vast_est$Estimate_metric_tons, lwd=2, col='red')
+points(x=years, y=vast_est$Estimate_metric_tons, pch=21, bg='red')
+dev.off()
+
