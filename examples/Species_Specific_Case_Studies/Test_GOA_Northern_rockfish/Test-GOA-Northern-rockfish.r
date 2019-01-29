@@ -135,6 +135,14 @@ Report = Obj$report()
 Save = list("Opt"=Opt, "Report"=Report, "ParHat"=Obj$env$parList(Opt$par), "TmbData"=TmbData)
 save(Save, file=paste0(DateFile,"Save.RData"))
 
+#Load Data
+load(paste0(DateFile,"Save.RData"))
+names(Save)
+Opt <- Save$Opt
+Report <- Save$Report
+ParHat <- Save$ParHat
+TmbData <- Save$TmbData
+
 #========================================================================
 ##### DIAGNOSTIC AND PREDICTION PLOTS #####
 # plot_VAST_output(Opt, Report, DateFile, survey, TmbData, Data_Geostat, Extrapolation_List, Spatial_List)
@@ -165,7 +173,13 @@ Q = SpatialDeltaGLMM::QQ_Fn(TmbData = TmbData, Report = Report,
                             FileName_QQ = paste0(DateFile, "Q-Q_plot.jpg"),
                             FileName_Qhist = paste0(DateFile, "Q-Q_hist.jpg"))
 
+# Q = SpatialDeltaGLMM::QQ_Fn(TmbData = TmbData, Report = Report,
+#                             FileName_PP = NULL,
+#                             FileName_Phist = NULL,
+#                             FileName_QQ = NULL,
+#                             FileName_Qhist = NULL)
 
+# dev.off()
 #Diagnostics for plotting residuals on a map
 
 
@@ -176,7 +190,7 @@ MapDetails_List = SpatialDeltaGLMM::MapDetails_Fn( "Region"=Region,
 #Which Years to Include
 Year_Set = seq(min(Data_Geostat[,'Year']),max(Data_Geostat[,'Year']))
 Years2Include = which( Year_Set %in% sort(unique(Data_Geostat[,'Year'])))
-
+Years2Include = c(1: length(sort(unique(Data_Geostat[,'Year']))))
 #Or just include years with observations
 
 #Plot Pearson Residuals - NOT WORKING
@@ -198,7 +212,7 @@ SpatialDeltaGLMM:::plot_residuals(Lat_i = Data_Geostat[,"Lat"], Lon_i = Data_Geo
                                   Report = Report, Q = Q, savedir = DateFile, MappingDetails = MapDetails_List[["MappingDetails"]], 
                                   PlotDF = MapDetails_List[["PlotDF"]], MapSizeRatio = MapDetails_List[["MapSizeRatio"]], 
                                   Xlim = MapDetails_List[["Xlim"]], Ylim = MapDetails_List[["Ylim"]], 
-                                  FileName = DateFile, Year_Set = Year_Set, Rotate = 1,#MapDetails_List[["Rotate"]], 
+                                  FileName = DateFile, Year_Set = Year_Set, Rotate = MapDetails_List[["Rotate"]], 
                                   Cex = MapDetails_List[["Cex"]], Legend = MapDetails_List[["Legend"]], 
                                   zone = MapDetails_List[["Zone"]], mar = c(0, 0, 2, 0), oma = c(3.5, 3.5, 0, 0), cex = 1.8)
 
