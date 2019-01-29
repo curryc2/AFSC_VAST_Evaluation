@@ -1,6 +1,6 @@
 #==================================================================================================
 #Project Name: VAST spatial delta-GLMM (Thorson) Evaluation: Compare Apportionment Between VAST and
-#                                                              RE Model for GOA
+#                                                              RE Model for GOA - Running in Series to Permit Bias Corr
 #Creator: Curry James Cunningham, NOAA/NMFS, ABL
 #Date: 5.11.17
 #
@@ -55,8 +55,8 @@ species.list <- read.csv("data/eval_species_list.csv", stringsAsFactors=FALSE)
 #Limit species included
 species.list <- species.list[species.list$include=='Y',]
 #Limit to GOA
-species.list <- species.list[species.list$survey=='GOA',]
-species.list <- species.list[species.list$name!='Spiny dogfish',]
+# species.list <- species.list[species.list$survey=='GOA',]
+# species.list <- species.list[species.list$name!='Spiny dogfish',]
 n.species <- nrow(species.list)
 
 #Create
@@ -73,7 +73,7 @@ PE_vec <- c(1:3)
 n.cores <- detectCores()-1
 
 #Boolean for running estimation models
-do.estim <- FALSE
+do.estim <- TRUE
 
 #Trial Knot Numbers
 trial.knots <- c(250)
@@ -102,7 +102,6 @@ trial.rho <- matrix(c(2,2,0,0,
 
 n.trial.rho <- nrow(trial.rho)
 
-
 flag.spatial <- c(TRUE,FALSE)
 n.flag.spatial <- length(flag.spatial)
 # #Intercept
@@ -113,7 +112,7 @@ n.flag.spatial <- length(flag.spatial)
 # rho.stRE.pcr #Positive Catch Rate Component
 
 #Boolean for bias correction
-bias.correct <- FALSE
+bias.correct <- TRUE
 #=======================================================================
 ##### Run VAST model  #####
 Version <- "VAST_v4_0_0"
@@ -125,13 +124,11 @@ grid_size_km = 25
 # n_x = c(100, 250, 500, 1000, 2000)[2] # Number of stations
 Kmeans_Config = list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )
 
-
 #SET SRATIFICATOIN
 #Basic - Single Area
 strata.limits <- data.frame(STRATA = c("Western","Central",'Eastern'),
                             west_border = c(-Inf, -159, -147),
                             east_border = c(-159, -147, Inf))
-
 
 #MODEL SETTINGS
 # FieldConfig = c(Omega1 = 1, Epsilon1 = 1, Omega2 = 1, Epsilon2 = 1)
@@ -154,9 +151,12 @@ dir.create(output.dir)
 #=======================================================================
 ##### WRAPPER FUNCTION FOR RUNNING IN PARALLEL #####
 
-s <- 1 #Spiny dogfish
+# s <- 1 #Spiny dogfish
 # for(s in 1:n.species) {
-wrapper_fxn <- function(s, n_x, RhoConfig, n_PE, PE_vec, FieldConfig) {
+wrapper_fxn <- function(s, n_x, RhoConfig, n_PE, PE_vec, FieldConfig, bias.correct) {
+  require(VAST)
+  require(TMB)
+  require(TMBhelper)
   
   #Define file for analyses
   DateFile <- paste0(trial.dir,"/",species.list$survey[s],"_",species.list$name[s],"/")
@@ -193,9 +193,12 @@ wrapper_fxn <- function(s, n_x, RhoConfig, n_PE, PE_vec, FieldConfig) {
   #Build TMB Object
   #  Compilation may take some time
   TmbList <- VAST::Build_TMB_Fn(TmbData = TmbData, RunDir = DateFile,
-                                Version = Version, RhoConfig = RhoConfig, loc_x = Spatial_List$loc_x,
+                                Version = Version, 
+                                Q_Config=FALSE, CovConfig=FALSE,
+                                RhoConfig = RhoConfig, loc_x = Spatial_List$loc_x,
                                 Method = Method)
   Obj <- TmbList[["Obj"]]
+  
   
   if(bias.correct==FALSE) {
     Opt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
@@ -258,7 +261,7 @@ wrapper_fxn <- function(s, n_x, RhoConfig, n_PE, PE_vec, FieldConfig) {
   
   #Copy, compile, call ADMB-RE model
   biomA <- run_RE_model(input.yrs, input.idx, input.cv, DateFile, home.dir, n_PE=n_PE, PE_vec=PE_vec)
-    
+  
   #========================================================================
   setwd(home.dir)
   
@@ -279,9 +282,9 @@ vast_knots <- vector(length=(n.trial.knots * n.trial.rho * n.flag.spatial))
 vast_rho.int <- vector(length=(n.trial.knots * n.trial.rho * n.flag.spatial))
 vast_rho.stRE <- vector(length=(n.trial.knots * n.trial.rho * n.flag.spatial))
 vast_do.spatial <-  vector(length=(n.trial.knots * n.trial.rho * n.flag.spatial))
-  
-if(do.estim==TRUE) {
 
+# if(do.estim==TRUE) {
+  
   
   time.1 <- date()
   
@@ -289,7 +292,7 @@ if(do.estim==TRUE) {
   counter <- 1
   
   t <- 1
-  for(t in 1:n.trial.knots) {
+  # for(t in 1:n.trial.knots) {
     print(paste('## Trial Knot Number',t,'of',n.trial.knots))
     print(paste('# Trial Knots:',trial.knots[t]))
     #Specify trial observation model
@@ -298,13 +301,13 @@ if(do.estim==TRUE) {
     n_x <- trial.knots[t]
     
     r <- 1
-    for(r in 1:n.trial.rho) {
+    # for(r in 1:n.trial.rho) {
       #Specify intercepts and spatio-temporal variation across time
       RhoConfig <- trial.rho[r,]
       names(RhoConfig) <- c('Beta1','Beta2','Epsilon1','Epsilon2')
       
       f <- 1
-      for(f in 1:n.flag.spatial) {
+      # for(f in 1:n.flag.spatial) {
         do.spatial <- flag.spatial[f]
         # print(paste('f',f))
         #Turn ON/OFF spatial components
@@ -321,7 +324,7 @@ if(do.estim==TRUE) {
         if(RhoConfig[1]==RhoConfig[2]) {#IF intercept specs are the same
           vast_rho.int[counter] <- rho.int.types[RhoConfig[1]+1]
         }else {#IF different
-        vast_rho.int[counter] <- paste0(rho.int.types[RhoConfig[1]+1], "-", rho.int.types[RhoConfig[2]+1])
+          vast_rho.int[counter] <- paste0(rho.int.types[RhoConfig[1]+1], "-", rho.int.types[RhoConfig[2]+1])
         }
         if(RhoConfig[3]==RhoConfig[4]) {
           vast_rho.stRE[counter] <- rho.stRE.types[RhoConfig[3]+1]
@@ -330,30 +333,39 @@ if(do.estim==TRUE) {
         }
         #Update Knot List
         vast_knots[counter] <- n_x
-      
+        
         #Setup File
         trial.dir <- paste0(working.dir,"/",n_x,"_bias.corr_",bias.correct)
         dir.create(trial.dir)
         trial.dir <- paste0(trial.dir, "/int_",vast_rho.int[counter], 
-                              " stRE_",vast_rho.stRE[counter], 
-                              " do.spatial_",vast_do.spatial[counter])
+                            " stRE_",vast_rho.stRE[counter], 
+                            " do.spatial_",vast_do.spatial[counter])
         dir.create(trial.dir)
-      
-      
+        
+        
         #=======================================================================
         ##### SNOWFALL CODE FOR PARALLEL #####
-        sfInit(parallel=TRUE, cpus=n.cores, type='SOCK')
-        sfExportAll() #Exportas all global variables to cores
-        sfLibrary(TMB)  #Loads a package on all nodes
-        sfLibrary(VAST)
-        output <- sfLapply(species.series, fun=wrapper_fxn, n_x=n_x, RhoConfig=RhoConfig,
-                             n_PE=n_PE, PE_vec=PE_vec, FieldConfig=FieldConfig)
-        #
-        # temp.out <- wrapper_fxn(s=1, n_x=n_x, RhoConfig=RhoConfig,
-        #                         n_PE=n_PE, PE_vec=PE_vec, FieldConfig=FieldConfig)
-
-        sfStop()
-
+        # sfInit(parallel=TRUE, cpus=n.cores, type='SOCK')
+        # sfExportAll() #Exportas all global variables to cores
+        # sfLibrary(TMB)  #Loads a package on all nodes
+        # sfLibrary(VAST)
+        # output <- sfLapply(species.series, fun=wrapper_fxn, n_x=n_x, RhoConfig=RhoConfig,
+        #                    n_PE=n_PE, PE_vec=PE_vec, FieldConfig=FieldConfig)
+        # #
+        # # temp.out <- wrapper_fxn(s=1, n_x=n_x, RhoConfig=RhoConfig,
+        # #                         n_PE=n_PE, PE_vec=PE_vec, FieldConfig=FieldConfig, bias.correct=bias.correct)
+        # 
+        # sfStop()
+        
+        output <- vector('list', length=n.species)
+        s <- 1
+        # for(s in species.series) {
+          # output[[s]]
+          out <- wrapper_fxn(s=s, n_x=n_x, RhoConfig=RhoConfig,
+                                  n_PE=n_PE, PE_vec=PE_vec, FieldConfig=FieldConfig, bias.correct=bias.correct)
+          
+        }#next s
+        
         #Add to list
         vast_est.output[[counter]] <- output
         #Save Object for storage
@@ -383,9 +395,9 @@ if(do.estim==TRUE) {
   for(t in 1:n.trial.knots) {
     unlink(paste0(working.dir,"/",trial.knots[t],"_bias.corr_",bias.correct), recursive=TRUE)
   }#next t
-
+  
   time.2 <- date()
-
+  
   print(paste('### START:', time.1))
   print(paste('### END:', time.2))
   
@@ -436,7 +448,7 @@ for(s in 1:n.species) {
   temp.species <- species.list$name[s]
   temp.survey <- species.list$survey[s]
   temp.name <- paste0(temp.survey,": ",temp.species)
-
+  
   #VAST
   i <- 1
   for(i in 1:n.specs) { 
@@ -453,7 +465,7 @@ for(s in 1:n.species) {
     
     indices <- c('Western','Central','Eastern')
     n.indices <- length(indices)
-
+    
     #VAST
     dat.vast <- vast_est.output[[i]][[s]]$vast_est
     #Convert to a matrix
@@ -474,13 +486,13 @@ for(s in 1:n.species) {
     temp.vast <- melt(prop.vast)
     model <- 'VAST'
     temp.vast <- cbind(temp.vast, model, temp.survey, temp.species, temp.name, vast_knots[i], 
-                         vast_rho.int[i], vast_rho.stRE[i], temp.RhoConfig, survey.year,
-                         vast_do.spatial[i])
-
+                       vast_rho.int[i], vast_rho.stRE[i], temp.RhoConfig, survey.year,
+                       vast_do.spatial[i])
+    
     #Skeleton in AIC/convergence data frame
     temp.aic <- cbind(temp.survey, temp.species, temp.name, 'VAST', vast_knots[i], 
-                        vast_rho.int[i], vast_rho.stRE[i], temp.RhoConfig,
-                        vast_do.spatial[i])
+                      vast_rho.int[i], vast_rho.stRE[i], temp.RhoConfig,
+                      vast_do.spatial[i])
     
     #Combine to larger lists
     #VAST list
@@ -504,7 +516,7 @@ for(s in 1:n.species) {
   temp.re <- melt(prop.re)
   model <- 'ADMB-RE'
   temp.re <- cbind(temp.re, model, temp.survey, temp.species, temp.name, FALSE, FALSE, FALSE, "ADMB-RE", 
-                     survey.year, NA)
+                   survey.year, NA)
   #Randome-effects list
   re.list <- rbind(re.list, temp.re)
   
@@ -513,11 +525,11 @@ for(s in 1:n.species) {
 #Add names
 re.df <- data.frame(re.list)
 names(re.df) <- c('Year','Region','value','Model','Survey','Species', 'Name','Knots',
-                    'Rho_Intercept','Rho_stRE','RhoConfig','SurveyYear','Est_Spatial_RE')
+                  'Rho_Intercept','Rho_stRE','RhoConfig','SurveyYear','Est_Spatial_RE')
 
 vast.df <- data.frame(vast.list)
 names(vast.df) <- c('Year','Region','value','Model','Survey','Species', 'Name','Knots',
-                      'Rho_Intercept','Rho_stRE','RhoConfig','SurveyYear','Est_Spatial_RE')
+                    'Rho_Intercept','Rho_stRE','RhoConfig','SurveyYear','Est_Spatial_RE')
 
 #Bind Together
 output.df <- rbind(re.df, vast.df)
@@ -525,8 +537,8 @@ output.df <- rbind(re.df, vast.df)
 aic.df <- data.frame(aic.list, aic.vect, converge.vect, maxGrad.vect)
 
 names(aic.df) <- c('Survey','Species','Name','Model','Knots',
-                     'Rho_Intercept','Rho_stRE','RhoConfig','Est_Spatial_RE',
-                     'AIC','Converge','maxGradient')
+                   'Rho_Intercept','Rho_stRE','RhoConfig','Est_Spatial_RE',
+                   'AIC','Converge','maxGradient')
 aic.df$Converge <- as.factor(aic.df$Converge)
 
 #===========================================================
@@ -539,10 +551,10 @@ aic.df <- aic.df[aic.df$RhoConfig!='FE + IaY',]
 #===========================================================
 #Plot the Max Gradients
 g <- ggplot(aic.df, aes(x=RhoConfig, y=maxGradient, color=Knots)) +
-       theme_gray() +
-       geom_point(alpha=0.5) +
-       facet_grid(Est_Spatial_RE~Species, scales='free') +
-       theme(axis.text.x=element_text(angle=45, hjust=1))
+  theme_gray() +
+  geom_point(alpha=0.5) +
+  facet_grid(Est_Spatial_RE~Species, scales='free') +
+  theme(axis.text.x=element_text(angle=45, hjust=1))
 g
 ggsave(paste0(output.dir,'/Convergence.png'), plot=g, height=8, width=8, units='in', dpi=1e3)
 
@@ -572,15 +584,15 @@ for(t in 1:n.trial.knots) {
   temp.df$Species <- gsub(" ", "\n", temp.df$Species)
   
   g <- ggplot(temp.df, aes(x=Year, y=value, fill=Region)) +
-         theme_dark()+
-         theme(legend.position='top') +
-         scale_fill_colorblind() +
-         geom_area(position='stack', alpha=alpha) +
-         facet_grid(Species~RhoConfig) +
-         ggtitle(paste('Estimate Spatial RE:', do.spatial)) +#, 
-                 # subtitle=paste('Knots:',temp.knots)) +
-         ylab('Proportion') +
-         theme(axis.text.x=element_text(angle=45, hjust=1))
+    theme_dark()+
+    theme(legend.position='top') +
+    scale_fill_colorblind() +
+    geom_area(position='stack', alpha=alpha) +
+    facet_grid(Species~RhoConfig) +
+    ggtitle(paste('Estimate Spatial RE:', do.spatial)) +#, 
+    # subtitle=paste('Knots:',temp.knots)) +
+    ylab('Proportion') +
+    theme(axis.text.x=element_text(angle=45, hjust=1))
   # g
   
   #Don't Estimate Spatial RE
@@ -590,22 +602,22 @@ for(t in 1:n.trial.knots) {
   temp.df$Species <- gsub(" ", "\n", temp.df$Species)
   
   g2 <- ggplot(temp.df, aes(x=Year, y=value, fill=Region)) +
-          theme_dark()+
-          theme(legend.position='top') +
-          scale_fill_colorblind() +
-          geom_area(position='stack', alpha=alpha) +
-          facet_grid(Species~RhoConfig) +
-          ggtitle(paste('Estimate Spatial RE:', do.spatial)) +#, 
-            # subtitle=paste('Knots:',temp.knots)) +
-          ylab('Proportion') +
-          theme(axis.text.x=element_text(angle=45, hjust=1))
+    theme_dark()+
+    theme(legend.position='top') +
+    scale_fill_colorblind() +
+    geom_area(position='stack', alpha=alpha) +
+    facet_grid(Species~RhoConfig) +
+    ggtitle(paste('Estimate Spatial RE:', do.spatial)) +#, 
+    # subtitle=paste('Knots:',temp.knots)) +
+    ylab('Proportion') +
+    theme(axis.text.x=element_text(angle=45, hjust=1))
   # g2
   
   #Bring the figures together
   g12 <- plot_grid(g, g2, nrow=2, ncol=1, align='v')
   # g12
   ggsave(paste0(output.dir,'/Rockfish ', temp.knots,'kt.png'), plot=g12, 
-           height=heights, width=widths, units='in', dpi=1e3)
+         height=heights, width=widths, units='in', dpi=1e3)
 }#next t
 
 #===========================================================

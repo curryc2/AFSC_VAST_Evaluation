@@ -14,6 +14,9 @@
 #' @export
 #'
 get_VAST_index <- function(TmbData, Sdreport=Opt[["SD"]], bias.correct, Data_Geostat=NULL) {
+  require(VAST)
+  require(TMB)
+  require(TMBhelper)
   ###Testing
   # Sdreport=Opt[["SD"]]
   # bias.correct <- FALSE
