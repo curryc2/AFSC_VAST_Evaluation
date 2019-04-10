@@ -15,10 +15,23 @@
 #  a) Spiny Dogfish removed from evaluation because design based index is 0 for Western GOA in 2013.
 #  b) Big Skate Causes Problems... not diagnosed.
 #  c) Non-convergence with intercepts estimted as IaY i.e. ==1, independent of spatio-temporal RE specs.
+#  d) Must estimate spatio-temporal random effects, fails to converge without: flag.spatial <- c(TRUE) ONLY
+#  e) Convergence failure when trying to do partial bias correction results in the 3-column error message. 
+#  f) rho  4,4,4,4, fails on Northern Rockfish, Epsilon_rho1 (autocorr coeff for EP) has HIGH gradient.
+#  g) GOA Harlequin Rockfish causes problem with AR - hessian not positive definite.
+#      Epsilon_rho1, Epsilon_rho2, and Beta_rho2 all at upper limits.
+#  h) ObsModel = c(1, 1) #Lognormal - Poisson-link Delta, 100 knots - Spiny Dogfish - rho=c(2,2,2,2)
+#       ADMB Fail "Error: Invalid index 4 used for array range [1, 3] in "dvector& dmatrix::operator[] (int i)". 
+#                     matrix bound exceeded -- row index too high"
+
+#  i) Big Skate has trouble with AR intercepts, mixed convergence max grad 0.02
 #==================================================================================================
 #TIMING:
-# [1] "### START: Tue Jul 18 15:32:25 2017"
-# [1] "### END: Wed Jul 19 01:35:23 2017"
+# 100 knots obs model c(1,1) - lognormal with poisson-link delta - no bias correction, spatial==TRUE only, and rho (2,2,2,2 and 4,4,4,4)
+# [1] "### START: Tue Jan 29 09:38:47 2019"
+# [1] "### END: Tue Jan 29 13:25:35 2019"
+
+#Lognormal with Po
 ##==================================================================================================
 # require(SpatialDeltaGLMM)
 require(VAST)
@@ -36,6 +49,7 @@ require(RANN)
 require(PBSmodelling)
 require(PBSmapping)
 require(XML)
+require(FishStatsUtils)
 
 
 source("R/calc-design-based-index.r")
@@ -62,7 +76,9 @@ species.list <- read.csv("data/eval_species_list.csv", stringsAsFactors=FALSE)
 species.list <- species.list[species.list$include=='Y',]
 #Limit to GOA
 species.list <- species.list[species.list$survey=='GOA',]
-species.list <- species.list[species.list$name!='Spiny dogfish' & species.list$name!='Big skate',]
+# species.list <- species.list[species.list$name!='Spiny dogfish' & species.list$name!='Big skate',]
+species.list <- species.list[species.list$name!='Spiny dogfish',]
+
 n.species <- nrow(species.list)
 
 #Create
@@ -79,7 +95,7 @@ PE_vec <- c(1:3)
 n.cores <- detectCores()-1
 
 #Boolean for running estimation models
-do.estim <- TRUE
+do.estim <- FALSE
 
 #Trial Knot Numbers
 trial.knots <- c(100)
@@ -106,10 +122,23 @@ rho.stRE.types <- c('IaY',NA,'RW',NA,'AR')
 #                       2,2,4,4,
 #                       4,4,2,2),ncol=4, nrow=4, byrow=TRUE)
 
-trial.rho <- matrix(c(2,2,0,0,
-                      4,4,0,0,
+# trial.rho <- matrix(c(2,2,0,0,
+#                       4,4,0,0,
+#                       2,2,2,2,
+#                       4,4,4,4),ncol=4, nrow=4, byrow=TRUE)
+
+# trial.rho <- matrix(c(2,2,2,2,
+#                       4,4,4,4
+#                       ),ncol=4, nrow=2, byrow=TRUE)
+
+# trial.rho <- matrix(c(2,2,2,2,
+#                       4,4,2,2
+#                       ),ncol=4, nrow=2, byrow=TRUE)
+
+trial.rho <- matrix(c(0,0,2,2,
                       2,2,2,2,
-                      4,4,4,4),ncol=4, nrow=4, byrow=TRUE)
+                      4,4,2,2
+                      ),ncol=4, nrow=3, byrow=TRUE)
 
 n.trial.rho <- nrow(trial.rho)
 
@@ -146,11 +175,12 @@ strata.limits <- data.frame(STRATA = c("Western","Central",'Eastern'),
 # RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0)
 OverdispersionConfig = c(Delta1 = 0, Delta2 = 0)
 
-ObsModel = c(1, 0) #Lognormal
+ObsModel = c(1, 1) #Lognormal - Poisson-link Delta
+# ObsModel = c(1, 0) #Lognormal - Delta
 
 #SPECIFY OUTPUTS
 Options = c(SD_site_density = 0, SD_site_logdensity = 0,
-            Calculate_Range = 1, Calculate_evenness = 0, Calculate_effective_area = 1,
+            Calculate_Range = 0, Calculate_evenness = 0, Calculate_effective_area = 0,
             Calculate_Cov_SE = 0, Calculate_Synchrony = 0,
             Calculate_Coherence = 0)
 
@@ -164,130 +194,6 @@ dir.create(output.dir)
 
 # s <- 1 #Spiny dogfish
 # for(s in 1:n.species) {
-wrapper_fxn <- function(s, n_x, RhoConfig, n_PE, PE_vec, FieldConfig, ...) {
-  # require(SpatialDeltaGLMM)
-  require(TMB)
-  require(TMBhelper)
-  require(VAST)
-  
-  #Define file for analyses
-  DateFile <- paste0(trial.dir,"/",species.list$survey[s],"_",species.list$name[s],"/")
-  
-  dir.create(DateFile)
-  
-  #Define species.codes
-  species.codes <- species.list$species.code[s]
-  survey <- species.list$survey[s]
-  
-  #=======================================================================
-  ##### READ IN DATA AND BUILD VAST INPUT #####
-  #  NOTE: this will create the DateFile
-  VAST_input <- create_VAST_input(species.codes=species.codes, combineSpecies=FALSE,
-                                  lat_lon.def=lat_lon.def, save.Record=FALSE,
-                                  Method=Method, grid_size_km=grid_size_km, n_x=n_x,
-                                  Kmeans_Config=Kmeans_Config,
-                                  strata.limits=strata.limits, survey=survey,
-                                  DateFile=DateFile,
-                                  FieldConfig=FieldConfig, RhoConfig=RhoConfig,
-                                  OverdispersionConfig=OverdispersionConfig,
-                                  ObsModel=ObsModel, Options=Options, Version=Version)
-  
-  # str(VAST_input)
-  #Unpack
-  TmbData <- VAST_input$TmbData
-  Data_Geostat <- VAST_input$Data_Geostat
-  Spatial_List <- VAST_input$Spatial_List
-  Extrapolation_List <- VAST_input$Extrapolation_List
-  
-  # print(TmbData)
-  
-  print('Before create TmbList')
-  #=======================================================================
-  ##### RUN VAST #####
-  #Build TMB Object
-  #  Compilation may take some time - ERROR HERE - Fails when inside wrapper function... not sure why.
-  TmbList <- VAST::Build_TMB_Fn(TmbData = TmbData, RunDir = DateFile,
-                                Version = Version, 
-                                Q_Config=FALSE, CovConfig=FALSE,
-                                RhoConfig = RhoConfig, loc_x = Spatial_List$loc_x,
-                                Method = Method)
-  print('After create TmbList')
-  
-  Obj <- TmbList[["Obj"]]
-  
-  if(bias.correct==FALSE) {
-    Opt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
-                               upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
-                               bias.correct = bias.correct, newtonsteps=1)
-    # summary(Opt)
-  }else {
-    #NEW: Only Bias Correct Index
-    Opt <- TMBhelper::Optimize(obj=Obj, lower=TmbList[["Lower"]], 
-                               upper=TmbList[["Upper"]], getsd=TRUE, savedir=DateFile, 
-                               bias.correct=bias.correct, newtonsteps=1,
-                               bias.correct.control=list(sd=TRUE, nsplit=10, split=NULL,
-                                                         vars_to_correct="Index_cyl"))
-  }
-  #Save output
-  # Report = Obj$report()
-  # Save = list("Opt"=Opt, "Report"=Report, "ParHat"=Obj$env$parList(Opt$par), "TmbData"=TmbData)
-  # save(Save, file=paste0(DateFile,"Save.RData"))
-  
-  #Calculate index values
-  # TmbData = TmbData, Sdreport = Opt[["SD"]]
-  vast_est <- get_VAST_index(TmbData=TmbData, Sdreport=Opt[["SD"]], bias.correct=bias.correct, Data_Geostat=Data_Geostat)
-  #========================================================================
-  ##### DIAGNOSTIC AND PREDICTION PLOTS #####
-  # plot_VAST_output(Opt, Report, DateFile, survey, TmbData, Data_Geostat, Extrapolation_List, Spatial_List)
-  
-  #========================================================================
-  ##### CLEANUP VAST OUTPUT #####
-  # cleanup_VAST_file(DateFile=DateFile, Version=Version) #No longer necessary as we are deleting everything at the end
-  
-  rm("VAST_input", "TmbData", "Data_Geostat", "Spatial_List", "Extrapolation_List",
-     "TmbList", "Obj","Save","Report")#, "Save")#, "Opt", "Report")
-  #========================================================================
-  setwd(home.dir)
-  #========================================================================
-  ##### CALL RE MODEL #####
-  #Calculate Separate Design-based indices for GOA
-  temp.west <- calc_design_based_index(species.codes=species.codes, survey=survey, reg.area="WESTERN GOA")
-  temp.cent <- calc_design_based_index(species.codes=species.codes, survey=survey, reg.area="CENTRAL GOA")  
-  temp.east <- calc_design_based_index(species.codes=species.codes, survey=survey, reg.area="EASTERN GOA")
-  
-  #Bring Together (except 2001 when Eastern GOA was not surveyed)
-  input.yrs <- sort(unique(temp.west$YEAR))
-  #Remove 2001
-  input.yrs <- input.yrs[-which(input.yrs==2001)]
-  
-  #Index values
-  input.idx <- data.frame(temp.west$Biomass[temp.west$YEAR %in% input.yrs],
-                          temp.cent$Biomass[temp.cent$YEAR %in% input.yrs],
-                          temp.east$Biomass[temp.east$YEAR %in% input.yrs])
-  names(input.idx) <- c("Western","Centeral","Eastern")
-  input.idx <- as.matrix(input.idx)
-  
-  #Index CV
-  input.cv <- data.frame(temp.west$CV[temp.west$YEAR %in% input.yrs],
-                         temp.cent$CV[temp.cent$YEAR %in% input.yrs],
-                         temp.east$CV[temp.east$YEAR %in% input.yrs])
-  
-  names(input.cv) <- c("Western","Centeral","Eastern")
-  input.cv <- as.matrix(input.cv)
-  
-  #Copy, compile, call ADMB-RE model
-  biomA <- run_RE_model(input.yrs, input.idx, input.cv, DateFile, home.dir, n_PE=n_PE, PE_vec=PE_vec)
-  
-  #========================================================================
-  setwd(home.dir)
-  
-  ##### RETURN SECTION #####
-  out <- NULL
-  out$vast_est <- vast_est
-  out$Opt <- Opt
-  out$biomA <- biomA
-  return(out)
-} 
 
 #=======================================================================
 ##### Loop Through Trial Knots  ##### 
@@ -315,6 +221,7 @@ if(do.estim==TRUE) {
     n_x <- trial.knots[t]
     
     r <- 1
+    # r <- 3
     for(r in 1:n.trial.rho) {
       #Specify intercepts and spatio-temporal variation across time
       RhoConfig <- trial.rho[r,]
@@ -375,9 +282,138 @@ if(do.estim==TRUE) {
         s <- 1
         for(s in species.series) {
           # output[[s]]
-          output[[s]] <- wrapper_fxn(s=s, n_x=n_x, RhoConfig=RhoConfig,
-                                  n_PE=n_PE, PE_vec=PE_vec, FieldConfig=FieldConfig)
-          # , bias.correct=bias.correct, species.list=species.list)
+          # wrapper_fxn <- function(ss, n_x, RhoConfig, n_PE, PE_vec, FieldConfig) {
+            # require(TMB)
+            # require(TMBhelper)
+            # require(VAST)
+            
+            #Define file for analyses
+            DateFile <- paste0(trial.dir,"/",species.list$survey[s],"_",species.list$name[s],"/")
+            
+            dir.create(DateFile, recursive=TRUE)
+            
+            #Define species.codes
+            species.codes <- species.list$species.code[s]
+            survey <- species.list$survey[s]
+            
+            #=======================================================================
+            ##### READ IN DATA AND BUILD VAST INPUT #####
+            #  NOTE: this will create the DateFile
+            VAST_input <- create_VAST_input(species.codes=species.codes, combineSpecies=FALSE,
+                                            lat_lon.def=lat_lon.def, save.Record=FALSE,
+                                            Method=Method, grid_size_km=grid_size_km, n_x=n_x,
+                                            Kmeans_Config=Kmeans_Config,
+                                            strata.limits=strata.limits, survey=survey,
+                                            DateFile=DateFile,
+                                            FieldConfig=FieldConfig, RhoConfig=RhoConfig,
+                                            OverdispersionConfig=OverdispersionConfig,
+                                            ObsModel=ObsModel, Options=Options, Version=Version)
+            
+            # str(VAST_input)
+            #Unpack
+            TmbData <- VAST_input$TmbData
+            Data_Geostat <- VAST_input$Data_Geostat
+            Spatial_List <- VAST_input$Spatial_List
+            Extrapolation_List <- VAST_input$Extrapolation_List
+            
+            # print(TmbData)
+            
+            print('Before create TmbList')
+            #=======================================================================
+            ##### RUN VAST #####
+            #Build TMB Object
+            #  Compilation may take some time - ERROR HERE
+            TmbList <- VAST::Build_TMB_Fn(TmbData = TmbData, RunDir = DateFile,
+                                          Version = Version, 
+                                          Q_Config=FALSE, CovConfig=FALSE,
+                                          RhoConfig = RhoConfig, loc_x = Spatial_List$loc_x,
+                                          Method = Method)
+            print('After create TmbList')
+            
+            Obj <- TmbList[["Obj"]]
+            
+            if(bias.correct==FALSE) {
+              Opt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
+                                         upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
+                                         bias.correct = bias.correct, newtonsteps=1)
+              # summary(Opt)
+            }else {
+              # #NEW: Only Bias Correct Index
+              # Opt <- TMBhelper::Optimize(obj=Obj, lower=TmbList[["Lower"]], 
+              #                            upper=TmbList[["Upper"]], getsd=TRUE, savedir=DateFile, 
+              #                            bias.correct=bias.correct, newtonsteps=1,
+              #                            bias.correct.control=list(sd=TRUE, nsplit=10, split=NULL,
+              #                                                      vars_to_correct="Index_cyl"))
+              Opt <- TMBhelper::Optimize(obj=Obj, lower=TmbList[["Lower"]], 
+                                  upper=TmbList[["Upper"]], getsd=TRUE, savedir=DateFile, 
+                                  bias.correct=bias.correct, newtonsteps=1)
+            }
+            #Save output
+            # Report = Obj$report()
+            # Save = list("Opt"=Opt, "Report"=Report, "ParHat"=Obj$env$parList(Opt$par), "TmbData"=TmbData)
+            # save(Save, file=paste0(DateFile,"Save.RData"))
+            
+            #HESSIAN NOT POSITIVE DEFINITE
+            # bs <- sdreport( obj=Obj, bias.correct=FALSE )  #
+            # Opt$SD <- bs
+            #Calculate index values
+            # TmbData = TmbData, Sdreport = Opt[["SD"]]
+            vast_est <- get_VAST_index(TmbData=TmbData, Sdreport=Opt[["SD"]], bias.correct=bias.correct, Data_Geostat=Data_Geostat)
+            #========================================================================
+            ##### DIAGNOSTIC AND PREDICTION PLOTS #####
+            # plot_VAST_output(Opt, Report, DateFile, survey, TmbData, Data_Geostat, Extrapolation_List, Spatial_List)
+            
+            #========================================================================
+            ##### CLEANUP VAST OUTPUT #####
+            # cleanup_VAST_file(DateFile=DateFile, Version=Version) #No longer necessary as we are deleting everything at the end
+            
+            rm("VAST_input", "TmbData", "Data_Geostat", "Spatial_List", "Extrapolation_List",
+               "TmbList", "Obj","Save","Report")#, "Save")#, "Opt", "Report")
+            #========================================================================
+            setwd(home.dir)
+            #========================================================================
+            ##### CALL RE MODEL #####
+            #Calculate Separate Design-based indices for GOA
+            temp.west <- calc_design_based_index(species.codes=species.codes, survey=survey, reg.area="WESTERN GOA")
+            temp.cent <- calc_design_based_index(species.codes=species.codes, survey=survey, reg.area="CENTRAL GOA")  
+            temp.east <- calc_design_based_index(species.codes=species.codes, survey=survey, reg.area="EASTERN GOA")
+            
+            #Bring Together (except 2001 when Eastern GOA was not surveyed)
+            input.yrs <- sort(unique(temp.west$YEAR))
+            #Remove 2001
+            input.yrs <- input.yrs[-which(input.yrs==2001)]
+            
+            #Index values
+            input.idx <- data.frame(temp.west$Biomass[temp.west$YEAR %in% input.yrs],
+                                    temp.cent$Biomass[temp.cent$YEAR %in% input.yrs],
+                                    temp.east$Biomass[temp.east$YEAR %in% input.yrs])
+            names(input.idx) <- c("Western","Centeral","Eastern")
+            input.idx <- as.matrix(input.idx)
+            
+            #Index CV
+            input.cv <- data.frame(temp.west$CV[temp.west$YEAR %in% input.yrs],
+                                   temp.cent$CV[temp.cent$YEAR %in% input.yrs],
+                                   temp.east$CV[temp.east$YEAR %in% input.yrs])
+            
+            names(input.cv) <- c("Western","Centeral","Eastern")
+            input.cv <- as.matrix(input.cv)
+            
+            #Copy, compile, call ADMB-RE model
+            biomA <- run_RE_model(input.yrs, input.idx, input.cv, DateFile, home.dir, n_PE=n_PE, PE_vec=PE_vec)
+            
+            #========================================================================
+            setwd(home.dir)
+            
+            ##### RETURN SECTION #####
+            out <- NULL
+            out$vast_est <- vast_est
+            out$Opt <- Opt
+            out$biomA <- biomA
+          #   return(out)
+          # } 
+          
+          #RETURN SECTION ============
+          output[[s]] <- out
           
         }#next s
         
@@ -389,6 +425,7 @@ if(do.estim==TRUE) {
         # print(counter)
         counter <- counter + 1
       }#next f
+      
     }#next r
   }#next t
   
@@ -415,6 +452,9 @@ if(do.estim==TRUE) {
   
   print(paste('### START:', time.1))
   print(paste('### END:', time.2))
+  
+  #Need to re-set working directory
+  setwd(home.dir)
   
 }else {
   #Old
@@ -470,8 +510,9 @@ for(s in 1:n.species) {
     
     #Update Convergence and AIC estimates
     aic.vect <- append(aic.vect, vast_est.output[[i]][[s]]$Opt$AIC)
-    converge.vect <- append(converge.vect, vast_est.output[[i]][[s]]$Opt$converge)
-    maxGrad.vect <- append(maxGrad.vect, max(abs(vast_est.output[[i]][[s]]$Opt$diagnostics$final_gradient)))
+    converge.vect <- append(converge.vect, ifelse(vast_est.output[[i]][[s]]$Opt$Convergence_check=="There is no evidence that the model is not converged", TRUE, FALSE))
+    # maxGrad.vect <- append(maxGrad.vect, max(abs(vast_est.output[[i]][[s]]$Opt$diagnostics$final_gradient)))  #Equivalent
+    maxGrad.vect <- append(maxGrad.vect, vast_est.output[[i]][[s]]$Opt$max_gradient)
     
     yrs <- sort(unique(vast_est.output[[i]][[s]]$vast_est$Year))
     n.yrs <- length(yrs)
@@ -567,21 +608,27 @@ aic.df <- aic.df[aic.df$RhoConfig!='FE + IaY',]
 #Plot the Max Gradients
 g <- ggplot(aic.df, aes(x=RhoConfig, y=maxGradient, color=Knots)) +
   theme_gray() +
-  geom_point(alpha=0.5) +
-  facet_grid(Est_Spatial_RE~Species, scales='free') +
-  theme(axis.text.x=element_text(angle=45, hjust=1))
+  geom_point() +
+  # facet_grid(Est_Spatial_RE~Species, scales='free') +
+  facet_wrap(~Species, ncol=4, scales='free_y') +
+  theme(axis.text.x=element_text(angle=45, hjust=1)) +
+  geom_hline(yintercept=1e-3)
 g
-ggsave(paste0(output.dir,'/Convergence.png'), plot=g, height=8, width=8, units='in', dpi=1e3)
+ggsave(paste0(output.dir,'/maxGradient.png'), plot=g, height=5, width=8, units='in', dpi=250)
 
 g <- ggplot(aic.df, aes(x=RhoConfig, y=Converge, color=Knots)) +
   theme_gray() +
-  geom_point(alpha=0.5) +
-  facet_grid(Est_Spatial_RE~Species, scales='free') +
+  geom_point() +
+  # facet_grid(Est_Spatial_RE~Species, scales='free') +
+  facet_wrap(~Species, ncol=4) +
   theme(axis.text.x=element_text(angle=45, hjust=1))
 g
+ggsave(paste0(output.dir,'/Convergence.png'), plot=g, height=5, width=8, units='in', dpi=250)
 
-#===========================================================
-#Plotting Rockfish
+
+
+
+#Plotting Rockfish ===========================================================
 
 heights <- 9
 widths <- 7
@@ -609,6 +656,8 @@ for(t in 1:n.trial.knots) {
     ylab('Proportion') +
     theme(axis.text.x=element_text(angle=45, hjust=1))
   # g
+  ggsave(paste0(output.dir,'/Rockfish ', temp.knots,'kt-STRE.png'), plot=g, 
+         height=heights/2, width=widths, units='in', dpi=1e3)
   
   #Don't Estimate Spatial RE
   do.spatial <- FALSE
@@ -635,8 +684,8 @@ for(t in 1:n.trial.knots) {
          height=heights, width=widths, units='in', dpi=1e3)
 }#next t
 
-#===========================================================
-#Plotting Pollock and Pcod
+
+#Plotting Pollock and Pcod ===========================================================
 t <- 1
 for(t in 1:n.trial.knots) {
   temp.knots <- trial.knots[t]
@@ -658,6 +707,8 @@ for(t in 1:n.trial.knots) {
     ylab('Proportion') +
     theme(axis.text.x=element_text(angle=45, hjust=1))
   # g
+  ggsave(paste0(output.dir,'/Pollock_Cod ', temp.knots,'kt-STRE.png'), plot=g, 
+         height=heights/2, width=widths, units='in', dpi=1e3)
   
   #Don't Estimate Spatial RE
   do.spatial <- FALSE
@@ -685,8 +736,7 @@ for(t in 1:n.trial.knots) {
 }#next t
 
 
-#===========================================================
-#Plotting Other Species
+#Plotting Other Species ===========================================================
 t <- 1
 for(t in 1:n.trial.knots) {
   temp.knots <- trial.knots[t]
@@ -708,6 +758,8 @@ for(t in 1:n.trial.knots) {
     ylab('Proportion') +
     theme(axis.text.x=element_text(angle=45, hjust=1))
   # g
+  ggsave(paste0(output.dir,'/Others ', temp.knots,'kt-STRE.png'), plot=g, 
+         height=heights/2, width=widths, units='in', dpi=1e3)
   
   #Don't Estimate Spatial RE
   do.spatial <- FALSE
@@ -733,6 +785,38 @@ for(t in 1:n.trial.knots) {
   ggsave(paste0(output.dir,'/Others ', temp.knots,'kt.png'), plot=g12, 
          height=heights, width=widths, units='in', dpi=1e3)
 }#next t
+
+#PLOT: Spatial Distribution Examples ==============================================
+n.species
+species
+
+loc.rockfish <- which(species.list$name %in% rockfish)
+
+#Extract the model fit
+
+names(vast_est.output[[1]][[3]])
+
+#Harlequin Rockfish
+Opt <- vast_est.output[[1]][[loc.rockfish[3]]]
+
+
+MapDetails_List = SpatialDeltaGLMM::MapDetails_Fn( "Region"="Gulf_of_Alaska",
+                                                   "NN_Extrap"=Spatial_List$PolygonList$NN_Extrap,
+                                                   "Extrapolation_List"=Extrapolation_List )
+
+SpatialDeltaGLMM::PlotResultsOnMap_Fn(plot_set = c(3),
+                                      MappingDetails = MapDetails_List[["MappingDetails"]],
+                                      Report = Report, Sdreport = Opt$SD, PlotDF = MapDetails_List[["PlotDF"]],
+                                      MapSizeRatio = MapDetails_List[["MapSizeRatio"]],
+                                      Xlim = MapDetails_List[["Xlim"]], Ylim = MapDetails_List[["Ylim"]],
+                                      FileName = DateFile, Year_Set = Year_Set, Years2Include = Years2Include,
+                                      Rotate = MapDetails_List[["Rotate"]], Cex = MapDetails_List[["Cex"]],
+                                      Legend = MapDetails_List[["Legend"]], zone = MapDetails_List[["Zone"]],
+                                      mar = c(0, 0, 2, 0), oma = c(3.5, 3.5, 0, 0), cex = 1.8,
+                                      plot_legend_fig = TRUE)
+
+
+
 
 #===========================================================
 #Printing GOA POP Table

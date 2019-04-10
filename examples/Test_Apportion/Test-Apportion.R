@@ -22,6 +22,7 @@
 
 require(VAST)
 require(TMB)
+require(TMBhelper)
 require(parallel)
 require(snowfall)
 require(ggplot2)
@@ -56,7 +57,7 @@ species.list <- read.csv("data/eval_species_list.csv", stringsAsFactors=FALSE)
 species.list <- species.list[species.list$include=='Y',]
 #Limit to GOA
 species.list <- species.list[species.list$survey=='GOA',]
-species.list <- species.list[species.list$name!='Spiny dogfish',]
+species.list <- species.list[species.list$name!='Spiny dogfish' & species.list$name!='Big skate',]
 n.species <- nrow(species.list)
 
 #Create
@@ -73,18 +74,21 @@ PE_vec <- c(1:3)
 n.cores <- detectCores()-1
 
 #Boolean for running estimation models
-do.estim <- FALSE
+do.estim <- TRUE
 
 #Trial Knot Numbers
-trial.knots <- c(250)
+trial.knots <- c(100)
 n.trial.knots <- length(trial.knots)
 
 #Trial AUTOREGRESSIVE specifications
 #Note starts at 0
 # rho.int.types <- c('Fixed_Effect','Independent_Among_Years','Random_Walk','Constant_Intercept','Autoregressive')
 rho.int.types <- c('FE','IaY','RW','CI','AR')
-# rho.stRE.types <- c('Independent_Among_Years',NA,'Random_Walk',NA,'Autoregressive')
+# # rho.stRE.types <- c('Independent_Among_Years',NA,'Random_Walk',NA,'Autoregressive')
 rho.stRE.types <- c('IaY',NA,'RW',NA,'AR')
+
+# rho.int.types <- c('FE','I')
+# rho.stRE.types <- rho.int.types
 
 #Read in Autoregressive Input
 # trial.rho <- t(read.csv('Data/Test-Autoregressive-Input.csv', header=TRUE, stringsAsFactors=FALSE)[,-c(1:2)])
@@ -95,15 +99,20 @@ rho.stRE.types <- c('IaY',NA,'RW',NA,'AR')
 #                       1,1,2,2,
 #                       2,2,4,4),ncol=4, nrow=6, byrow=TRUE)
 
+# trial.rho <- matrix(c(2,2,0,0,
+#                       4,4,0,0,
+#                       2,2,4,4,
+#                       4,4,2,2),ncol=4, nrow=4, byrow=TRUE)
+
 trial.rho <- matrix(c(2,2,0,0,
                       4,4,0,0,
-                      2,2,4,4,
-                      4,4,2,2),ncol=4, nrow=4, byrow=TRUE)
+                      2,2,2,2,
+                      4,4,4,4),ncol=4, nrow=4, byrow=TRUE)
 
 n.trial.rho <- nrow(trial.rho)
 
 
-flag.spatial <- c(TRUE,FALSE)
+flag.spatial <- c(TRUE)#,FALSE)
 n.flag.spatial <- length(flag.spatial)
 # #Intercept
 # rho.inter.ep <- c(0) #Encounter Probability Component 
@@ -200,13 +209,14 @@ wrapper_fxn <- function(s, n_x, RhoConfig, n_PE, PE_vec, FieldConfig) {
   if(bias.correct==FALSE) {
     Opt <- TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
                                upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
-                               bias.correct = bias.correct, newtonsteps=2)
+                               bias.correct = bias.correct, newtonsteps=1)
+    # summary(Opt)
   }else {
     #NEW: Only Bias Correct Index
     Opt <- TMBhelper::Optimize(obj=Obj, lower=TmbList[["Lower"]], 
                                upper=TmbList[["Upper"]], getsd=TRUE, savedir=DateFile, 
-                               bias.correct=bias.correct, newtonsteps=2,
-                               bias.correct.control=list(sd=TRUE, nsplit=200, split=NULL,
+                               bias.correct=bias.correct, newtonsteps=1,
+                               bias.correct.control=list(sd=TRUE, nsplit=10, split=NULL,
                                                          vars_to_correct="Index_cyl"))
   }
   #Save output
@@ -346,6 +356,7 @@ if(do.estim==TRUE) {
         sfExportAll() #Exportas all global variables to cores
         sfLibrary(TMB)  #Loads a package on all nodes
         sfLibrary(VAST)
+        sfLibrary(TMBhelper)
         output <- sfLapply(species.series, fun=wrapper_fxn, n_x=n_x, RhoConfig=RhoConfig,
                              n_PE=n_PE, PE_vec=PE_vec, FieldConfig=FieldConfig)
         #
