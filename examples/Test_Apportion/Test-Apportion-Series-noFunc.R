@@ -31,6 +31,9 @@
 # [1] "### START: Tue Jan 29 09:38:47 2019"
 # [1] "### END: Tue Jan 29 13:25:35 2019"
 
+# [1] "### START: Sun Apr 14 22:50:32 2019"
+# [1] "### END: Mon Apr 15 06:46:08 2019"
+
 #Lognormal with Po
 ##==================================================================================================
 # require(SpatialDeltaGLMM)
@@ -87,8 +90,11 @@ species.series <- c(1:n.species)
 #=======================================================================
 ##### CONTROL SECTION #####
 #Specify process error terms for RE model
-n_PE <- 3
-PE_vec <- c(1:3)
+# n_PE <- 3
+# PE_vec <- c(1:3)
+
+n_PE <- 1
+PE_vec <- rep(1,3)
 #####
 
 #Number of cores to use
@@ -185,7 +191,7 @@ Options = c(SD_site_density = 0, SD_site_logdensity = 0,
             Calculate_Coherence = 0)
 
 #Output Directory Name
-output.dir <- paste0(working.dir,"/output_bias.correct_",bias.correct)
+output.dir <- paste0(working.dir,"/output_bias.correct_",bias.correct, " n_PE-",n_PE)
 dir.create(output.dir)
 
 

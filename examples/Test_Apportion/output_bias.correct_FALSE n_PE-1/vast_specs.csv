@@ -1,0 +1,4 @@
+"","vast_knots","vast_rho.int","vast_rho.stRE","vast_do.spatial"
+"1",100,"FE","RW",TRUE
+"2",100,"RW","RW",TRUE
+"3",100,"AR","RW",TRUE

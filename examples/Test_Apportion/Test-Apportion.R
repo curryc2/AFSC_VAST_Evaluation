@@ -19,7 +19,6 @@
 # [1] "### START: Tue Jul 18 15:32:25 2017"
 # [1] "### END: Wed Jul 19 01:35:23 2017"
 ##==================================================================================================
-
 require(VAST)
 require(TMB)
 require(TMBhelper)
@@ -31,6 +30,11 @@ require(reshape2)
 require(gridExtra)
 require(ggthemes)
 require(cowplot)
+require(RANN)
+require(PBSmodelling)
+require(PBSmapping)
+require(XML)
+require(FishStatsUtils)
 
 
 source("R/calc-design-based-index.r")
@@ -57,7 +61,9 @@ species.list <- read.csv("data/eval_species_list.csv", stringsAsFactors=FALSE)
 species.list <- species.list[species.list$include=='Y',]
 #Limit to GOA
 species.list <- species.list[species.list$survey=='GOA',]
-species.list <- species.list[species.list$name!='Spiny dogfish' & species.list$name!='Big skate',]
+# species.list <- species.list[species.list$name!='Spiny dogfish' & species.list$name!='Big skate',]
+species.list <- species.list[species.list$name!='Spiny dogfish',]
+
 n.species <- nrow(species.list)
 
 #Create
@@ -66,8 +72,11 @@ species.series <- c(1:n.species)
 #=======================================================================
 ##### CONTROL SECTION #####
 #Specify process error terms for RE model
-n_PE <- 3
-PE_vec <- c(1:3)
+# n_PE <- 3
+# PE_vec <- c(1:3)
+
+n_PE <- 1
+PE_vec <- rep(1,3)
 #####
 
 #Number of cores to use
@@ -104,10 +113,10 @@ rho.stRE.types <- c('IaY',NA,'RW',NA,'AR')
 #                       2,2,4,4,
 #                       4,4,2,2),ncol=4, nrow=4, byrow=TRUE)
 
-trial.rho <- matrix(c(2,2,0,0,
-                      4,4,0,0,
+trial.rho <- matrix(c(0,0,2,2,
                       2,2,2,2,
-                      4,4,4,4),ncol=4, nrow=4, byrow=TRUE)
+                      4,4,2,2
+                      ),ncol=4, nrow=3, byrow=TRUE)
 
 n.trial.rho <- nrow(trial.rho)
 
@@ -147,16 +156,17 @@ strata.limits <- data.frame(STRATA = c("Western","Central",'Eastern'),
 # RhoConfig = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0)
 OverdispersionConfig = c(Delta1 = 0, Delta2 = 0)
 
-ObsModel = c(1, 0) #Lognormal
+ObsModel = c(1, 1) #Lognormal - Poisson-link Delta
+# ObsModel = c(1, 0) #Lognormal - Delta
 
 #SPECIFY OUTPUTS
 Options = c(SD_site_density = 0, SD_site_logdensity = 0,
-            Calculate_Range = 1, Calculate_evenness = 0, Calculate_effective_area = 1,
+            Calculate_Range = 0, Calculate_evenness = 0, Calculate_effective_area = 0,
             Calculate_Cov_SE = 0, Calculate_Synchrony = 0,
             Calculate_Coherence = 0)
 
 #Output Directory Name
-output.dir <- paste0(working.dir,"/output_bias.correct_",bias.correct)
+output.dir <- paste0(working.dir,"/output_bias.correct_",bias.correct, " n_PE-",n_PE)
 dir.create(output.dir)
 
 
@@ -166,6 +176,9 @@ dir.create(output.dir)
 s <- 1 #Spiny dogfish
 # for(s in 1:n.species) {
 wrapper_fxn <- function(s, n_x, RhoConfig, n_PE, PE_vec, FieldConfig) {
+  require(VAST)
+  require(TMB)
+  require(TMBhelper)
   
   #Define file for analyses
   DateFile <- paste0(trial.dir,"/",species.list$survey[s],"_",species.list$name[s],"/")
@@ -203,7 +216,8 @@ wrapper_fxn <- function(s, n_x, RhoConfig, n_PE, PE_vec, FieldConfig) {
   #  Compilation may take some time
   TmbList <- VAST::Build_TMB_Fn(TmbData = TmbData, RunDir = DateFile,
                                 Version = Version, RhoConfig = RhoConfig, loc_x = Spatial_List$loc_x,
-                                Method = Method)
+                                Method = Method,
+                                Q_Config=FALSE, CovConfig=FALSE)
   Obj <- TmbList[["Obj"]]
   
   if(bias.correct==FALSE) {
@@ -212,12 +226,15 @@ wrapper_fxn <- function(s, n_x, RhoConfig, n_PE, PE_vec, FieldConfig) {
                                bias.correct = bias.correct, newtonsteps=1)
     # summary(Opt)
   }else {
-    #NEW: Only Bias Correct Index
+    # #NEW: Only Bias Correct Index
+    # Opt <- TMBhelper::Optimize(obj=Obj, lower=TmbList[["Lower"]], 
+    #                            upper=TmbList[["Upper"]], getsd=TRUE, savedir=DateFile, 
+    #                            bias.correct=bias.correct, newtonsteps=1,
+    #                            bias.correct.control=list(sd=TRUE, nsplit=10, split=NULL,
+    #                                                      vars_to_correct="Index_cyl"))
     Opt <- TMBhelper::Optimize(obj=Obj, lower=TmbList[["Lower"]], 
                                upper=TmbList[["Upper"]], getsd=TRUE, savedir=DateFile, 
-                               bias.correct=bias.correct, newtonsteps=1,
-                               bias.correct.control=list(sd=TRUE, nsplit=10, split=NULL,
-                                                         vars_to_correct="Index_cyl"))
+                               bias.correct=bias.correct, newtonsteps=1)
   }
   #Save output
   # Report = Obj$report()
@@ -331,7 +348,7 @@ if(do.estim==TRUE) {
         if(RhoConfig[1]==RhoConfig[2]) {#IF intercept specs are the same
           vast_rho.int[counter] <- rho.int.types[RhoConfig[1]+1]
         }else {#IF different
-        vast_rho.int[counter] <- paste0(rho.int.types[RhoConfig[1]+1], "-", rho.int.types[RhoConfig[2]+1])
+          vast_rho.int[counter] <- paste0(rho.int.types[RhoConfig[1]+1], "-", rho.int.types[RhoConfig[2]+1])
         }
         if(RhoConfig[3]==RhoConfig[4]) {
           vast_rho.stRE[counter] <- rho.stRE.types[RhoConfig[3]+1]
@@ -357,11 +374,20 @@ if(do.estim==TRUE) {
         sfLibrary(TMB)  #Loads a package on all nodes
         sfLibrary(VAST)
         sfLibrary(TMBhelper)
+        
+        sfSource("R/calc-design-based-index.r")
+        sfSource("R/create-VAST-input.r")
+        sfSource("R/create-Data-Geostat.r")
+        sfSource("R/load-RACE-data.r")
+        sfSource("R/cleanup-VAST-file.r")
+        sfSource("R/get-VAST-index.r")
+        sfSource("R/run-RE-model.r")
+        
         output <- sfLapply(species.series, fun=wrapper_fxn, n_x=n_x, RhoConfig=RhoConfig,
                              n_PE=n_PE, PE_vec=PE_vec, FieldConfig=FieldConfig)
         #
-        # temp.out <- wrapper_fxn(s=1, n_x=n_x, RhoConfig=RhoConfig,
-        #                         n_PE=n_PE, PE_vec=PE_vec, FieldConfig=FieldConfig)
+        temp.out <- wrapper_fxn(s=1, n_x=n_x, RhoConfig=RhoConfig,
+                                n_PE=n_PE, PE_vec=PE_vec, FieldConfig=FieldConfig)
 
         sfStop()
 

@@ -34,7 +34,7 @@ create_VAST_input <- function(species.codes, combineSpecies=FALSE, lat_lon.def="
   
   #vERSION NUMBER
   # Version  <- "VAST_v2_4_0"
-  
+  require(SpatialDeltaGLMM)
   #DATA Set
   Data_Set <- "VAST_EVAL"
   
@@ -111,7 +111,7 @@ create_VAST_input <- function(species.codes, combineSpecies=FALSE, lat_lon.def="
                       GridList=Spatial_List$GridList, Method=Spatial_List$Method, Options=Options )
   }else {
     #SINGLE SPECIES
-    TmbData = VAST::Data_Fn(Version = Version, FieldConfig = FieldConfig,
+    TmbData <- VAST::Data_Fn(Version = Version, FieldConfig = FieldConfig,
                       OverdispersionConfig = OverdispersionConfig, RhoConfig = RhoConfig,
                       ObsModel = ObsModel, c_i = rep(0, nrow(Data_Geostat)),
                       b_i = Data_Geostat[, "Catch_KG"], a_i = Data_Geostat[,"AreaSwept_km2"],
