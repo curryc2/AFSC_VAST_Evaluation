@@ -9,12 +9,12 @@ Thumbs.db
 .Rhistory
 .RData
 *.DS_Store
-
 #Ignore Testing Examples
 # exclude everything
 examples/VAST_output/*
-
 tests/Option_1/*
 tests/Option_2/*
 tests/Option_3/*
 tests/Option_4/*
+
+.DS_Store
