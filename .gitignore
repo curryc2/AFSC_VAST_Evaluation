@@ -9,6 +9,9 @@ Thumbs.db
 .Rhistory
 .RData
 *.DS_Store
+.DS_Store
+data/AKFIN Fall 2019/*
+data/Pete Fall 2019/*
 #Ignore Testing Examples
 # exclude everything
 examples/VAST_output/*
@@ -16,5 +19,3 @@ tests/Option_1/*
 tests/Option_2/*
 tests/Option_3/*
 tests/Option_4/*
-
-.DS_Store
