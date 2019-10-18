@@ -34,7 +34,7 @@ create_VAST_input <- function(species.codes, combineSpecies=FALSE, lat_lon.def="
   
   #vERSION NUMBER
   # Version  <- "VAST_v2_4_0"
-  require(SpatialDeltaGLMM)
+  # require(SpatialDeltaGLMM)
   #DATA Set
   Data_Set <- "VAST_EVAL"
   
