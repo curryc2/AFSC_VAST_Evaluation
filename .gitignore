@@ -12,6 +12,8 @@ Thumbs.db
 .DS_Store
 data/AKFIN Fall 2019/*
 data/Pete Fall 2019/*
+data/Data Files Prior to Fall 2019 Update/*
+
 #Ignore Testing Examples
 # exclude everything
 examples/VAST_output/*
