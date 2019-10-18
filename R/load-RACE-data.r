@@ -34,9 +34,11 @@ load_RACE_data <- function(species.codes=c(30150,30152), combineSpecies=FALSE, s
   # if(file.exists("data/race_base_catch.csv")==FALSE) { stop("data/race_base_catch.csv NOT FOUND") }
   # if(file.exists("data/race_species_codes.csv")==FALSE) { stop("data/race_species_codes.csv NOT FOUND") }
   # 
-  # #Load catch and haul data
+  # #Load catch and haul data - FRIST TIME THEN SAVE AS .rds
   # haul <- read.csv("data/race_base_haul.csv", header=TRUE, stringsAsFactors=FALSE)
-  # catch <- read.csv("data/race_base_catch.csv", header=TRUE, stringsAsFactors=FALSE)
+  # catch <- read.csv("data/race_base_catch.csv", header=TRUE, stringsAsFactors=FALSE)[,-1]
+  # saveRDS(haul, file=file.path("data","race_base_haul.rds"))
+  # saveRDS(catch, file=file.path("data","race_base_catch.rds"))
   
   #FOR NEW .RData INPUT
   #Opening section to determine suitability
@@ -55,6 +57,20 @@ load_RACE_data <- function(species.codes=c(30150,30152), combineSpecies=FALSE, s
   #Limit to only certified abundance hauls
   haul <- haul[haul$ABUNDANCE_HAUL=='Y',]
   
+  # Experimental Extraction of New Data from Pete Fall 2019 ==========================
+  
+  # Print Examples
+  # write.csv(head(catch), file=file.path("data","RACE Fall 2019","Examples of Prior Files","race_base_catch_EXAMPLE.csv"))
+  # write.csv(head(haul), file=file.path("data","RACE Fall 2019","Examples of Prior Files","race_base_haul_EXAMPLE.csv"))
+  # write.csv(head(cruise.info), file=file.path("data","RACE Fall 2019","Examples of Prior Files","race_cruise_info_EXAMPLE.csv"))
+  
+  
+  # test.haul <- read.csv(file.path("data","RACE Fall 2019","race_base_haul.csv"))
+  # head(test.haul)
+  # head(haul)
+  # test.cruise
+  # ==================================================================================
+  
   #Merge data
   # catchhaul <- merge(x=catch, y=haul, all.y=TRUE, all.x=FALSE, by.x="HAULJOIN", by.y="HAULJOIN")
   #dplyr it for greater speed
@@ -69,9 +85,6 @@ load_RACE_data <- function(species.codes=c(30150,30152), combineSpecies=FALSE, s
                                                if_multiple_records="First",
                                                 Method="Fast")
   
-
-  
-  
   #Bring in cruise info
   #Add year of survey and name
   cruise.info <- read.csv("data/race_cruise_info.csv", header=TRUE, stringsAsFactors=FALSE)
@@ -82,11 +95,10 @@ load_RACE_data <- function(species.codes=c(30150,30152), combineSpecies=FALSE, s
   catchhaul.3 <- inner_join(x=catchhaul.2, y=cruise.info[,c("Cruise.Join.ID","Year","Survey")],
                            by=c("CRUISEJOIN.x"="Cruise.Join.ID"))
 
-  
   # #Find difference
   # loc <- which(catchhaul.3$CRUISEJOIN.x %in% catchhaul.3.in$CRUISEJOIN.x)
   # catchhaul.3[-loc,]
-  
+
   #Limit to specific survey
   catchhaul.3 <- catchhaul.3[catchhaul.3$Survey==survey,]
   # catchhaul.3 <- catchhaul.3[catchhaul.3$Survey==survey & catchhaul.3$REGION.x==area,]
