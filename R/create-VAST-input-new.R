@@ -94,7 +94,7 @@ create_VAST_input_new <- function(species.codes, combineSpecies=FALSE, lat_lon.d
                                                            randomseed = Kmeans_Config[["randomseed"]],
                                                            nstart = Kmeans_Config[["nstart"]],
                                                            iter.max = Kmeans_Config[["iter.max"]], DirPath = DateFile,
-                                                           Save_Results = FALSE)
+                                                           Save_Results = TRUE)
   #Update Data_Geostat
   Data_Geostat <- cbind(Data_Geostat, knot_i = Spatial_List$knot_i)
   
@@ -132,10 +132,10 @@ create_VAST_input_new <- function(species.codes, combineSpecies=FALSE, lat_lon.d
                                             ObsModel=ObsModel, bias.correct=bias.correct,
                                             Options=Options, use_anisotropy=TRUE,
                                             vars_to_correct = "Index_cyl", 
-                                            Version=Version)
+                                            Version=Version, treat_nonencounter_as_zero=FALSE)
   
   # Make Mapping Data =======================
-  MapDetails_List <- make_map_info(Region=Region, Extrapolation_List=Extrapolation_List, 
+  MapDetails_List <- FishStatsUtils::make_map_info(Region=Region, Extrapolation_List=Extrapolation_List, 
                                   spatial_list = Spatial_List,
                                   NN_Extrap = Spatial_List$PolygonList$NN_Extrap,
                                   fine_scale = Spatial_List$fine_scale,
