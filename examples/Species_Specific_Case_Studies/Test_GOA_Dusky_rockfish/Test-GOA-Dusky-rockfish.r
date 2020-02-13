@@ -32,7 +32,7 @@ lat_lon.def <- "start"
 survey <- "GOA"
 Region <- 'Gulf_of_Alaska'
 
-bias.correct <- TRUE
+bias.correct <- FALSE
 
 #SPATIAL SETTINGS
 Method <- c("Grid", "Mesh", "Spherical_mesh")[2]
@@ -77,15 +77,15 @@ temp.data <- load_RACE_data(species.codes=species.codes, combineSpecies=combineS
 write.csv(temp.data, file=paste0(trial.file,"/Dusky rockfish Input Data Curry.csv"))
 
 
-VAST_input <- create_VAST_input(species.codes=species.codes, combineSpecies=combineSpecies,
-                                     lat_lon.def=lat_lon.def, save.Record=TRUE,
-                                     Method=Method, grid_size_km=grid_size_km, n_x=n_x,
-                                     Kmeans_Config=Kmeans_Config,
-                                     strata.limits=strata.limits, survey=survey,
-                                     DateFile=DateFile,
-                                     FieldConfig=FieldConfig, RhoConfig=RhoConfig,
-                                     OverdispersionConfig=OverdispersionConfig,
-                                     ObsModel=ObsModel, Options=Options, Version=Version)
+VAST_input <- create_VAST_input_new(species.codes=species.codes, combineSpecies=combineSpecies,
+                                    lat_lon.def=lat_lon.def, save.Record=FALSE,
+                                    Method=Method, grid_size_km=grid_size_km, n_x=n_x,
+                                    Kmeans_Config=Kmeans_Config,
+                                    strata.limits=strata.limits, survey=survey,
+                                    DateFile=DateFile,
+                                    FieldConfig=FieldConfig, RhoConfig=RhoConfig,
+                                    OverdispersionConfig=OverdispersionConfig,
+                                    ObsModel=ObsModel, Options=Options, Version=Version)
 
 #Unpack
 TmbData <- VAST_input$TmbData
